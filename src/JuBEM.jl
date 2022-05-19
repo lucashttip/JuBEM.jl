@@ -6,9 +6,10 @@ using Revise, DelimitedFiles
 
 
 
-includet("typedefinitions.jl")
+include("typedefinitions.jl")
 export material_table_type, mesh_type, problem_type, solver_var_type, cmplx_consts
 
-includet("Input.jl")
+include("input.jl")
+export readmsh, read_msh
 
 end

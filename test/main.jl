@@ -13,8 +13,6 @@
 using Revise
 using JuBEM
 
-
-
 #     ! # Variable Declaration
 #=
     #     ! ## IO Variables
@@ -49,7 +47,7 @@ using JuBEM
 #     ! =================================================
 
     # ! ## Read from input
-    mesh, material, problem, solver_var = read_msh(inp_file)
+    mesh, material, problem, solver_var = readmsh(inp_file)
 
     # ! ## Allocate data as needed 
     # !    and calculate material, problem and solver variables:

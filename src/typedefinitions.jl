@@ -42,7 +42,7 @@ mutable struct mesh_type
     nelem :: Int32
     npoints :: Int32
     nnodes :: Int32
-    eltype :: Int32
+    eltype :: Int8
     offset :: Float64
     ID :: Array{Int32,2}    
     IEN_geo :: Array{Int32,2}   
