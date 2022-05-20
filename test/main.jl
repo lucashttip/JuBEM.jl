@@ -49,8 +49,7 @@ using JuBEM
     # ! ## Read from input
     mesh, material, problem, solver_var = readmsh(inp_file)
 
-    # ! ## Allocate data as needed 
-    # !    and calculate material, problem and solver variables:
+    # Calculate material, problem and solver variables:
     # call derive_data (mesh, material, problem, solver_var)
 
     # ! Generate physical mesh:
