@@ -111,11 +111,11 @@ function calc_k(nnel)
     end
 end
 
-using FastGaussQuadrature
+# using FastGaussQuadrature
 
-csis, omega = gausslegendre(8)
+# csis, omega = gausslegendre(8)
 
-csisij = [-1.0,0.0, 1.0]
+# csisij = [-1.0,0.0, 1.0]
 
-N = calc_N_matriz(csisij, csis)
-dNdcsi = calc_dNdcsi_matriz(csisij,csis)
+# N = calc_N_matriz(csisij, csis)
+# dNdcsi = calc_dNdcsi_matriz(csisij,csis)

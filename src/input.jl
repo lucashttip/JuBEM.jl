@@ -2,126 +2,6 @@
 # Inspirado no pacote MeshIO.jl: https://github.com/JuliaIO/MeshIO.jl/blob/master/src/io/msh.jl
 @enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock
 
-function readdatafromfile(inp_file)
-    fid = open(inp_file, "r")
-
-    # Reading information about the mesh
-    data = split(read(fid,String),'\n')
-    close(fid)
-    return data
-end
-
-function locatesubstring(sbstr,strarr)
-    i = 1
-    for line in strarr
-        if line ==  sbstr
-            return i
-        end 
-        i = i+1
-    end
-end
-
-function readmsh(inp_file)
-    data = readdatafromfile(inp_file)
-    l = 1
-    nmat = parse(Int,data[1])
-    
-    mesh = mesh_type()
-    material = []
-    problem = problem_type()
-    solver_var = solver_var_type()
-
-
-    for i in 2:1+nmat
-        line = split(data[i],' ')
-        Ge = parse(Float64, line[1])
-        Nu = parse(Float64, line[2])
-        Dam = parse(Float64, line[3])
-        Rho = parse(Float64, line[4])
-        material = [material; material_table_type(Ge,Nu,Dam,Rho)]
-    end
-    
-    l = 2+nmat
-
-    nfrs = parse(Int,data[l])
-
-    for i in 1:nfrs
-        values = parse.(Float64,split(data[l+i], ' '))
-        if i == 1
-            problem.fr_range = [problem.fr_range;values[1];values[2]]
-        else
-            problem.fr_range = [problem.fr_range;values[2]]
-        end
-        problem.nFr = [problem.nFr; Int32(values[3])]
-    end
-
-    l = l + nfrs +1
-
-    solver_var.nGP = parse(Int,data[l])
-
-    l = l+1
-    mesh.offset = parse(Float64,data[l])
-
-    l = l+1
-    mesh.eltype = parse(Int,data[l])
-
-    l = l+2
-    F = parse.(Float64,data[l:l+5])
-
-    l = locatesubstring("\$PhysicalNames", data) +1
-
-    n_phys = parse.(Int,data[l])
-
-    bc = zeros(n_phys,2)
-    bcvalue = zeros(n_phys,3)
-    mat = zeros(n_phys,2)
-
-    bcvalue.=0.0
-
-    for i in 1:n_phys
-
-    end
-
-    # # Reading which are the rigid elements
-    # data = ""
-    # for i in 1:nr_rigid_elements
-    #     data = string(data,readline(io_in;keep=true))
-    # end
-    # rigid_elements = readdlm(IOBuffer(data), '\t', Int, '\n')
-
-    # # Skipping lines
-    # for i in 1:(nr_be - nr_rigid_elements+2)
-    #     readline(io_in)
-    # end
-
-    # # Reading Points
-    # data = ""
-    # for i in 1:nr_external_point
-    #     data = string(data,join(split(readline(io_in)),'\t'),'\n')
-    # end
-    # points = readdlm(IOBuffer(data),'\t', Float64, '\n'; skipblanks=true)
-
-    # # Reading elements
-    # data = ""
-    # for i in 1:nr_be+2
-    #     data = string(data,join(split(readline(io_in)),'\t'),'\n')
-    # end
-    # elem = Int.(readdlm(IOBuffer(data),'\t', Float64, '\n'; skipblanks=true))
-
-    # data = ""
-    # for line in readlines(io_in;keep=true)
-    #     data = string(data,line)
-    # end
-    # boundary_conditions =readdlm(IOBuffer(data),'\t', Float64, '\n'; skipblanks=true)
-
-    # close(io_in)
-    return mesh,material,problem,solver_var
-
-    # return mesh, material, problem, solver_var
-    
-end
-
-
 function read_msh(inp_file)
     
     io = open(inp_file,"r")
@@ -132,6 +12,8 @@ function read_msh(inp_file)
     solver_var = solver_var_type()
 
     F = zeros(6)
+
+    vars=[]
 
     while !eof(io)
         BlockType = parse_blocktype!(io)
@@ -145,12 +27,18 @@ function read_msh(inp_file)
             parse_forces!(io,F)
         elseif BlockType == MSHPhysicalNamesBlock
             bc, bcvalue, mat = parse_physicalnames(io)
-        # elseif BlockType == MSHEntitiesBlock
-        #     parse_entities!(io)
-        # elseif BlockType == MSHNodesBlock
-        #     parse_nodes!(io)
-        # elseif BlockType == MSHElementsBlock
-        #     parse_elements!(io)
+            push!(vars,bc)
+            push!(vars,bcvalue)
+            push!(vars,mat)
+        elseif BlockType == MSHEntitiesBlock
+            s_entities = parse_entities(io)
+            push!(vars,s_entities)
+            # println(s_entities)
+        elseif BlockType == MSHNodesBlock
+            parse_nodes!(io, mesh)
+        elseif BlockType == MSHElementsBlock
+            println(F)
+            parse_elements!(io, mesh, vars[4], vars[1], vars[2], vars[3])
         else
             skip_block!(io)
         end
@@ -161,6 +49,7 @@ end
 
 function parse_blocktype!(io)
     header = readline(io)
+    println(header)
     if header == "\$Material"
         return MSHMaterialBlock
     elseif header == "\$Frequencies"
@@ -230,10 +119,10 @@ function parse_forces!(io, F)
     for i in 1:6
         F[i] = parse(Float64, readline(io))
     end
+    endblock = readline(io)
     if endblock != "\$EndForces"
         error("expected end block tag, got $endblock")
     end
-    return mesh, solver_var
     return F
 end
 
@@ -249,32 +138,103 @@ function parse_physicalnames(io)
         data = split(replace(readline(io), "\"" =>""))
         bc[i,1] = parse(Float64, data[2])
         mat[i,:] = [parse(Float64, data[2]); parse(Float64, data[end])]
-        bcvalue[i,:] = parse.(Float64,data[2:4])
+        bcvalue[i,:] = parse.(Float64,data[4:6])
         if data[3] == "u"
             bc[i,2] = 1
         elseif data[3] == "t"
             bc[i,2] = 2
-        elseif data[3] == "r"
-            bc[i,3] = 3
+        elseif data[3] == "rb"
+            bc[i,2] = 3
         end
     end
+    endblock = readline(io)
+
     if endblock != "\$EndPhysicalNames"
         error("expected end block tag, got $endblock")
     end
-    return mesh, solver_var
+
     return bc, bcvalue, mat
 end
 
-function parse_entities!(io)
-    
+function parse_entities(io)
+    npoints, ncurves, nsurfaces = parse.(Int,split(readline(io))[1:end-1])
+
+    s_entities = zeros(nsurfaces,2)
+
+    for i in 1:(npoints+ncurves)
+        readline(io)
+    end
+
+    for i in 1:nsurfaces
+        s_entities[i,:] = parse.(Float64,split(readline(io))[[1,9]])
+    end
+    endblock = readline(io)
+    if endblock != "\$EndEntities"
+        error("expected end block tag, got $endblock")
+    end
+    return s_entities
 end
 
-function parse_nodes!(io)
-    
+function parse_nodes!(io,mesh)
+    entity_blocks, num_nodes, min_node_tag, max_node_tag = parse.(Int, split(readline(io)))
+    mesh.npoints = num_nodes
+    mesh.points = zeros(num_nodes,4)
+
+    for index_entity in 1:entity_blocks
+        dim, tag, parametric, nodes_in_block = parse.(Int, split(readline(io)))
+        node_tags = zeros(Int,nodes_in_block)
+        for i in 1:nodes_in_block
+            node_tags[i] = parse(Int, readline(io))
+        end
+        mesh.points[node_tags,1] = node_tags
+        for i in 1:nodes_in_block
+            xyz = parse.(Float64, split(readline(io)))
+            mesh.points[node_tags[i],2:end] = xyz
+        end
+    end
+    endblock = readline(io)
+    if endblock != "\$EndNodes"
+        error("expected end block tag, got $endblock")
+    end
+    return mesh
 end
 
-function parse_elements!(io)
-    
+function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
+    num_elements = parse.(Int, split(readline(io)))
+
+    num_entity_blocks, num_elements, min_element_tag, max_element_tag = num_elements
+
+    mesh.IEN_geo = zeros(Int32, 4, num_elements)
+    mesh.bc = zeros(Int16,num_elements)
+    mesh.bcvalue = zeros(Float64,3*num_elements+6)
+    mesh.material = zeros(Int16,num_elements)
+
+    for index_entity in 1:num_entity_blocks
+
+        dim, tag, element_type, elements_in_block = parse.(Int, split(readline(io)))
+        s = findfirst(s_entities[:,1].==tag)
+        ptag = Int(s_entities[s,2])
+
+        if element_type == 3 # Quadrangles
+            for i in 1:elements_in_block
+                e, n1, n2, n3, n4 = parse.(Int, split(readline(io)))
+                mesh.IEN_geo[:,e] = [n1, n2, n3, n4]
+                mesh.bc[e] = bc[ptag,2]
+                mesh.bcvalue[3*(e-1)+1:3*e] = bcvalue[ptag,:]
+                mesh.material[e] = mat[ptag,2]
+            end
+        else
+            # for now we ignore all other elements (points, lines, hedrons, etc)
+            for i in 1:elements_in_block
+                readline(io)
+            end
+        end
+    end
+    endblock = readline(io)
+    if endblock != "\$EndElements"
+        error("expected end block tag, got $endblock")
+    end
+    return mesh
 end
 
 function skip_block!(io)
