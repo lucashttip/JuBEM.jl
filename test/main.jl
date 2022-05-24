@@ -13,32 +13,6 @@
 using Revise
 using JuBEM
 
-#     ! # Variable Declaration
-#=
-    #     ! ## IO Variables
-    #     character(len=1024), parameter :: inp_file = "../data/mesh.msh" 
-    #     character(len=1024), parameter :: out_file = "../out/output.dat" 
-    #     integer :: out_fid,ux_fid, uy_fid, uz_fid, phix_fid, phiy_fid, phiz_fid
-
-    #     ! ## Mesh Variables
-    #     type(mesh_type) :: mesh
-
-    #     ! ## Material Variables
-    #     type(material_table_type), dimension(:), allocatable :: material
-
-    #     ! ## Problem variables
-    #     type(problem_type) :: problem
-
-    #     ! ## Solver variables
-    #     type(solver_var_type) :: solver_var
-
-    #     ! ## Auxiliary variables
-    #     integer :: i, itersolve, infosolve
-    #     integer, dimension(:), allocatable :: IPIV
-    #     complex(kind=dp), dimension(:), allocatable :: WORK          
-    #     complex(kind=dp), dimension(:), allocatable :: SWORK
-    #     real(kind=dp), dimension(:), allocatable :: RWORK
-=#
     inp_file = "mesh.msh"
 #     ! =================================================
 #     ! =================================================
@@ -47,7 +21,9 @@ using JuBEM
 #     ! =================================================
 
     # ! ## Read from input
-    mesh, material, problem, solver_var = readmsh(inp_file)
+    mesh, material, problem, solver_var = read_msh(inp_file)
+
+    derive_data!(material, problem, solver_var)
 
     # Calculate material, problem and solver variables:
     # call derive_data (mesh, material, problem, solver_var)

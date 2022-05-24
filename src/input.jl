@@ -37,7 +37,6 @@ function read_msh(inp_file)
         elseif BlockType == MSHNodesBlock
             parse_nodes!(io, mesh)
         elseif BlockType == MSHElementsBlock
-            println(F)
             parse_elements!(io, mesh, vars[4], vars[1], vars[2], vars[3])
         else
             skip_block!(io)
@@ -49,7 +48,6 @@ end
 
 function parse_blocktype!(io)
     header = readline(io)
-    println(header)
     if header == "\$Material"
         return MSHMaterialBlock
     elseif header == "\$Frequencies"
@@ -201,9 +199,10 @@ end
 
 function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
     num_elements = parse.(Int, split(readline(io)))
-
+    
     num_entity_blocks, num_elements, min_element_tag, max_element_tag = num_elements
-
+    mesh.nelem = num_elements
+    
     mesh.IEN_geo = zeros(Int32, 4, num_elements)
     mesh.bc = zeros(Int16,num_elements)
     mesh.bcvalue = zeros(Float64,3*num_elements+6)

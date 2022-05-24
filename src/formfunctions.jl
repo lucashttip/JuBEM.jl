@@ -5,10 +5,7 @@ function calc_N_matriz(csisij,csis)
 
     N = zeros(nGP,nGP,nnel)
     kij = calc_k(nnel)
-
-    println(nnel)
-    println(kij)
-    println(N)
+    
     for i in 1:nGP
         for j in 1:nGP
             for k in 1:nnel
@@ -28,9 +25,6 @@ function calc_dNdcsi_matriz(csisij,csis)
     dNdcsi = zeros(nGP,nGP,nnel)
     kij = calc_k(nnel)
 
-    println(nnel)
-    println(kij)
-    println(N)
     for i in 1:nGP
         for j in 1:nGP
             for k in 1:nnel
@@ -109,6 +103,9 @@ function calc_k(nnel)
     else
         error("Element type not supported")
     end
+end
+
+function calc_G()
 end
 
 # using FastGaussQuadrature

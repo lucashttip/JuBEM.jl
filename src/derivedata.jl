@@ -1,4 +1,4 @@
-function derive_data(mesh::mesh_type, material::material_table_type, problem::problem_type, solver_var::solver_var_type)
+function derive_data!(material::Vector{material_table_type}, problem::problem_type, solver_var::solver_var_type)
 
       
         
@@ -13,17 +13,19 @@ function derive_data(mesh::mesh_type, material::material_table_type, problem::pr
         solver_var.csi, solver_var.omega = gausslegendre(solver_var.nGP)
  
         # ! Calcula as frequencias
-        # k = 1
-        # associate(frequencies => problem%frequencies, nFr => problem%nFr, fr_range=> problem%fr_range)
-        #     frequencies(1) = fr_range(1)
-        #     do i = 1,size(nFr)
-        #         fr_step = (fr_range(i+1) - fr_range(i))/real(nFr(i)-1,kind=dp)
-        #         do j = 1, nFr(i)-1
-        #             frequencies(k+j) = fr_range(i) + j*fr_step
-        #         end do
-        #         k = k + nFr(i) - 1 
-        #     end do
-        # end associate
+        k = 1
+        
+        problem.frequencies = zeros(sum(problem.nFr) - length(problem.nFr)+1)
 
+        problem.frequencies[1] = problem.fr_range[1]
+        for i in 1:length(problem.nFr)
+            fr_step = (problem.fr_range[i+1] - problem.fr_range[i])/float(problem.nFr[i]-1)
+            for j in 1:problem.nFr[i]-1
+                problem.frequencies[k+j] = problem.fr_range[i] + j*fr_step
+            end
+            k = k + problem.nFr[i] - 1 
+        end
+
+        return material, problem, solver_var
 
 end
