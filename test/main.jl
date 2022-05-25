@@ -26,10 +26,10 @@ using JuBEM
     derive_data!(material, problem, solver_var)
 
     # Calculate material, problem and solver variables:
-    # call derive_data (mesh, material, problem, solver_var)
+    derive_data!(material, problem, solver_var)
 
     # ! Generate physical mesh:
-    # call generate_mesh(mesh)
+    generate_mesh!(mesh)
 
     # ! Create outputs
     # call create_output (out_file, mesh, material(1), solver_var%nGP, problem%nFr,problem%fr_range, out_fid,&
@@ -43,6 +43,8 @@ using JuBEM
 
 
     # do i = 1, size(problem%frequencies)
+    problem.frequency = problem.frequencies[1]
+    println("Rodando o para a frequencia 1: ", string(problem.frequency))
         # problem%frequency = problem%frequencies(i)
         # write(*,"(A, X, I3, 2X, A, F10.4)") 'rodando para frequencia ',i , 'Frequencia: ', problem%frequency
         
