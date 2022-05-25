@@ -39,9 +39,9 @@ end
 # end type mesh_type
 # "Type that holds the information of  3D general mesh"
 mutable struct mesh_type
-    nelem :: Int32
-    npoints :: Int32
-    nnodes :: Int32
+    nelem :: Int64
+    npoints :: Int64
+    nnodes :: Int64
     eltype :: Int8
     offset :: Float64
     ID :: Array{Int32,2}    

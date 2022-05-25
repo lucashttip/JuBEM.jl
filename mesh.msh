@@ -9,8 +9,8 @@ $Frequencies
 $EndFrequencies
 $MeshType
 8
-0.3
-2
+0.2
+1
 $EndMeshType
 $Forces
 1.000000E+00

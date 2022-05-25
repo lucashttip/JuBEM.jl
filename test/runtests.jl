@@ -38,7 +38,7 @@ begin
     csis_descont = [-0.5, 0.5]
 
     N = calc_N_matriz(csis_cont,csis_descont)
-    k = calc_k(9)
+    k = calc_k(4)
 
     pd = generate_nodes_in_elem(N,nodes[elem[1,:],:],k)
 
@@ -46,7 +46,7 @@ begin
 end
 
 begin
-    using JuBEM
+    using JuBEM, Plots
 
     mesh,material,problem,solver_var = read_msh("mesh.msh")
 

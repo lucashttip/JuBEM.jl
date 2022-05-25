@@ -105,7 +105,31 @@ function calc_k(nnel)
     end
 end
 
-function calc_G()
+function calc_G(csis_cont, csis_descont)
+    N = calc_N_matriz(csis_cont, csis_descont)
+
+    nnel = length(csis_descont)^2
+
+    L = remap_N(N,nnel)
+
+    G = inv(L)
+
+    return G
+
+end
+
+function remap_N(N,nnel)
+    Nn = zeros(nnel,nnel)
+    
+    a,b,c = size(N)
+    kij = calc_k(nnel)
+
+    for k in 1:nnel
+        for j in 1:nnel
+            Nn[j,k] = N[kij[k][1], kij[k][2],j]  
+        end
+    end
+    return Nn
 end
 
 # using FastGaussQuadrature
