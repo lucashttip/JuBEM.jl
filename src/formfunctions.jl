@@ -1,4 +1,4 @@
-function calc_N_matriz(csisij,csis)
+function calc_N_matrix(csisij,csis)
     nGP = length(csis)
     ordem = length(csisij)
     nnel = ordem^2
@@ -17,7 +17,7 @@ function calc_N_matriz(csisij,csis)
     return N
 end
 
-function calc_dNdcsi_matriz(csisij,csis)
+function calc_dNdcsi_matrix(csisij,csis)
     nGP = length(csis)
     ordem = length(csisij)
     nnel = ordem^2
@@ -36,6 +36,24 @@ function calc_dNdcsi_matriz(csisij,csis)
     return dNdcsi
 end
 
+function calc_dNdeta_matrix(csisij,csis)
+    nGP = length(csis)
+    ordem = length(csisij)
+    nnel = ordem^2
+
+    dNdcsi = zeros(nGP,nGP,nnel)
+    kij = calc_k(nnel)
+
+    for i in 1:nGP
+        for j in 1:nGP
+            for k in 1:nnel
+                dNdcsi[i,j,k] = calc_dNdeta(csisij,ordem,kij[k][1], kij[k][2], csis[i], csis[j])
+            end
+        end
+    end
+
+    return dNdcsi
+end
 
 function calc_N(csisij,nnel,i, j, csi, eta)
     N = 1
@@ -58,16 +76,20 @@ function calc_dNdcsi(csisij,ordem,i,j,csi,eta)
 
     dNdcsi = 0
     
-    for m in 1:ordem
-        dN = 1
-        for l in 1:ordem
-            if l != i && l != m
-                dN = dN*(csi - csisij[l])/(csisij[i] - csisij[l])
+    if ordem > 2
+        for m in 1:ordem
+            dN = 1
+            for l in 1:ordem
+                if l != i && l != m
+                    dN = dN*(csi - csisij[l])/(csisij[i] - csisij[l])
+                end
+            end
+            if m != i
+                dNdcsi = dNdcsi + (dN/(csisij[i] - csisij[m]))
             end
         end
-        if m != i
-            dNdcsi = dNdcsi + (dN/(csisij[i] - csisij[m]))
-        end
+    else
+        dNdcsi =1
     end
     
     for l in 1:ordem
@@ -78,6 +100,49 @@ function calc_dNdcsi(csisij,ordem,i,j,csi,eta)
     return dNdcsi
 end
 
+function calc_dNdeta(csisij,ordem,i,j,csi,eta)
+
+    dNdeta = 1
+    
+
+    for l in 1:ordem
+        if l != i
+            dNdeta = dNdeta*(csi - csisij[l])/(csisij[i] - csisij[l])
+        end
+    end
+
+
+    if ordem >2
+        for m in 1:ordem
+            dN = 1
+            
+            for l in 1:ordem
+                if l != j && l != m
+                    dN = dN*(eta - csisij[l])/(csisij[j] - csisij[l])
+                end
+            end
+            if m != j
+                dNdeta = dNdeta + (dN/(csisij[j] - csisij[m]))
+            end
+        end
+    end
+    
+    return dNdeta
+end
+
+function calc_u_in_N(N, u)
+    lx = size(N,1)
+    ly = size(N,2)
+    u2 = zeros(lx,ly)
+
+    for i in 1:lx
+        for j in 1:ly
+            u2[i,j] = N[i,j,:]'*u
+        end
+    end
+
+    return u2
+end
 
 function calc_k(nnel)
 
@@ -106,7 +171,7 @@ function calc_k(nnel)
 end
 
 function calc_G(csis_cont, csis_descont)
-    N = calc_N_matriz(csis_cont, csis_descont)
+    N = calc_N_matrix(csis_cont, csis_descont)
 
     nnel = length(csis_descont)^2
 
@@ -115,6 +180,19 @@ function calc_G(csis_cont, csis_descont)
     G = inv(L)
 
     return G
+
+end
+
+function calc_N_matrix_descont(N,G)
+    Nd = zeros(size(N))
+
+    for i in 1:size(N,1)
+        for j in 1:size(N,2)
+            Nd[i,j,:] = N[i,j,:]'*G
+        end
+    end
+
+    return Nd
 
 end
 
@@ -132,11 +210,3 @@ function remap_N(N,nnel)
     return Nn
 end
 
-# using FastGaussQuadrature
-
-# csis, omega = gausslegendre(8)
-
-# csisij = [-1.0,0.0, 1.0]
-
-# N = calc_N_matriz(csisij, csis)
-# dNdcsi = calc_dNdcsi_matriz(csisij,csis)

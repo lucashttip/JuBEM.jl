@@ -37,7 +37,7 @@ begin
     csis_cont = [-1.0, 1.0]
     csis_descont = [-0.5, 0.5]
 
-    N = calc_N_matriz(csis_cont,csis_descont)
+    N = calc_N_matrix(csis_cont,csis_descont)
     k = calc_k(4)
 
     pd = generate_nodes_in_elem(N,nodes[elem[1,:],:],k)
@@ -65,16 +65,24 @@ begin
     import Plots
     csis, omega = gausslegendre(8)
 
-    csisij = [-1.0,0.0, 1.0]
+    csisij = [-1.0, 1.0]
 
-    N = calc_N_matriz(csisij, csis)
-    dN = calc_dNdcsi_matriz(csisij,csis)
+    N = calc_N_matrix(csisij, csis)
+    dN = calc_dNdcsi_matrix(csisij,csis)
+    dNdeta = calc_dNdeta_matrix(csisij,csis)
+
+    
 end
 
 begin
-    plt1 = Plots.surface(csis,csis,N[:,:,9])
-    plt2 = Plots.surface(csis,csis,dN[:,:,9])
+    i = 2
+    plt1 = Plots.surface(csis,csis,N[:,:,i],xlabel="csi", ylabel = "eta")
+    plt2 = Plots.surface(csis,csis,dN[:,:,i],xlabel="csi", ylabel = "eta")
+    plt3 = Plots.surface(csis,csis,dNdeta[:,:,i],xlabel="csi", ylabel = "eta")
+
     display(plt1)
     display(plt2)
+    display(plt3)
+
 end
 

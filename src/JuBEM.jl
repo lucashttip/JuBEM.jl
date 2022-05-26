@@ -2,8 +2,7 @@ module JuBEM
 
 # Write your package code here.
 
-using Revise, DelimitedFiles, FastGaussQuadrature
-
+using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra
 
 
 include("typedefinitions.jl")
@@ -13,7 +12,7 @@ include("input.jl")
 export read_msh
 
 include("formfunctions.jl")
-export calc_N_matriz, calc_dNdcsi_matriz, calc_k,  calc_G, remap_N
+export calc_N_matrix, calc_dNdcsi_matrix, calc_k, calc_dNdeta_matrix, calc_G, remap_N, calc_N_matrix_descont, calc_u_in_N
 
 include("derivedata.jl")
 export derive_data!
@@ -22,6 +21,6 @@ include("generatemesh.jl")
 export generate_nodes_in_elem, generate_mesh!
 
 include("geometry.jl")
-export calc_normal
+export calc_n_J_matrix
 
 end

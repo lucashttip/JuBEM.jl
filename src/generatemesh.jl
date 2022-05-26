@@ -37,7 +37,7 @@ function generate_desc_mesh!(mesh)
     nnodes = nel*nnel
 
     k = calc_k(nnel)
-    N = calc_N_matriz(csis_cont,csis_descont)
+    N = calc_N_matrix(csis_cont,csis_descont)
 
     mesh.nnodes = nnodes
     mesh.ID = reshape(1:3*nnodes,3,nnodes)
