@@ -23,8 +23,6 @@ using JuBEM
     # ! ## Read from input
     mesh, material, problem, solver_var = read_msh(inp_file)
 
-    derive_data!(material, problem, solver_var)
-
     # Calculate material, problem and solver variables:
     derive_data!(material, problem, solver_var)
 

@@ -18,7 +18,7 @@ include("derivedata.jl")
 export derive_data!
 
 include("generatemesh.jl")
-export generate_nodes_in_elem, generate_mesh!
+export generate_nodes_in_elem, generate_mesh!, generate_points_in_elem
 
 include("geometry.jl")
 export calc_n_J_matrix
