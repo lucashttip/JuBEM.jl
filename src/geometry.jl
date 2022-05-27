@@ -9,6 +9,7 @@ function calc_n_J_matrix(dNdcsi, dNdeta, points)
 
     for i in 1:lx
         for j in 1:ly
+            # @infiltrate
             normal[i,j,:], J[i,j] = calc_n_J(dNdcsi[i,j,:],dNdeta[i,j,:],points)
         end
     end
@@ -21,7 +22,7 @@ end
 function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points
-
+    # @infiltrate
     v = cross(dpdcsi', dpdeta')
     J = norm(v)
     n = v./J

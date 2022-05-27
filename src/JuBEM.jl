@@ -2,7 +2,7 @@ module JuBEM
 
 # Write your package code here.
 
-using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra
+using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra, Infiltrator
 
 
 include("typedefinitions.jl")

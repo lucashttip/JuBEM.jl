@@ -96,11 +96,11 @@ end
 
 function generate_points_in_elem(N,p)
 
-    pd = zeros(size(N,1)*size(N,2),3)
+    pd = zeros(size(N,1),size(N,2),3)
     k = 1
     for i in 1:size(N,1)
         for j in 1:size(N,2)
-            pd[k,:] = N[i, j,:]'*p
+            pd[i,j,:] = N[i, j,:]'*p
             k = k+1
         end
     end

@@ -28,7 +28,7 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
         nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
 
         normal, J = calc_n_J_matrix(dNdcsi, dNdeta, nodes)
-
+        gauss_points = generate_points_in_elem(Nd,nodes)
         # source loop:
         for se in 1:nelem
        

@@ -75,7 +75,9 @@ begin
 end
 
 begin   # Para verificar localização dos pontos de gauss e normais
-    fe = 2
+    using JuBEM
+    using Infiltrator
+    fe = 1
 
     csis_cont = range(-1,1,length = mesh.eltype+1)
     csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
@@ -98,17 +100,19 @@ begin   # Para verificar localização dos pontos de gauss e normais
     # normal = reshape(normal,Int64(solver_var.nGP^2),3)
 
 
-    x = gauss_points[:,1]
-    y = gauss_points[:,2]
-    z = gauss_points[:,3]
+    # x = gauss_points[:,1]
+    # y = gauss_points[:,2]
+    # z = gauss_points[:,3]
 
 
-    Plots.scatter(nodes[:,1], nodes[:,2], label="elem descont")
-    Plots.scatter!(gauss_points[:,1], gauss_points[:,2], label="gauss points")
-    plt1 = Plots.scatter!(points[:,1], points[:,2], label="elem continuo")
+    # Plots.scatter(nodes[:,1], nodes[:,2], label="elem descont")
+    # Plots.scatter!(gauss_points[:,1], gauss_points[:,2], label="gauss points")
+    # plt1 = Plots.scatter!(points[:,1], points[:,2], label="elem continuo")
 
-    plt2 = Plots.quiver(x,y,z,quiver=(normal[:,1], normal[:,2], normal[:,3]))
+    # plt2 = Plots.quiver(x,y,z,quiver=(normal[:,1], normal[:,2], normal[:,3]))
 
+    normal[:,:,3]
+    # Plots.scatter(nodes[:,1]', nodes[:,2]', labels=["1" "2" "3" "4"])
 
 end
 
@@ -135,17 +139,17 @@ begin
     csisij = [-1.0, 1.0]
 
     N = calc_N_matrix(csisij, csis)
-    dN = calc_dNdcsi_matrix(csisij,csis)
+    dNdcsi = calc_dNdcsi_matrix(csisij,csis)
     dNdeta = calc_dNdeta_matrix(csisij,csis)
 
     
 end
 
 begin
-    i = 2
-    plt1 = Plots.surface(csis,csis,N[:,:,i],xlabel="csi", ylabel = "eta")
-    plt2 = Plots.surface(csis,csis,dN[:,:,i],xlabel="csi", ylabel = "eta")
-    plt3 = Plots.surface(csis,csis,dNdeta[:,:,i],xlabel="csi", ylabel = "eta")
+    i = 4
+    plt1 = Plots.surface(csis,csis,N[:,:,i],xlabel="eta", ylabel = "csi")
+    plt2 = Plots.surface(csis,csis,dNdcsi[:,:,i],xlabel="eta", ylabel = "csi")
+    plt3 = Plots.surface(csis,csis,dNdeta[:,:,i],xlabel="eta", ylabel = "csi")
 
     display(plt1)
     display(plt2)
@@ -153,3 +157,30 @@ begin
 
 end
 
+begin 
+    points1 = [
+        -2.0 9.0 0.0
+        -1.0 9.0 0.0
+        -1.0 10.0 0.0
+        -2.0 10.0 0.0
+    ]
+   
+    points2 = [
+        -2.0 10.0 0.0
+        -1.0 10.0 0.0
+        -1.0 9.0 0.0
+        -2.0 9.0 0.0
+    ]
+    
+
+
+end
+
+begin 
+    import Plots
+
+    Plots.scatter(mesh.points[:,2],mesh.points[:,3])
+    Plots.scatter!(mesh.nodes[:,2],mesh.nodes[:,3])
+
+
+end
