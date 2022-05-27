@@ -11,6 +11,8 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
     solver_var.H = complex(zeros(max_GL,max_GL))
     solver_var.G = complex(zeros(max_GL,max_GL))
 
+    nnel = (mesh.eltype+1)^2
+
     csis_cont = range(-1,1,length = mesh.eltype+1)
     csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
 
@@ -25,21 +27,25 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
     # Field loop:
     for fe in 1:nelem
     
-        nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
+        field_nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
 
-        normal, J = calc_n_J_matrix(dNdcsi, dNdeta, nodes)
-        gauss_points = generate_points_in_elem(Nd,nodes)
+        normal, J = calc_n_J_matrix(dNdcsi, dNdeta, field_nodes)
+        gauss_points = generate_points_in_elem(Nd,field_nodes)
         # source loop:
         for se in 1:nelem
-       
-            if fe != se
-                HELEM, GELEM = calc_nonsing()
-            else
-                HELEM, GELEM = calc_sing()
-            end
+            for n = 1:nnel
+                sn = mesh.IEN[n,se]
+                source_node = mesh.nodes[sn,2:end]
 
-            solver_var.H[mesh.LM[:,se], mesh.LM[:,fe]] = HELEM
-            solver_var.G[mesh.LM[:,se], mesh.LM[:,fe]] = GELEM
+                if fe != se
+                    HELEM, GELEM = calc_nonsing()
+                else
+                    HELEM, GELEM = calc_sing()
+                end
+
+                solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
+                solver_var.G[mesh.ID[:,sn], mesh.LM[:,fe]] = GELEM
+            end
 
         end
     
