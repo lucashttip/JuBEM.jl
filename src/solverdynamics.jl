@@ -2,8 +2,8 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
 
     nelem = mesh.nelem
     m = 1
-    C_stat = calc_static_consts(material[m])
-    zconsts = cmplx_consts(material,problem.frequency)
+    C_stat = calc_static_constants(material[m])
+    zconsts = cmplx_consts(material[m],frequency)
     delta = I(3)
     zHselem = complex(delta)./2.0
 
@@ -38,9 +38,11 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
                 source_node = mesh.nodes[sn,2:end]
 
                 if fe != se
-                    HELEM, GELEM = calc_nonsing()
+                    HELEM, GELEM = calc_nonsing(source_node,gauss_points,Nd,normal,J, solver_var.omega, delta, zconsts)
                 else
-                    HELEM, GELEM = calc_sing()
+                    # HELEM, GELEM = calc_sing()
+                    HELEM = zeros(ComplexF64,3,3*nnel)
+                    GELEM = zeros(ComplexF64,3,3*nnel)
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
@@ -50,5 +52,5 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
         end
     
     end
-
+    return solver_var
 end

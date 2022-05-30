@@ -21,6 +21,16 @@ include("generatemesh.jl")
 export generate_nodes_in_elem, generate_mesh!, generate_points_in_elem
 
 include("geometry.jl")
-export calc_n_J_matrix
+export calc_n_J_matrix, calc_static_constants
+
+include("fundamentalsolutions.jl")
+export calc_funsol_static, calc_funsol_dynamic
+
+include("integrationdynamics.jl")
+
+include("solverdynamics.jl")
+
+include("solver.jl")
+export calc_GH!
 
 end
