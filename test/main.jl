@@ -47,6 +47,8 @@ using JuBEM
         # write(*,"(A, X, I3, 2X, A, F10.4)") 'rodando para frequencia ',i , 'Frequencia: ', problem%frequency
         
         # ! ## Calculate G and H
+        calc_GH!(mesh, material, problem, solver_var)
+
         # call calc_GH(mesh, material, solver_var, problem)
 
         # ! ## Apply BC, arranging Ax = b
@@ -83,4 +85,3 @@ using JuBEM
 
 
     ## Free spaces and close files
-
