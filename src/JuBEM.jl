@@ -27,10 +27,17 @@ include("fundamentalsolutions.jl")
 export calc_funsol_static, calc_funsol_dynamic
 
 include("integrationdynamics.jl")
+include("integrationstatics.jl")
 
+include("solverstatics.jl")
 include("solverdynamics.jl")
+
+
 
 include("solver.jl")
 export calc_GH!
+
+include("plotting.jl")
+export visualize_mesh
 
 end

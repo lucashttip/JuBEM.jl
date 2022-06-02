@@ -1,5 +1,5 @@
 
-function calc_nonsing(source_node,gauss_points,N,normal,J, omega, delta, zconsts)
+function calc_nonsing_dynamic(source_node,gauss_points,N,normal,J, omega, delta, zconsts)
     nGP = length(omega)
     nnel = size(N,3)
     ZHELEM = zeros(ComplexF64,3,3*nnel)

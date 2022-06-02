@@ -92,9 +92,9 @@ mutable struct solver_var_type
     csi :: Array{Float64,1}
     omega :: Array{Float64,1}
     zvetsol :: Array{ComplexF64,1}
-    H :: Array{ComplexF64,2}
-    G :: Array{ComplexF64,2}
-    zma :: Array{ComplexF64,2}
+    H
+    G
+    zma
     solver_var_type() = new(0,[],[],Array{ComplexF64,1}(undef,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0))
 end
 

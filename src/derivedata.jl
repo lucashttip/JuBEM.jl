@@ -12,20 +12,29 @@ function derive_data!(material::Vector{material_table_type}, problem::problem_ty
         # ! Calcula os pontos de gauss
         solver_var.csi, solver_var.omega = gausslegendre(solver_var.nGP)
  
-        # ! Calcula as frequencias
-        k = 1
-        
-        problem.frequencies = zeros(sum(problem.nFr) - length(problem.nFr)+1)
 
-        problem.frequencies[1] = problem.fr_range[1]
-        for i in 1:length(problem.nFr)
-            fr_step = (problem.fr_range[i+1] - problem.fr_range[i])/float(problem.nFr[i]-1)
-            for j in 1:problem.nFr[i]-1
-                problem.frequencies[k+j] = problem.fr_range[i] + j*fr_step
-            end
-            k = k + problem.nFr[i] - 1 
+        if !isempty(problem.nFr)
+            calc_frequencies!(problem)
         end
-
+        
         return material, problem, solver_var
 
+end
+
+function calc_frequencies!(problem)
+    # ! Calcula as frequencias
+    k = 1
+        
+    problem.frequencies = zeros(sum(problem.nFr) - length(problem.nFr)+1)
+
+    problem.frequencies[1] = problem.fr_range[1]
+    for i in 1:length(problem.nFr)
+        fr_step = (problem.fr_range[i+1] - problem.fr_range[i])/float(problem.nFr[i]-1)
+        for j in 1:problem.nFr[i]-1
+            problem.frequencies[k+j] = problem.fr_range[i] + j*fr_step
+        end
+        k = k + problem.nFr[i] - 1 
+    end
+
+    return problem
 end

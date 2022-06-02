@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "mesh.msh"
+    inp_file = "bar.msh"
 #     ! =================================================
 #     ! =================================================
 #     ! ===================== Input =====================
@@ -41,8 +41,8 @@ using JuBEM
 
 
     # do i = 1, size(problem%frequencies)
-    problem.frequency = problem.frequencies[1]
-    println("Rodando o para a frequencia 1: ", string(problem.frequency))
+    # problem.frequency = problem.frequencies[1]
+    # println("Rodando o para a frequencia 1: ", string(problem.frequency))
         # problem%frequency = problem%frequencies(i)
         # write(*,"(A, X, I3, 2X, A, F10.4)") 'rodando para frequencia ',i , 'Frequencia: ', problem%frequency
         
