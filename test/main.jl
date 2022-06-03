@@ -49,10 +49,8 @@ using JuBEM
         # ! ## Calculate G and H
         calc_GH!(mesh, material, problem, solver_var)
 
-        # call calc_GH(mesh, material, solver_var, problem)
-
         # ! ## Apply BC, arranging Ax = b
-        # call apply_bc (mesh, solver_var)
+        # apply_bc!(mesh, solver_var)
 
         # ! ## Solve system Ax = b
         # call zcgesv (3*mesh%nelem+6, 1, solver_var%zma, 3*mesh%nelem+6, IPIV, mesh%zbcvalue, 3*mesh%nelem+6, &

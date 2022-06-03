@@ -39,9 +39,10 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                 if fe != se
                     HELEM, GELEM = calc_nonsing_static(source_node,gauss_points,Nd,normal,J, solver_var.omega, delta, C_stat)
                 else
-                    # HELEM, GELEM = calc_sing_static()
-                    HELEM = zeros(ComplexF64,3,3*nnel)
-                    GELEM = zeros(ComplexF64,3,3*nnel)
+                    # HELEM, GELEM = calc_nonsing_static(source_node,gauss_points,Nd,normal,J, solver_var.omega, delta, C_stat)
+                    # HELEM, GELEM = calc_sing_static(source_node,gauss_points,Nd,normal,J, solver_var.omega, delta, C_stat)
+                    HELEM = zeros(3,3*nnel)
+                    GELEM = zeros(3,3*nnel)
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM

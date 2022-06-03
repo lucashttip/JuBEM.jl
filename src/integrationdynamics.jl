@@ -12,8 +12,8 @@ function calc_nonsing_dynamic(source_node,gauss_points,N,normal,J, omega, delta,
             P1 = J[i,j]*omega[i]*omega[j]
             for k in 1:nnel
                 P = N[i,j,k]*P1
-                ZHELEM[:,3*(k-1)+1:3*k] = zt*P
-                ZGELEM[:,3*(k-1)+1:3*k] = zu*P
+                ZHELEM[:,3*(k-1)+1:3*k] += zt*P
+                ZGELEM[:,3*(k-1)+1:3*k] += zu*P
             end
         end
     end
