@@ -5,7 +5,7 @@ function calc_nonsing_static(source_node,gauss_points,N,normal,J, omega, delta, 
     GELEM = zeros(3,3*nnel)
     for i in 1:nGP
         for j in 1:nGP
-    
+
             u, t = calc_funsol_static(source_node,gauss_points[i,j,:], normal[i,j,:], delta, C_stat)
             
             P1 = J[i,j]*omega[i]*omega[j]

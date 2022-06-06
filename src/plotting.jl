@@ -1,5 +1,5 @@
-# import CairoMakie
-import GLMakie
+import CairoMakie
+# import GLMakie
 using Meshes
 using MeshViz
 

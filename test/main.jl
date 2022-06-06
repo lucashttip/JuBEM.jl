@@ -49,8 +49,6 @@ using JuBEM
         # ! ## Calculate G and H
         calc_GH!(mesh, material, problem, solver_var)
 
-        # call calc_GH(mesh, material, solver_var, problem)
-
         # ! ## Apply BC, arranging Ax = b
         applyBC_nonrb!(mesh, solver_var)
 
