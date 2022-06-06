@@ -11,8 +11,8 @@ function calc_nonsing_static(source_node,gauss_points,N,normal,J, omega, delta, 
             P1 = J[i,j]*omega[i]*omega[j]
             for k in 1:nnel
                 P = N[i,j,k]*P1
-                HELEM[:,3*(k-1)+1:3*k] = t*P
-                GELEM[:,3*(k-1)+1:3*k] = u*P
+                HELEM[:,3*(k-1)+1:3*k] += t*P
+                GELEM[:,3*(k-1)+1:3*k] += u*P
             end
         end
     end

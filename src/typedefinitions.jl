@@ -94,7 +94,7 @@ mutable struct solver_var_type
     zvetsol :: Array{ComplexF64,1}
     H
     G
-    zma
+    ma
     solver_var_type() = new(0,[],[],Array{ComplexF64,1}(undef,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0))
 end
 
