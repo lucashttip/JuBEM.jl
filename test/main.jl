@@ -52,6 +52,13 @@ using JuBEM
         # ! ## Apply BC, arranging Ax = b
         applyBC_nonrb!(mesh, solver_var)
 
+
+        x = solver_var.ma \ mesh.zbcvalue
+
+        u,t = returnut(mesh,x)
+
+        ut = u[mesh.LM[:,mesh.bc.==2][:]]
+
         # ! ## Solve system Ax = b
         # call zcgesv (3*mesh%nelem+6, 1, solver_var%zma, 3*mesh%nelem+6, IPIV, mesh%zbcvalue, 3*mesh%nelem+6, &
         # solver_var%zvetsol, 3*mesh%nelem+6, WORK, SWORK, RWORK, itersolve, infosolve)

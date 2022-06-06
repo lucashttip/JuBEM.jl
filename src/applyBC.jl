@@ -242,13 +242,30 @@ function applyBC_nonrb!(mesh, solver_var)
     mb.=0.0
     solver_var.ma.=0.0
 
-    solver_var.ma[:,1:3*nnel*neu] = solver_var.H[:,mesh.LM[:,elem_u][:]]
-    solver_var.ma[:,3*nnel*neu+1:end] = - solver_var.H[:,mesh.LM[:,elem_t][:]]
+    solver_var.ma[:,1:3*nnel*net] = solver_var.H[:,mesh.LM[:,elem_t][:]]
+    solver_var.ma[:,3*nnel*net+1:end] = - solver_var.H[:,mesh.LM[:,elem_u][:]]
     
-    mb[:,1:3*nnel*net] = - solver_var.H[:,mesh.LM[:,elem_t][:]]
-    mb[:,3*nnel*net+1:end] = solver_var.G[:,mesh.LM[:,elem_u][:]]
+    mb[:,1:3*nnel*neu] = - solver_var.H[:,mesh.LM[:,elem_u][:]]
+    mb[:,3*nnel*neu+1:end] = solver_var.G[:,mesh.LM[:,elem_t][:]]
     
     mesh.zbcvalue = mb*y
 
     return mesh,solver_var
+end
+
+function returnut(mesh,x)
+    nnel = (mesh.eltype+1)^2
+    u = zeros(3*mesh.nnodes)
+    t = zeros(3*mesh.nnodes)
+
+    elements = [i for i in 1:mesh.nelem]
+    neu = count(==(1),mesh.bc)
+    net = count(==(2),mesh.bc)
+    elem_u = elements[mesh.bc.==1]
+    elem_t = elements[mesh.bc.==2]
+
+    u[mesh.LM[:,elem_t]] = x[1:3*nnel*net]
+    t[mesh.LM[:,elem_u]] = x[3*nnel*net+1:end]
+
+    return u, t
 end

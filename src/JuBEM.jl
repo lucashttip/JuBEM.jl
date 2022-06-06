@@ -36,9 +36,9 @@ include("solver.jl")
 export calc_GH!
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!
+export applyBC!, applyBC_nonrb!, returnut
 
 include("plotting.jl")
-export visualize_mesh
+export visualize_mesh, visualize_mesh_raw
 
 end
