@@ -1,39 +1,16 @@
-function calc_N_matrix(csisij,csis)
-    nGP = length(csis)
+function calc_N_matrix2(csisij,csis)
+    n = size(csis,1)
     ordem = length(csisij)
     nnel = ordem^2
 
-    N = zeros(nGP,nGP,nnel)
+    N = zeros(n,nnel)
     kij = calc_k(nnel)
-    
-    for i in 1:nGP
-        for j in 1:nGP
-            for k in 1:nnel
-                csi = csis[i]
-                eta = csis[j]
-                N[i,j,k] = calc_N(csisij,ordem,kij[k][1], kij[k][2], csi, eta)
-            end
-        end
-    end
 
-    return N
-end
-
-function calc_N_matrix2(csisij,csis,etas)
-    nGP = length(csis)
-    ordem = length(csisij)
-    nnel = ordem^2
-
-    N = zeros(nGP*nGP,nnel)
-    kij = calc_k(nnel)
-    
-    for i in 1:nGP
-        for j in 1:nGP
-            for k in 1:nnel
-                csi = csis[i]
-                eta = etas[j]
-                N[nGP*(i-1)+j,k] = calc_N(csisij,ordem,kij[k][1], kij[k][2], csi, eta)
-            end
+    for i in 1:n
+        for k in 1:nnel
+            csi = csis[i,1]
+            eta = csis[i,2]
+            N[i,k] = calc_N(csisij,ordem,kij[k][1], kij[k][2], csi, eta)
         end
     end
 
@@ -41,43 +18,71 @@ function calc_N_matrix2(csisij,csis,etas)
 end
 
 
-function calc_dNdcsi_matrix(csisij,csis)
-    nGP = length(csis)
+function calc_N_matrix(csisij,csis,etas)
+
+    nl = length(csis)
+    
+    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
+
+    N = calc_N_matrix2(csisij,csis_grid)
+
+    return N
+end
+
+function calc_dNdcsi_matrix2(csisij,csis)
+
+    n = size(csis,1)
     ordem = length(csisij)
     nnel = ordem^2
 
-    dNdcsi = zeros(nGP,nGP,nnel)
+    dNdcsi = zeros(n,nnel)
     kij = calc_k(nnel)
 
-    for i in 1:nGP
-        for j in 1:nGP
-                csi = csis[i]
-                eta = csis[j]
-                dNdcsi[i,j,:] = calc_dNdcsi(csisij,ordem,kij, csi, eta)
-                # dNdcsi[i,j,:] = calc_dNdcsi2(eta)
-        end
+    for i in 1:n
+            csi = csis[i,1]
+            eta = csis[i,2]
+            dNdcsi[i,:] = calc_dNdcsi(csisij,ordem,kij, csi, eta)
     end
 
     return dNdcsi
 end
 
-function calc_dNdeta_matrix(csisij,csis)
-    nGP = length(csis)
+function calc_dNdcsi_matrix(csisij,csis, etas)
+
+    nl = length(csis)
+    
+    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
+
+    dNdcsi = calc_dNdcsi_matrix2(csisij,csis_grid)
+
+    return dNdcsi
+
+end
+
+function calc_dNdeta_matrix2(csisij,csis)
+    n = size(csis,1)
     ordem = length(csisij)
     nnel = ordem^2
 
-    dNdeta = zeros(nGP,nGP,nnel)
+    dNdeta = zeros(n,nnel)
     kij = calc_k(nnel)
 
-    for i in 1:nGP
-        for j in 1:nGP
-                csi = csis[i]
-                eta = csis[j]
-                dNdeta[i,j,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
-                # dNdeta[i,j,:] = calc_dNdeta2(csi)
-
-        end
+    for i in 1:n
+            csi = csis[i,1]
+            eta = csis[i,2]
+            dNdeta[i,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
     end
+
+    return dNdeta
+end
+
+function calc_dNdeta_matrix(csisij,csis,etas)
+
+    nl = length(csis)
+    
+    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
+
+    dNdeta = calc_dNdeta_matrix2(csisij,csis_grid)
 
     return dNdeta
 end
@@ -177,20 +182,6 @@ function calc_dNdeta(csisij,ordem,kij,csi,eta)
     return dNdeta
 end
 
-function calc_u_in_N(N, u)
-    lx = size(N,1)
-    ly = size(N,2)
-    u2 = zeros(lx,ly)
-
-    for i in 1:lx
-        for j in 1:ly
-            u2[i,j] = N[i,j,:]'*u
-        end
-    end
-
-    return u2
-end
-
 function calc_k(nnel)
 
     if nnel == 4
@@ -218,11 +209,7 @@ function calc_k(nnel)
 end
 
 function calc_G(csis_cont, csis_descont)
-    N = calc_N_matrix(csis_cont, csis_descont)
-
-    nnel = length(csis_descont)^2
-
-    L = remap_N(N,nnel)
+    L = calc_N_matrix(csis_cont, csis_descont, csis_descont)
 
     G = inv(L)
 
@@ -231,29 +218,46 @@ function calc_G(csis_cont, csis_descont)
 end
 
 function calc_N_matrix_descont(N,G)
-    Nd = zeros(size(N))
-
-    for i in 1:size(N,1)
-        for j in 1:size(N,2)
-            Nd[i,j,:] = N[i,j,:]'*G
-        end
-    end
+    
+    Nd = N*G
 
     return Nd
 
 end
 
-function remap_N(N,nnel)
-    Nn = zeros(nnel,nnel)
-    
-    a,b,c = size(N)
-    kij = calc_k(nnel)
+function calc_Ns(csis_cont, csis_descont, csis, etas)
 
-    for k in 1:nnel
-        for j in 1:nnel
-            Nn[j,k] = N[kij[k][1], kij[k][2],j]  
-        end
-    end
-    return Nn
+    Nc = calc_N_matrix(csis_cont, csis, etas)
+    dNcdcsi = calc_dNdcsi_matrix(csis_cont, csis, etas)
+    dNcdeta = calc_dNdeta_matrix(csis_cont, csis, etas)
+    G = calc_G(csis_cont, csis_descont)
+    Nd = calc_N_matrix_descont(Nc,G)
+    dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
+    dNdeta = calc_N_matrix_descont(dNcdeta,G)
+
+    return Nc, Nd, dNdcsi, dNdeta
 end
 
+function calc_Ns_sing(csis_cont, csis_descont, csis_sing)
+
+    Nc = calc_N_matrix2(csis_cont, csis_sing)
+    dNcdcsi = calc_dNdcsi_matrix2(csis_cont, csis_sing)
+    dNcdeta = calc_dNdeta_matrix2(csis_cont, csis_sing)
+    G = calc_G(csis_cont, csis_descont)
+    Nd = calc_N_matrix_descont(Nc,G)
+    dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
+    dNdeta = calc_N_matrix_descont(dNcdeta,G)
+
+    return Nc, Nd, dNdcsi, dNdeta
+end
+
+function calc_omegas(omega)
+    nGP = length(omega)
+    omegas = zeros(nGP*nGP)
+    for i in 1:nGP
+        for j in 1:nGP
+            omegas[nGP*(i-1)+j] = omega[i]*omega[j]
+        end
+    end
+    return omegas
+end

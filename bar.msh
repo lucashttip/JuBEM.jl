@@ -1,9 +1,9 @@
 $Material
 1
-1.000000E+01 0.3 0.01 1.0
+3.846000E+00 0.3 0.01 1.0
 $EndMaterial
 $MeshType
-4
+8
 0.5
 1
 $EndMeshType

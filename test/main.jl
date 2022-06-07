@@ -59,6 +59,10 @@ using JuBEM
 
         ut = u[mesh.LM[:,mesh.bc.==2][:]]
 
+        ut2 = [u[1:3:end] u[2:3:end] u[3:3:end]]
+
+        # dn = mesh.nodes[:,2:end]+ut2
+
         # ! ## Solve system Ax = b
         # call zcgesv (3*mesh%nelem+6, 1, solver_var%zma, 3*mesh%nelem+6, IPIV, mesh%zbcvalue, 3*mesh%nelem+6, &
         # solver_var%zvetsol, 3*mesh%nelem+6, WORK, SWORK, RWORK, itersolve, infosolve)

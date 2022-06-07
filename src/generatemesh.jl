@@ -37,7 +37,7 @@ function generate_desc_mesh!(mesh)
     nnodes = nel*nnel
 
     k = calc_k(nnel)
-    N = calc_N_matrix(csis_cont,csis_descont)
+    N = calc_N_matrix(csis_cont, csis_descont, csis_descont)
 
     mesh.nnodes = nnodes
     mesh.ID = reshape(1:3*nnodes,3,nnodes)
@@ -87,23 +87,18 @@ end
 
 function generate_nodes_in_elem(N,p,k)
 
-    pd = zeros(size(p,1),3)
-    for i in 1:length(k)
-        pd[i,:] = N[k[i][1], k[i][2],:]'*p
-    end
+    nl = sqrt(length(k))
+
+    idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in 1:length(k)]
+
+    pd = N[idx,:]*p
     return pd
 end
 
 function generate_points_in_elem(N,p)
+   
+    pd = N*p
 
-    pd = zeros(size(N,1),size(N,2),size(p,2))
-    k = 1
-    for i in 1:size(N,1)
-        for j in 1:size(N,2)
-            pd[i,j,:] = N[i, j,:]'*p
-            k = k+1
-        end
-    end
-    
     return pd
+    
 end
