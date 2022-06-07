@@ -19,6 +19,28 @@ function calc_N_matrix(csisij,csis)
     return N
 end
 
+function calc_N_matrix2(csisij,csis,etas)
+    nGP = length(csis)
+    ordem = length(csisij)
+    nnel = ordem^2
+
+    N = zeros(nGP*nGP,nnel)
+    kij = calc_k(nnel)
+    
+    for i in 1:nGP
+        for j in 1:nGP
+            for k in 1:nnel
+                csi = csis[i]
+                eta = etas[j]
+                N[nGP*(i-1)+j,k] = calc_N(csisij,ordem,kij[k][1], kij[k][2], csi, eta)
+            end
+        end
+    end
+
+    return N
+end
+
+
 function calc_dNdcsi_matrix(csisij,csis)
     nGP = length(csis)
     ordem = length(csisij)

@@ -12,7 +12,10 @@ include("input.jl")
 export read_msh
 
 include("formfunctions.jl")
-export calc_N_matrix, calc_dNdcsi_matrix, calc_k, calc_dNdeta_matrix, calc_G, remap_N, calc_N_matrix_descont, calc_u_in_N
+export calc_N_matrix,calc_N_matrix2, calc_dNdcsi_matrix, calc_k, calc_dNdeta_matrix, calc_G, remap_N, calc_N_matrix_descont, calc_u_in_N
+
+include("elementsubdivision.jl")
+export bilinear_strat1
 
 include("derivedata.jl")
 export derive_data!

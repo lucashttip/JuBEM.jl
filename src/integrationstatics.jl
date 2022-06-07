@@ -18,3 +18,9 @@ function calc_nonsing_static(source_node,gauss_points,N,normal,J, omega, delta, 
     end
     return HELEM, GELEM
 end
+
+function calc_sing_static_1(source_node,gauss_points,Nd,normal,J, omega, delta, C_stat)
+
+
+
+end
