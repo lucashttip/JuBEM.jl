@@ -38,3 +38,20 @@ function integrate_sing_static_1(source_node,gauss_points,N,normal,J, omegas, de
     return HELEM, GELEM
 
 end
+
+function integrate_rigid_body!(H,nnel)
+
+    ngdl = size(H,1)
+
+    for i in 1:ngdl
+        j = i% (3*nnel)
+        j == 0 ? j = 3*nnel : nothing
+
+        idx = collect(j:3*nnel:ngdl)
+
+        filter!(a->a!=i,idx)
+
+        H[i,i] = - sum(H[i,idx])
+    end
+    return H
+end

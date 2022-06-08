@@ -41,7 +41,8 @@ function calc_dNdcsi_matrix2(csisij,csis)
     for i in 1:n
             csi = csis[i,1]
             eta = csis[i,2]
-            dNdcsi[i,:] = calc_dNdcsi(csisij,ordem,kij, csi, eta)
+            # dNdcsi[i,:] = calc_dNdcsi(csisij,ordem,kij, csi, eta)
+            dNdcsi[i,:] = calc_dNdcsi2(eta)
     end
 
     return dNdcsi
@@ -70,7 +71,8 @@ function calc_dNdeta_matrix2(csisij,csis)
     for i in 1:n
             csi = csis[i,1]
             eta = csis[i,2]
-            dNdeta[i,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
+            # dNdeta[i,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
+            dNdeta[i,:] = calc_dNdeta2(csi)
     end
 
     return dNdeta
@@ -208,8 +210,15 @@ function calc_k(nnel)
     end
 end
 
-function calc_G(csis_cont, csis_descont)
+function calc_G(csis_cont, csis_descont, k)
+
+    nl = sqrt(length(k))
+
+    idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in 1:length(k)]
+
     L = calc_N_matrix(csis_cont, csis_descont, csis_descont)
+
+    L = L[idx,:]
 
     G = inv(L)
 
@@ -227,23 +236,31 @@ end
 
 function calc_Ns(csis_cont, csis_descont, csis, etas)
 
+    nnel = length(csis_cont)^2
+
+    k = calc_k(nnel)
+
     Nc = calc_N_matrix(csis_cont, csis, etas)
     dNcdcsi = calc_dNdcsi_matrix(csis_cont, csis, etas)
     dNcdeta = calc_dNdeta_matrix(csis_cont, csis, etas)
-    G = calc_G(csis_cont, csis_descont)
+    G = calc_G(csis_cont, csis_descont,k)
     Nd = calc_N_matrix_descont(Nc,G)
     dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
     dNdeta = calc_N_matrix_descont(dNcdeta,G)
 
-    return Nc, Nd, dNdcsi, dNdeta
+    return Nc, Nd, dNdcsi, dNdeta, dNcdcsi, dNcdeta, G
 end
 
 function calc_Ns_sing(csis_cont, csis_descont, csis_sing)
 
+    nnel = length(csis_cont)^2
+
+    k = calc_k(nnel)
+
     Nc = calc_N_matrix2(csis_cont, csis_sing)
     dNcdcsi = calc_dNdcsi_matrix2(csis_cont, csis_sing)
     dNcdeta = calc_dNdeta_matrix2(csis_cont, csis_sing)
-    G = calc_G(csis_cont, csis_descont)
+    G = calc_G(csis_cont, csis_descont,k)
     Nd = calc_N_matrix_descont(Nc,G)
     dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
     dNdeta = calc_N_matrix_descont(dNcdeta,G)

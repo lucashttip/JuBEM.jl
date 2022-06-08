@@ -21,7 +21,7 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     Nc, Nd, dNdcsi, dNdeta = calc_Ns(csis_cont, csis_descont, solver_var.csi,solver_var.csi)
 
-    csi_sing, omega_sing = csis_sing(mesh.offset, Nc, omegas)
+    csi_sing, omega_sing = csis_sing_2(mesh.offset, Nc, omegas)
     Nc_sing, Nd_sing, dNdcsi_sing, dNdeta_sing = calc_Ns_sing(csis_cont, csis_descont, csi_sing)
     
     # Field loop:
@@ -42,8 +42,16 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 else
 
-                    idx = collect((1:nnel) .+ (n-1))
-                    idx[idx.>nnel] = idx[idx.>nnel] .-nnel
+                    # idx = collect((1:nnel) .+ (n-1))
+                    # idx[idx.>nnel] = idx[idx.>nnel] .-nnel
+                    idx = [1,2,3,4]
+                    if n == 2
+                        idx = [4,1,2,3]
+                    elseif n == 3
+                        idx = [3,4,1,2]
+                    elseif n==4
+                        idx = [2,3,4,1]
+                    end
                     
                     Nd_sing2 = Nd_sing[:,idx]
                     dNdcsi_sing2 = dNdcsi_sing[:,idx]
@@ -51,10 +59,11 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
                     normal_sing, J_sing = calc_n_J_matrix(dNdcsi_sing2, dNdeta_sing2, field_nodes)
                     gauss_points_sing = generate_points_in_elem(Nd_sing2,field_nodes)
+                    # Plots.scatter(gauss_points_sing[:,2],gauss_points_sing[:,3])
 
                     HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing2, normal_sing, J_sing, omegas, delta, C_stat, n)
 
-                    HELEM = HELEM + [repeat(z,n-1);delta2;repeat(z,nnel-n)]'
+                    # HELEM = HELEM + [repeat(z,n-1);delta2;repeat(z,nnel-n)]'
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
@@ -63,6 +72,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
         end
     
+        integrate_rigid_body!(solver_var.H,nnel)
+
     end
     return solver_var
 

@@ -15,7 +15,7 @@ include("formfunctions.jl")
 export calc_N_matrix,calc_N_matrix2, calc_dNdcsi_matrix, calc_k, calc_dNdeta_matrix, calc_G, remap_N, calc_N_matrix_descont, calc_omegas, calc_Ns, calc_Ns_sing
 
 include("elementsubdivision.jl")
-export csis_sing
+export csis_sing_1, csis_sing_2
 
 include("derivedata.jl")
 export derive_data!
