@@ -224,6 +224,9 @@ function applyBC_nonrb!(mesh, solver_var)
     elem_t = elements[mesh.bc.==2]
     
     y = zeros(typeof(solver_var.H[1]), 3*nnel*mesh.nelem)
+    ye = zeros(typeof(solver_var.H[1]), nnel*mesh.nelem)
+
+    ye = mesh.bcvalue[[elem_u;elem_t]]
 
     for i in 1:neu
         i1 = 3*nnel*(i-1)+1
@@ -247,7 +250,7 @@ function applyBC_nonrb!(mesh, solver_var)
     
     mb[:,1:3*nnel*neu] = - solver_var.H[:,mesh.LM[:,elem_u][:]]
     mb[:,3*nnel*neu+1:end] = solver_var.G[:,mesh.LM[:,elem_t][:]]
-    
+    # @infiltrate
     mesh.zbcvalue = mb*y
 
     return mesh,solver_var

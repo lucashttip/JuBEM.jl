@@ -16,6 +16,44 @@ function calc_n_J_matrix(dNdcsi, dNdeta, points)
 
 end
 
+function calc_n_J_matrix_sing(dNcdcsi, dNcdeta, points,node_sing)
+
+    l1 = size(dNcdcsi,1)
+    l2 = 4*l1
+
+
+    normal = zeros(l2,3)
+    J = zeros(l2)
+    k = 1
+    for i in 1:4
+        if i==1
+            i1 = 1
+            i2 = 2
+        elseif i ==2
+            i1 = 2
+            i2 = 3
+        elseif i ==3
+            i1 = 3
+            i2 = 4
+        elseif i ==4
+            i1 = 4
+            i2 = 1
+        end
+        p1 = points[i1,:]
+        p2 = points[i2,:]
+        new_points = [p1';p2';node_sing';node_sing']
+
+        for j in 1:l1
+                # @infiltrate
+                normal[k,:], J[k] = calc_n_J(dNcdcsi[j,:],dNcdeta[j,:],new_points)
+                k = k+1
+        end
+    end
+    return normal, J
+
+end
+
+
 function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points

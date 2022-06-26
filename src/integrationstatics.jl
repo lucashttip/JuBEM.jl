@@ -55,3 +55,47 @@ function integrate_rigid_body!(H,nnel)
     end
     return H
 end
+
+function integrate_rigid_body2!(H,nnel)
+
+    nnodes = size(H,1)/3
+
+    for n in 1:nnodes
+
+        i1 = Int(3*(n-1)+1)
+        i2 = Int(3*(n-1)+2)
+        i3 = Int(3*n)
+
+        j1 = i1% (3*nnel)
+        j2 = i2% (3*nnel)
+        j3 = i3% (3*nnel)
+
+        j1 == 0 ? j1 = 3*nnel : nothing
+        j2 == 0 ? j2 = 3*nnel : nothing
+        j3 == 0 ? j3 = 3*nnel : nothing
+
+
+        idx1 = Int.(collect(j1:3*nnel:3*nnodes))
+        idx2 = Int.(collect(j2:3*nnel:3*nnodes))
+        idx3 = Int.(collect(j3:3*nnel:3*nnodes))
+
+
+        filter!(a->a!=i1,idx1)
+        filter!(a->a!=i2,idx2)
+        filter!(a->a!=i3,idx3)
+        
+
+        H[i1,i1] = - sum(H[i1,idx1])
+        H[i2,i1] = - sum(H[i2,idx1])
+        H[i3,i1] = - sum(H[i3,idx1])
+        H[i1,i2] = - sum(H[i1,idx2])
+        H[i2,i2] = - sum(H[i2,idx2])
+        H[i3,i2] = - sum(H[i3,idx2])
+        H[i1,i3] = - sum(H[i1,idx3])
+        H[i2,i3] = - sum(H[i2,idx3])
+        H[i3,i3] = - sum(H[i3,idx3])
+
+    end
+    
+    return H
+end

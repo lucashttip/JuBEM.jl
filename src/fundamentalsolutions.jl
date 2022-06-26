@@ -15,7 +15,7 @@ function calc_funsol_static(source_node,field_node, normal, delta, C_stat)
     C4 = C_stat[4]
 
     for j in 1:3
-        for i in 1:3 
+        for i in 1:3
             u[i,j] = (C1/R)*(C2*delta[i,j]+Rd[i]*Rd[j])
             t[i,j] = (C3/R2) * (Rdn * (C4*delta[i,j] + 3.0*Rd[i]*Rd[j]) + C4*(Rd[j]*normal[i] - Rd[i]*normal[j]))
         end

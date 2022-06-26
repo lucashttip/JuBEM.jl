@@ -244,11 +244,11 @@ function calc_Ns(csis_cont, csis_descont, csis, etas)
     dNcdcsi = calc_dNdcsi_matrix(csis_cont, csis, etas)
     dNcdeta = calc_dNdeta_matrix(csis_cont, csis, etas)
     G = calc_G(csis_cont, csis_descont,k)
-    Nd = calc_N_matrix_descont(Nc,G)
-    dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
-    dNdeta = calc_N_matrix_descont(dNcdeta,G)
+    Nd = Nc*G
+    dNdcsi = dNcdcsi*G
+    dNdeta = dNcdeta*G
 
-    return Nc, Nd, dNdcsi, dNdeta, dNcdcsi, dNcdeta, G
+    return Nc, Nd, dNdcsi, dNdeta, dNcdcsi, dNcdeta
 end
 
 function calc_Ns_sing(csis_cont, csis_descont, csis_sing)
