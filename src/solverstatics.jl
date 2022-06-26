@@ -1,4 +1,4 @@
-function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
+function calc_GH_static_non_const2!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
 
     nelem = mesh.nelem
     m = 1
@@ -69,6 +69,72 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     # GELEM = zeros(3,3*nnel)
 
                     # HELEM = HELEM + [repeat(z,n-1);delta2;repeat(z,nnel-n)]'
+                end
+
+                solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
+                solver_var.G[mesh.ID[:,sn], mesh.LM[:,fe]] = GELEM
+            end
+
+        end
+    
+        integrate_rigid_body2!(solver_var.H,nnel)
+
+    end
+    return solver_var
+
+end
+
+function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
+
+    nelem = mesh.nelem
+    m = 1
+    C_stat = calc_static_constants(material[m])
+    delta = I(3) 
+    nnel = (mesh.eltype+1)^2
+
+    max_GL = maximum(mesh.ID)
+    solver_var.H = zeros(max_GL,max_GL)
+    solver_var.G = zeros(max_GL,max_GL)
+
+    csis_cont = range(-1,1,length = mesh.eltype+1)
+    csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
+    omegas = calc_omegas(solver_var.omega)
+
+    k = calc_k(nnel)
+    csis_grid = calc_csis_grid(solver_var.csi)
+    Nc = calc_N_matrix(csis_cont,csis_grid)
+    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis_grid)
+    dNcdeta = calc_dNdeta_matrix(csis_cont,csis_grid)
+
+    G = calc_G(csis_cont,csis_descont,k)
+
+    Nd = Nc*G
+    dNddcsi = dNcdcsi*G
+    dNddeta = dNcdeta*G
+    
+    # csi_sing, omega_sing = csis_sing_3(mesh.offset, Nc, omegas)
+    
+    # Field loop:
+    for fe in 1:nelem
+    
+        field_nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
+        field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
+
+        normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
+        gauss_points = generate_points_in_elem(Nc,field_points)
+        
+        # source loop:
+        for se in 1:nelem
+            for n = 1:nnel
+                sn = mesh.IEN[n,se]
+                source_node = mesh.nodes[sn,2:end]
+
+                if fe != se
+                    HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
+                else
+                    # HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing2, normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    HELEM = zeros(3,3*nnel)
+                    GELEM = zeros(3,3*nnel)
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM

@@ -136,13 +136,30 @@ begin
     import Plots
     csis, omega = gausslegendre(8)
 
-    csisij = [-1.0, 1.0]
+    ordem = 2
+    nnel = 4
+    offset = 0.5
 
-    N = calc_N_matrix(csisij, csis)
-    dNdcsi = calc_dNdcsi_matrix(csisij,csis)
-    dNdeta = calc_dNdeta_matrix(csisij,csis)
+    csis_cont = range(-1,1,length = ordem)
+    csis_descont = range(-1+offset,1-offset,length = ordem)
 
+    k = calc_k(nnel)
+    G = calc_G(csis_cont,csis_descont,k)
+
+    csis_grid = calc_csis_grid(csis)
+    N = calc_N_matrix(csis_cont,csis_grid)
+    dNdcsi = calc_dNdcsi_matrix(csis_cont,csis_grid)
+    dNdeta = calc_dNdeta_matrix(csis_cont,csis_grid)
     
+    Nd1 = calc_N_matrix(csis_descont,csis_grid)
+    dNdcsi1 = calc_dNdcsi_matrix(csis_descont,csis_grid)
+    dNdeta1 = calc_dNdeta_matrix(csis_descont,csis_grid)
+    
+    Nd2 = N*G    
+    dNdcsi2 = dNdcsi*G
+    dNdeta2 = dNdeta*G
+
+
 end
 
 begin
