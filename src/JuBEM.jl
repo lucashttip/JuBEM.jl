@@ -40,7 +40,7 @@ include("solver.jl")
 export calc_GH!
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!, returnut
+export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!
 
 include("plotting.jl")
 export visualize_mesh, visualize_mesh_raw

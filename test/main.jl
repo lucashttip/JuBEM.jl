@@ -50,17 +50,18 @@ using JuBEM
         calc_GH!(mesh, material, problem, solver_var)
 
         # ! ## Apply BC, arranging Ax = b
-        applyBC_nonrb!(mesh, solver_var)
+        # applyBC_nonrb!(mesh, solver_var)
+        applyBC_nonrb2!(mesh, solver_var)
 
 
         x = solver_var.ma \ mesh.zbcvalue
 
-        u,t = returnut(mesh,x)
+        # u,t = returnut(mesh,x)
 
-        ut = u[mesh.LM[:,mesh.bc.==2][:]]
+        # ut = u[mesh.LM[:,mesh.bc.==2][:]]
 
-        u2 = [u[1:3:end] u[2:3:end] u[3:3:end]]
-        ut2 = [ut[1:3:end] ut[2:3:end] ut[3:3:end]]
+        # u2 = [u[1:3:end] u[2:3:end] u[3:3:end]]
+        # ut2 = [ut[1:3:end] ut[2:3:end] ut[3:3:end]]
 
 
         # dn = mesh.nodes[:,2:end]+ut2
