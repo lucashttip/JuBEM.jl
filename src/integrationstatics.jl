@@ -17,22 +17,23 @@ function integrate_nonsing_static(source_node,gauss_points,N,normal,J, omegas, d
     return HELEM, GELEM
 end
 
-function integrate_sing_static_1(source_node,gauss_points,N,normal,J, omegas, delta, C_stat,n)
+function integrate_sing_static_1(source_node,gauss_points_sing,N_sing,normal_sing,J_sing, omega_sing, delta, C_stat,n)
 
-    nGP = length(omegas)
-    nnel = size(N,2)
+    nGP = length(omega_sing)
+    nnel = size(N_sing,2)
     HELEM = zeros(3,3*nnel)
     GELEM = zeros(3,3*nnel)
+    
     for i in 1:nGP
-        u, t = calc_funsol_static(source_node,gauss_points[i,:], normal[i,:], delta, C_stat)
+        u, t = calc_funsol_static(source_node,gauss_points_sing[i,:], normal_sing[i,:], delta, C_stat)
             
-        P1 = J[i]*omegas[i]
+        P1 = J_sing[i]*omega_sing[i]
         for k in 1:nnel
-            P = N[i,k]*P1
+            P = N_sing[i,k]*P1
             if k!=n
-                HELEM[:,3*(k-1)+1:3*k] += t*P
+                HELEM[:,3*(k-1)+1:3*k] += t.*P
             end
-            GELEM[:,3*(k-1)+1:3*k] += u*P
+            GELEM[:,3*(k-1)+1:3*k] += u.*P
         end
     end
     return HELEM, GELEM

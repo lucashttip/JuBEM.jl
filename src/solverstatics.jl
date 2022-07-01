@@ -101,18 +101,20 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     omegas = calc_omegas(solver_var.omega)
 
     k = calc_k(nnel)
-    csis_grid = calc_csis_grid(solver_var.csi)
-    Nc = calc_N_matrix(csis_cont,csis_grid)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis_grid)
-    dNcdeta = calc_dNdeta_matrix(csis_cont,csis_grid)
+    csis = calc_csis_grid(solver_var.csi)
+    Nc = calc_N_matrix(csis_cont,csis)
+    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
+    dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
     G = calc_G(csis_cont,csis_descont,k)
 
     Nd = Nc*G
-    dNddcsi = dNcdcsi*G
-    dNddeta = dNcdeta*G
+    # dNddcsi = dNcdcsi*G
+    # dNddeta = dNcdeta*G
     
-    # csi_sing, omega_sing = csis_sing_3(mesh.offset, Nc, omegas)
+    csi_sing, omega_sing = csis_sing_3(mesh.offset, Nc, omegas)
+    Nc_sing = calc_N_matrix(csis_cont,csi_sing)
+    Nd_sing = Nc_sing*G
     
     # Field loop:
     for fe in 1:nelem
@@ -121,7 +123,7 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
         normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
-        gauss_points = generate_points_in_elem(Nc,field_points)
+        gauss_points = Nc*field_points
         
         # source loop:
         for se in 1:nelem
@@ -132,9 +134,16 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                 if fe != se
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 else
-                    # HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing2, normal_sing, J_sing, omega_sing, delta, C_stat, n)
-                    HELEM = zeros(3,3*nnel)
-                    GELEM = zeros(3,3*nnel)
+
+                    idx = collect((1:nnel) .- (n-1))
+                    idx[idx.<1] = idx[idx.<1] .+nnel
+
+                    gauss_points_sing = Nc_sing[:,idx]*field_points
+                    normal_sing,J_sing = divide_elem(source_node,field_points,dNcdcsi,dNcdeta)
+
+                    HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing[:,idx], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    # HELEM = zeros(3,3*nnel)
+                    # GELEM = zeros(3,3*nnel)
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
@@ -143,9 +152,12 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
         end
     
-        integrate_rigid_body2!(solver_var.H,nnel)
+        # integrate_rigid_body2!(solver_var.H,nnel)
+        
+        # for i in 1:size(solver_var.H)
 
     end
+    integrate_rigid_body2!(solver_var.H,nnel)
     return solver_var
 
 end

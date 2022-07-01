@@ -1,3 +1,36 @@
+function calc_csis_grid(csis)
+    nl = length(csis)
+    
+    csis_grid = [repeat(csis',nl)[:] repeat(csis,nl)]
+    return csis_grid
+end
+
+function calc_k(nnel)
+
+    if nnel == 4
+        k = (
+            [1,1],
+            [2,1],
+            [2,2],
+            [1,2]
+        )
+    elseif nnel == 9
+        k = (
+            [1,1],
+            [1,3],
+            [3,3],
+            [3,1],
+            [1,2],
+            [2,3],
+            [3,2],
+            [2,1],
+            [2,2]
+        )
+    else
+        error("Element type not supported")
+    end
+end
+
 function calc_N_matrix(csisij,csis)
     n = size(csis,1)
     ordem = length(csisij)
@@ -17,24 +50,6 @@ function calc_N_matrix(csisij,csis)
     return N
 end
 
-function calc_N_matrix(csisij,csis,etas)
-
-    nl = length(csis)
-    
-    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
-
-    N = calc_N_matrix(csisij,csis_grid)
-
-    return N
-end
-
-function calc_csis_grid(csis)
-    nl = length(csis)
-    
-    csis_grid = [repeat(csis',nl)[:] repeat(csis,nl)]
-    return csis_grid
-end
-
 function calc_dNdcsi_matrix(csisij,csis)
 
     n = size(csis,1)
@@ -48,22 +63,9 @@ function calc_dNdcsi_matrix(csisij,csis)
             csi = csis[i,1]
             eta = csis[i,2]
             dNdcsi[i,:] = calc_dNdcsi(csisij,ordem,kij, csi, eta)
-            # dNdcsi[i,:] = calc_dNdcsi2(eta)
     end
 
     return dNdcsi
-end
-
-function calc_dNdcsi_matrix(csisij,csis, etas)
-
-    nl = length(csis)
-    
-    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
-
-    dNdcsi = calc_dNdcsi_matrix(csisij,csis_grid)
-
-    return dNdcsi
-
 end
 
 function calc_dNdeta_matrix(csisij,csis)
@@ -77,20 +79,8 @@ function calc_dNdeta_matrix(csisij,csis)
     for i in 1:n
             csi = csis[i,1]
             eta = csis[i,2]
-            # dNdeta[i,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
-            dNdeta[i,:] = calc_dNdeta2(csi)
+            dNdeta[i,:] = calc_dNdeta(csisij,ordem,kij, csi, eta)
     end
-
-    return dNdeta
-end
-
-function calc_dNdeta_matrix(csisij,csis,etas)
-
-    nl = length(csis)
-    
-    csis_grid = [repeat(csis',nl)[:] repeat(etas,nl)]
-
-    dNdeta = calc_dNdeta_matrix(csisij,csis_grid)
 
     return dNdeta
 end
@@ -190,39 +180,15 @@ function calc_dNdeta(csisij,ordem,kij,csi,eta)
     return dNdeta
 end
 
-function calc_k(nnel)
-
-    if nnel == 4
-        k = (
-            [1,1],
-            [2,1],
-            [2,2],
-            [1,2]
-        )
-    elseif nnel == 9
-        k = (
-            [1,1],
-            [1,3],
-            [3,3],
-            [3,1],
-            [1,2],
-            [2,3],
-            [3,2],
-            [2,1],
-            [2,2]
-        )
-    else
-        error("Element type not supported")
-    end
-end
-
 function calc_G(csis_cont, csis_descont, k)
 
     nl = sqrt(length(k))
 
     idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in 1:length(k)]
 
-    L = calc_N_matrix(csis_cont, csis_descont, csis_descont)
+    csis_vec_decont = calc_csis_grid(csis_descont)
+
+    L = calc_N_matrix(csis_cont, csis_vec_decont)
 
     L = L[idx,:]
 
@@ -230,48 +196,6 @@ function calc_G(csis_cont, csis_descont, k)
 
     return G
 
-end
-
-function calc_N_matrix_descont(N,G)
-    
-    Nd = N*G
-
-    return Nd
-
-end
-
-function calc_Ns(csis_cont, csis_descont, csis, etas)
-
-    nnel = length(csis_cont)^2
-
-    k = calc_k(nnel)
-
-    Nc = calc_N_matrix(csis_cont, csis, etas)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont, csis, etas)
-    dNcdeta = calc_dNdeta_matrix(csis_cont, csis, etas)
-    G = calc_G(csis_cont, csis_descont,k)
-    Nd = Nc*G
-    dNdcsi = dNcdcsi*G
-    dNdeta = dNcdeta*G
-
-    return Nc, Nd, dNdcsi, dNdeta, dNcdcsi, dNcdeta
-end
-
-function calc_Ns_sing(csis_cont, csis_descont, csis_sing)
-
-    nnel = length(csis_cont)^2
-
-    k = calc_k(nnel)
-
-    Nc = calc_N_matrix2(csis_cont, csis_sing)
-    dNcdcsi = calc_dNdcsi_matrix2(csis_cont, csis_sing)
-    dNcdeta = calc_dNdeta_matrix2(csis_cont, csis_sing)
-    G = calc_G(csis_cont, csis_descont,k)
-    Nd = calc_N_matrix_descont(Nc,G)
-    dNdcsi = calc_N_matrix_descont(dNcdcsi,G)
-    dNdeta = calc_N_matrix_descont(dNcdeta,G)
-
-    return Nc, Nd, dNdcsi, dNdeta
 end
 
 function calc_omegas(omega)
