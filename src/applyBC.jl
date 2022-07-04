@@ -259,19 +259,30 @@ end
 
 function applyBC_nonrb2!(mesh, solver_var)
 
+    nnel = size(mesh.IEN,1)
    
     solver_var.ma = zeros(size(solver_var.H))
     mb = zeros(size(solver_var.H))
 
+    y = zeros(3*nnel*length(mesh.bc))
+
     for e in 1:mesh.nelem
         if mesh.bc[e] == 1
             solver_var.ma[:,mesh.LM[:,e]] = solver_var.G[:,(e-1)*12+1:e*12]
-        elseif mesh.bc[2] == 2
+            mb[:,mesh.LM[:,e]] = solver_var.G[:,(e-1)*12+1:e*12]
+        elseif mesh.bc[e] == 2
+            solver_var.ma[:,mesh.LM[:,e]] = solver_var.H[:,(e-1)*12+1:e*12]
             mb[:,mesh.LM[:,e]] = solver_var.H[:,(e-1)*12+1:e*12]
         end
     end
+
+    for i in 1:mesh.nelem-1
+        i1 = 3*nnel*(i-1)+1
+        i2 = 3*nnel*i
+        y[i1:i2] = repeat(mesh.bcvalue[3*(i-1)+1:3*(i)],nnel)
+    end
     
-    mesh.zbcvalue = mb*mesh.bcvalue
+    mesh.zbcvalue = mb*y
 
     return mesh,solver_var
 end
