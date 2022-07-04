@@ -112,7 +112,7 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     # dNddcsi = dNcdcsi*G
     # dNddeta = dNcdeta*G
     
-    csi_sing, omega_sing = csis_sing_3(mesh.offset, Nc, omegas)
+    csi_sing, _ = csis_sing_3(mesh.offset, Nc, omegas)
     Nc_sing = calc_N_matrix(csis_cont,csi_sing)
     Nd_sing = Nc_sing*G
     
@@ -139,7 +139,7 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     idx[idx.<1] = idx[idx.<1] .+nnel
 
                     gauss_points_sing = Nc_sing[:,idx]*field_points
-                    normal_sing,J_sing = divide_elem(source_node,field_points,dNcdcsi,dNcdeta)
+                    normal_sing,J_sing, omega_sing = divide_elem(source_node,field_points,dNcdcsi,dNcdeta,omegas)
 
                     HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing[:,idx], normal_sing, J_sing, omega_sing, delta, C_stat, n)
                     # HELEM = zeros(3,3*nnel)
