@@ -24,7 +24,7 @@ end
 # type :: mesh_type
 # integer :: nelem       !> Number of boundary elements
 # integer :: npoints      !> Number of geometrical points
-# integer :: eltype       !> Type of elements (continuous, linear, quadratic)
+# integer :: eltype       !> Type of elements (constant, linear, quadratic)
 # integer, dimension (:,:), allocatable :: ID             !> Matrix containing degrees of freedom
 # integer, dimension (:,:), allocatable :: IEN_geo        !> Geometrical incidence matrix
 # integer, dimension(:), allocatable :: IEN               !> Incidence matrix

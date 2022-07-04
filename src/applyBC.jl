@@ -211,22 +211,20 @@ end
 
 
 function applyBC_nonrb!(mesh, solver_var)
-    elements = [i for i in 1:mesh.nelem]
+    # elements = [i for i in 1:mesh.nelem]
+    elements = 1:mesh.nelem
     nnel = (mesh.eltype+1)^2
 
     neu = count(==(1),mesh.bc)
     net = count(==(2),mesh.bc)
 
-    mb = zeros(typeof(solver_var.H[1]), 3*nnel*mesh.nelem, 3*nnel*mesh.nelem)
-    solver_var.ma = zeros(typeof(solver_var.H[1]), 3*nnel*mesh.nelem, 3*nnel*mesh.nelem)
+    mb = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
+    solver_var.ma = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
 
     elem_u = elements[mesh.bc.==1]
     elem_t = elements[mesh.bc.==2]
     
-    y = zeros(typeof(solver_var.H[1]), 3*nnel*mesh.nelem)
-    ye = zeros(typeof(solver_var.H[1]), nnel*mesh.nelem)
-
-    ye = mesh.bcvalue[[elem_u;elem_t]]
+    y = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes)
 
     for i in 1:neu
         i1 = 3*nnel*(i-1)+1
@@ -242,11 +240,8 @@ function applyBC_nonrb!(mesh, solver_var)
         y[i1:i2] = repeat(mesh.bcvalue[3*(elem_t[i]-1)+1:3*(elem_t[i])],nnel)
     end
 
-    mb.=0.0
-    solver_var.ma.=0.0
-
-    solver_var.ma[:,1:3*nnel*net] = solver_var.H[:,mesh.LM[:,elem_t][:]]
-    solver_var.ma[:,3*nnel*net+1:end] = - solver_var.H[:,mesh.LM[:,elem_u][:]]
+    solver_var.ma[:,1:3*nnel*neu] = - solver_var.G[:,mesh.LM[:,elem_u][:]]
+    solver_var.ma[:,3*nnel*neu+1:end] = solver_var.H[:,mesh.LM[:,elem_t][:]]
     
     mb[:,1:3*nnel*neu] = - solver_var.H[:,mesh.LM[:,elem_u][:]]
     mb[:,3*nnel*neu+1:end] = solver_var.G[:,mesh.LM[:,elem_t][:]]
@@ -268,11 +263,11 @@ function applyBC_nonrb2!(mesh, solver_var)
 
     for e in 1:mesh.nelem
         if mesh.bc[e] == 1
-            solver_var.ma[:,mesh.LM[:,e]] = solver_var.G[:,(e-1)*12+1:e*12]
+            solver_var.ma[:,mesh.LM[:,e]] = -solver_var.G[:,(e-1)*12+1:e*12]
             mb[:,mesh.LM[:,e]] = solver_var.G[:,(e-1)*12+1:e*12]
         elseif mesh.bc[e] == 2
             solver_var.ma[:,mesh.LM[:,e]] = solver_var.H[:,(e-1)*12+1:e*12]
-            mb[:,mesh.LM[:,e]] = solver_var.H[:,(e-1)*12+1:e*12]
+            mb[:,mesh.LM[:,e]] = -solver_var.H[:,(e-1)*12+1:e*12]
         end
     end
 
@@ -288,7 +283,6 @@ function applyBC_nonrb2!(mesh, solver_var)
 end
 
 
-
 function returnut(mesh,x)
     nnel = (mesh.eltype+1)^2
     u = zeros(3*mesh.nnodes)
@@ -300,8 +294,59 @@ function returnut(mesh,x)
     elem_u = elements[mesh.bc.==1]
     elem_t = elements[mesh.bc.==2]
 
-    u[mesh.LM[:,elem_t]] = x[1:3*nnel*net]
-    t[mesh.LM[:,elem_u]] = x[3*nnel*net+1:end]
+    t[mesh.LM[:,elem_u]] = x[1:3*nnel*neu]
+    u[mesh.LM[:,elem_t]] = x[3*nnel*neu+1:end]
+
+    u = [u[1:3:end] u[2:3:end] u[3:3:end]]
+    t = [t[1:3:end] t[2:3:end] t[3:3:end]]
 
     return u, t
+end
+
+function returnut2(mesh,x)
+    nnel = (mesh.eltype+1)^2
+    u = zeros(3*mesh.nnodes)
+    t = zeros(3*mesh.nnodes)
+
+
+    for e in 1:mesh.nelem
+        if mesh.bc[e] == 1
+            u[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+            t[mesh.LM[:,e]] = x[mesh.LM[:,e]]
+        elseif mesh.bc[e] == 2
+            t[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+            u[mesh.LM[:,e]] = x[mesh.LM[:,e]]
+        end
+    end
+
+    u = [u[1:3:end] u[2:3:end] u[3:3:end]]
+    t = [t[1:3:end] t[2:3:end] t[3:3:end]]
+
+
+    return u, t
+end
+
+function calc_utpoints(mesh,u,t)
+    csi_points = range(-1,1,length = mesh.eltype+1)
+    csi_nodes = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
+    csi_vec = calc_csis_grid(csi_points)
+    N = calc_N_matrix(csi_nodes,csi_vec)
+
+    up = zeros(mesh.npoints,3)
+    tp = zeros(mesh.npoints,3)
+
+    for e in 1:mesh.nelem
+        tmpu = N*u[mesh.IEN[:,e],:]
+        tmpt = N*t[mesh.IEN[:,e],:]
+
+        points = mesh.IEN_geo[:,e]
+
+        for p in 1:length(points)
+            np = count(==(points[p]),mesh.IEN_geo)
+            up[points[p],:] .= up[points[p],:] .+ tmpu[p,:]./np
+            tp[points[p],:] .= tp[points[p],:] .+ tmpt[p,:]./np
+
+        end
+    end
+    return up, tp
 end

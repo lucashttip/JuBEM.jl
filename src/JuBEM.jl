@@ -3,7 +3,7 @@ module JuBEM
 # Write your package code here.
 
 using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra, Infiltrator
-
+using WriteVTK
 
 include("typedefinitions.jl")
 export material_table_type, mesh_type, problem_type, solver_var_type, cmplx_consts
@@ -40,9 +40,12 @@ include("solver.jl")
 export calc_GH!
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!
+export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2
 
 include("plotting.jl")
-export visualize_mesh, visualize_mesh_raw
+export visualize_mesh, visualize_mesh_raw, visualize_result, calc_utpoints
+
+include("writevtk.jl")
+export writevtk
 
 end

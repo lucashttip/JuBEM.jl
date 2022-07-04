@@ -56,27 +56,14 @@ using JuBEM
 
         x = solver_var.ma \ mesh.zbcvalue
 
+        u,t = returnut2(mesh,x)
         # u,t = returnut(mesh,x)
 
-        # ut = u[mesh.LM[:,mesh.bc.==2][:]]
+        ut = u[mesh.IEN[:,mesh.bc.==2][:],:]
 
-        # u2 = [u[1:3:end] u[2:3:end] u[3:3:end]]
-        # ut2 = [ut[1:3:end] ut[2:3:end] ut[3:3:end]]
+        # up,tp = calc_utpoints(mesh,u,t)
 
-
-        # dn = mesh.nodes[:,2:end]+ut2
-
-        # ! ## Solve system Ax = b
-        # call zcgesv (3*mesh%nelem+6, 1, solver_var%zma, 3*mesh%nelem+6, IPIV, mesh%zbcvalue, 3*mesh%nelem+6, &
-        # solver_var%zvetsol, 3*mesh%nelem+6, WORK, SWORK, RWORK, itersolve, infosolve)
-        # print *, itersolve
-        # print *, infosolve
-
-        # ! output
-        # call output(mesh,mesh%zbcvalue,solver_var%zvetsol,problem%frequency,out_fid,ux_fid, uy_fid, uz_fid, &
-        # phix_fid, phiy_fid, phiz_fid)
-
-        # ! ## Retrieve u and t
+        # writevtk(mesh,up,tp,"vis")
         
 
     # end do
