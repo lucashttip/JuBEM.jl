@@ -8,8 +8,3 @@ function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, proble
 
     return solver_var
 end
-
-
-function apply_bc!(mesh,solver_var)
-    
-end

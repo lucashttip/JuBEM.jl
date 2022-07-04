@@ -78,7 +78,7 @@ function calc_GH_static_non_const2!(mesh::mesh_type, material::Vector{material_t
         end
     
         integrate_rigid_body2!(solver_var.H,nnel)
-
+        
     end
     return solver_var
 
@@ -152,12 +152,13 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
         end
     
-        # integrate_rigid_body2!(solver_var.H,nnel)
+        integrate_rigid_body2!(solver_var.H,nnel)
         
         # for i in 1:size(solver_var.H)
 
     end
-    integrate_rigid_body2!(solver_var.H,nnel)
+    # integrate_rigid_body2!(solver_var.H,nnel)
+    
     return solver_var
 
 end
