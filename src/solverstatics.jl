@@ -135,13 +135,18 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 else
 
-                    idx = collect((1:nnel) .- (n-1))
-                    idx[idx.<1] = idx[idx.<1] .+nnel
+                    idx_ff = collect((1:nnel) .- (n-1))
+                    idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
 
-                    gauss_points_sing = Nc_sing[:,idx]*field_points
-                    normal_sing,J_sing, omega_sing = divide_elem(source_node,field_points,dNcdcsi,dNcdeta,omegas)
+                    idx_points = collect((1:nnel) .+ (n-1))
+                    idx_points[idx_points.>nnel] = idx_points[idx_points.>nnel] .-nnel
 
-                    HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing[:,idx], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    # gauss_points_sing = Nc_sing[:,idx]*field_points
+                    # gauss_points_sing = Nc_sing*field_points[idx_points,:]
+
+                    normal_sing,J_sing, omega_sing,gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
+                    # @infiltrate
+                    HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
                     # HELEM = zeros(3,3*nnel)
                     # GELEM = zeros(3,3*nnel)
                 end

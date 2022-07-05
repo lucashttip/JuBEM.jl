@@ -30,6 +30,7 @@ function integrate_sing_static_1(source_node,gauss_points_sing,N_sing,normal_sin
         P1 = J_sing[i]*omega_sing[i]
         for k in 1:nnel
             P = N_sing[i,k]*P1
+            # @infiltrate
             if k!=n
                 HELEM[:,3*(k-1)+1:3*k] += t.*P
             end

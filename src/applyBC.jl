@@ -263,11 +263,11 @@ function applyBC_nonrb2!(mesh, solver_var)
 
     for e in 1:mesh.nelem
         if mesh.bc[e] == 1
-            solver_var.ma[:,mesh.LM[:,e]] = -solver_var.G[:,(e-1)*12+1:e*12]
-            mb[:,mesh.LM[:,e]] = - solver_var.H[:,(e-1)*12+1:e*12]
+            solver_var.ma[:,mesh.LM[:,e]] = -solver_var.G[:,mesh.LM[:,e]]
+            mb[:,mesh.LM[:,e]] = - solver_var.H[:,mesh.LM[:,e]]
         elseif mesh.bc[e] == 2
-            solver_var.ma[:,mesh.LM[:,e]] = solver_var.H[:,(e-1)*12+1:e*12]
-            mb[:,mesh.LM[:,e]] = solver_var.G[:,(e-1)*12+1:e*12]
+            solver_var.ma[:,mesh.LM[:,e]] = solver_var.H[:,mesh.LM[:,e]]
+            mb[:,mesh.LM[:,e]] = solver_var.G[:,mesh.LM[:,e]]
         end
     end
 

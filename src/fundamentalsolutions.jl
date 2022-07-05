@@ -9,6 +9,7 @@ function calc_funsol_static(source_node,field_node, normal, delta, C_stat)
     Rd = disp./R
     # ! Derivative with respect to normal
     Rdn = dot(Rd,normal)
+    # @infiltrate
     C1 = C_stat[1]
     C2 = C_stat[2]
     C3 = C_stat[3]

@@ -118,7 +118,7 @@ function csis_sing_3(offset,Nc,omegas)
 
 end
 
-function divide_elem(source_node,points,dNcdcsi,dNcdeta,omegas)
+function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
 
     npg2 = size(dNcdcsi,1)
     At = calc_area(points)
@@ -126,6 +126,8 @@ function divide_elem(source_node,points,dNcdcsi,dNcdeta,omegas)
     normal_sing = zeros(4*npg2,3)
     J_sing = zeros(4*npg2)
     omega_sing = zeros(4*npg2)
+    gauss_points_sing = zeros(4*npg2,3)
+
 
     for i in 1:4
 
@@ -135,11 +137,11 @@ function divide_elem(source_node,points,dNcdcsi,dNcdeta,omegas)
         a = calc_area(ps)
         n1, J1 = calc_n_J_matrix(dNcdcsi, dNcdeta, ps)
 
-        # gauss_points = [gauss_points; Nc*ps]
-        omega_sing[(i-1)*npg2+1:i*npg2,:] = omegas.*a./At
+        gauss_points_sing[(i-1)*npg2+1:i*npg2,:] = Nc*ps
+        omega_sing[(i-1)*npg2+1:i*npg2] = omegas.*a./At
         normal_sing[(i-1)*npg2+1:i*npg2,:] = n1
         J_sing[(i-1)*npg2+1:i*npg2] = J1
 
     end
-    return normal_sing, J_sing, omega_sing
+    return normal_sing, J_sing, omega_sing, gauss_points_sing
 end

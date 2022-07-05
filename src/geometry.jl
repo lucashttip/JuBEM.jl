@@ -57,7 +57,6 @@ end
 function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points
-    # @infiltrate
     v = cross(dpdcsi', dpdeta')
     J = norm(v)
     n = v./J
