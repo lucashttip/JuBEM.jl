@@ -61,9 +61,9 @@ using JuBEM
 
         ut = u[mesh.IEN[:,mesh.bc.==2][:],:]
 
-        # up,tp = calc_utpoints(mesh,u,t)
+        up,tp = calc_utpoints(mesh,u,t)
 
-        # writevtk(mesh,up,tp,"vis")
+        writevtk(mesh,up,tp,"vis")
         
 
     # end do

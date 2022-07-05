@@ -133,6 +133,7 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
                 if fe != se
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
+                    # HELEM, GELEM = integrate_non_static2(source_node,field_points', solver_var.csi, solver_var.omega, delta,normal[1,:], C_stat,nnel,mesh.offset,mesh.offset)
                 else
 
                     idx_ff = collect((1:nnel) .- (n-1))
