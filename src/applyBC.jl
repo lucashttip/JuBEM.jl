@@ -297,6 +297,14 @@ function returnut(mesh,x)
     t[mesh.LM[:,elem_u]] = x[1:3*nnel*neu]
     u[mesh.LM[:,elem_t]] = x[3*nnel*neu+1:end]
 
+    for e in elem_t
+        t[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+    end
+
+    for e in elem_u
+        u[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+    end
+
     u = [u[1:3:end] u[2:3:end] u[3:3:end]]
     t = [t[1:3:end] t[2:3:end] t[3:3:end]]
 

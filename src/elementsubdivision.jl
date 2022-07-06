@@ -145,3 +145,28 @@ function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
     end
     return normal_sing, J_sing, omega_sing, gauss_points_sing
 end
+
+
+function divide_elem2(e)
+    c = [
+        -1      -1
+        1       -1
+        1       1
+        -1      1
+        -1+2e   -1
+        1       -1+2e
+        -1+2e   1
+        -1      -1+2e
+        -1+2e   -1+2e
+        -1+e    -1+e
+    ]    
+
+    IEN = [
+        1 5 9 8 5 9 8
+        5 9 8 1 2 6 9
+        10 10 10 10 6 3 7
+        10 10 10 10 9 7 4
+    ]
+
+    return c, IEN
+end

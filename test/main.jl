@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "bar.msh"
+    inp_file = "bar_440.msh"
 #     ! =================================================
 #     ! =================================================
 #     ! ===================== Input =====================
@@ -61,9 +61,13 @@ using JuBEM
 
         ut = u[mesh.IEN[:,mesh.bc.==2][:],:]
 
-        up,tp = calc_utpoints(mesh,u,t)
+        neu = sum(mesh.bc.==1)
 
-        writevtk(mesh,up,tp,"vis")
+        ud = sum(ut[1:4*neu,1])/(4*neu)
+
+        # up,tp = calc_utpoints(mesh,u,t)
+
+        # writevtk(mesh,up,tp,"vis")
         
 
     # end do

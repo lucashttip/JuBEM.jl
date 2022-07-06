@@ -117,9 +117,11 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     Nd_sing = Nc_sing*G
     
     # Field loop:
+    # Threads.@threads for fe in 1:nelem
     for fe in 1:nelem
+
     
-        field_nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
+        # field_nodes = mesh.nodes[mesh.IEN[:,fe],2:end]
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
         normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
@@ -142,14 +144,14 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     idx_points = collect((1:nnel) .+ (n-1))
                     idx_points[idx_points.>nnel] = idx_points[idx_points.>nnel] .-nnel
 
-                    # gauss_points_sing = Nc_sing[:,idx]*field_points
+                    # gauss_points_sing = Nc_sing[:,idx_ff]*field_points
                     # gauss_points_sing = Nc_sing*field_points[idx_points,:]
 
-                    normal_sing,J_sing, omega_sing,gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
+                    normal_sing, J_sing, omega_sing, gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
                     # @infiltrate
-                    HELEM, GELEM = integrate_sing_static_1(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
-                    # HELEM = zeros(3,3*nnel)
-                    # GELEM = zeros(3,3*nnel)
+                    GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
+                    HELEM, GELEM2 = integrate_sing_static_2(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    GELEM = GELEM1 + GELEM2
                 end
 
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
@@ -158,12 +160,9 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
         end
     
-        integrate_rigid_body2!(solver_var.H,nnel)
-        
-        # for i in 1:size(solver_var.H)
-
     end
-    # integrate_rigid_body2!(solver_var.H,nnel)
+
+    integrate_rigid_body!(solver_var.H,mesh)
     
     return solver_var
 
