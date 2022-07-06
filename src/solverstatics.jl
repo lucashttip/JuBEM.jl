@@ -116,6 +116,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     Nc_sing = calc_N_matrix(csis_cont,csi_sing)
     Nd_sing = Nc_sing*G
     
+    c_sing, IEN_sing = divide_elem2(mesh.offset)
+
     # Field loop:
     # Threads.@threads for fe in 1:nelem
     for fe in 1:nelem
@@ -151,6 +153,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     # @infiltrate
                     GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
                     HELEM, GELEM2 = integrate_sing_static_2(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    # HELEM, GELEM2 = integrate_sing_static_3(source_node, field_points, Nc[:,idx_ff], G[:,idx_ff],dNcdcsi[:,idx_ff],dNcdeta[:,idx_ff], c_sing, IEN_sing, omegas, delta, C_stat, n)
+
                     GELEM = GELEM1 + GELEM2
                 end
 

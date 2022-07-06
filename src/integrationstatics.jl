@@ -89,25 +89,40 @@ function integrate_sing_static_2(source_node,gauss_points_sing,N_sing,normal_sin
 
 end
 
-function integrate_sing_static_2(source_node,gauss_points_sing,N_sing,normal_sing,J_sing, omega_sing, delta, C_stat,n)
+function integrate_sing_static_3(source_node, field_points, Nc, G,dNcdcsi,dNcdeta, c, IEN_sing, omegas, delta, C_stat, n)
 
-    nGP = length(omega_sing)
-    nnel = size(N_sing,2)
+    nGP = length(omegas)
+    nnel = size(Nc,2)
     HELEM = zeros(3,3*nnel)
     GELEM = zeros(3,3*nnel)
     
-    for i in 1:nGP
-        u, t = calc_funsol_static(source_node,gauss_points_sing[i,:], normal_sing[i,:], delta, C_stat)
-            
-        P1 = J_sing[i]*omega_sing[i]
-        for k in 1:nnel
-            P = N_sing[i,k]*P1
-            # @infiltrate
-            if k!=n
-                HELEM[:,3*(k-1)+1:3*k] += t.*P
-            end
-            if k == n
-                GELEM[:,3*(k-1)+1:3*k] += u.*P
+    nsubelem = size(IEN_sing,2)
+    At = calc_area(field_points)
+
+    for e in 1:nsubelem
+
+        Nc_aux = calc_N_matrix([-1,1],c[IEN_sing[:,e],:])
+        gauss_points = Nc*Nc_aux*field_points
+        Nd_sing = Nc*Nc_aux*G
+        dNdcsi_sing = dNcdcsi*Nc_aux
+        dNdeta_sing = dNcdeta*Nc_aux
+        normal_sing, J_sing = calc_n_J_matrix(dNdcsi_sing, dNdeta_sing, field_points)
+        a = calc_area(Nc_aux*field_points)
+        omega_sing = omegas.*a./At
+
+        for i in 1:nGP
+            u, t = calc_funsol_static(source_node,gauss_points[i,:], normal_sing[i,:], delta, C_stat)
+                
+            P1 = J_sing[i]*omega_sing[i]
+            for k in 1:nnel
+                P = Nd_sing[i,k]*P1
+                # @infiltrate
+                if k!=n
+                    HELEM[:,3*(k-1)+1:3*k] += t.*P
+                end
+                if k == n
+                    GELEM[:,3*(k-1)+1:3*k] += u.*P
+                end
             end
         end
     end
