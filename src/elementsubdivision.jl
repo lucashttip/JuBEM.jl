@@ -138,7 +138,9 @@ function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
         n1, J1 = calc_n_J_matrix(dNcdcsi, dNcdeta, ps)
 
         gauss_points_sing[(i-1)*npg2+1:i*npg2,:] = Nc*ps
-        omega_sing[(i-1)*npg2+1:i*npg2] = omegas.*a./At
+        # omega_sing[(i-1)*npg2+1:i*npg2] = omegas.*a./At
+        omega_sing[(i-1)*npg2+1:i*npg2] = omegas
+
         normal_sing[(i-1)*npg2+1:i*npg2,:] = n1
         J_sing[(i-1)*npg2+1:i*npg2] = J1
 
