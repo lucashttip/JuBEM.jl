@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "bar_128.msh"
+    inp_file = "bar_32.msh"
 #     ! =================================================
 #     ! =================================================
 #     ! ===================== Input =====================
@@ -50,20 +50,21 @@ using JuBEM
         calc_GH!(mesh, material, problem, solver_var)
 
         # ! ## Apply BC, arranging Ax = b
-        # applyBC_nonrb!(mesh, solver_var)
-        applyBC_nonrb2!(mesh, solver_var)
+        applyBC_nonrb!(mesh, solver_var)
+        # applyBC_nonrb2!(mesh, solver_var)
 
 
         x = solver_var.ma \ mesh.zbcvalue
 
-        u,t = returnut2(mesh,x)
-        # u,t = returnut(mesh,x)
+        # u,t = returnut2(mesh,x)
+        u,t = returnut(mesh,x)
 
         ut = u[mesh.IEN[:,mesh.bc.==2][:],:]
 
         neu = sum(mesh.bc.==1)
 
         ud = sum(ut[1:4*neu,1])/(4*neu)
+        erro = (ud-1)*100
 
         # up,tp = calc_utpoints(mesh,u,t)
 
