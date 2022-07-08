@@ -61,3 +61,35 @@ function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
     end
     return normal_sing, J_sing, omega_sing, gauss_points_sing
 end
+
+
+function divide_elem(e)
+    c = [
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        -1+e -1+e
+    ]
+
+    IEN = [
+        1 2 3 4
+        2 3 4 1
+        5 5 5 5
+        5 5 5 5
+    ]
+
+    return c, IEN
+end
+
+function calc_idx_permutation(nnel,n)
+    if nnel == 4
+        idx_ff = collect((1:nnel) .- (n-1))
+        idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
+
+        idx_points = collect((1:nnel) .+ (n-1))
+        idx_points[idx_points.>nnel] = idx_points[idx_points.>nnel] .-nnel
+    end
+
+    return idx_ff, idx_points
+end

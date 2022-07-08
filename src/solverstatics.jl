@@ -24,11 +24,25 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     Nd = Nc*G
     
-    csi_sing, _ = csis_sing(mesh.offset, Nc, omegas)
-    Nc_sing = calc_N_matrix(csis_cont,csi_sing)
-    Nd_sing = Nc_sing*G
+    # csi_sing, _ = csis_sing(mesh.offset, Nc, omegas)
+    # Nc_sing = calc_N_matrix(csis_cont,csi_sing)
+    # Nd_sing = Nc_sing*G
     
+    c_sing, IEN_sing = divide_elem(mesh.offset)
+    npg2 = size(Nc,1)
+    Nc_sing = zeros(4*npg2,4)
+    dNcdcsi_sing = zeros(4*npg2,4)
+    dNcdeta_sing = zeros(4*npg2,4)
+    omega_sing = repeat(omegas,size(IEN_sing,2))
 
+    for e in 1:size(IEN_sing,2)
+        tmp_N = calc_N_matrix(csis_cont,c_sing[IEN_sing[:,e],:])
+        Nc_sing[(e-1)*npg2+1:e*npg2,:] = Nc*tmp_N
+        dNcdcsi_sing[(e-1)*npg2+1:e*npg2,:] = dNcdcsi*tmp_N
+        dNcdeta_sing[(e-1)*npg2+1:e*npg2,:] = dNcdeta*tmp_N
+    end
+    Nd_sing = Nc_sing*G
+    # @infiltrate
     # Field loop:
     Threads.@threads for fe in 1:nelem
     # for fe in 1:nelem
@@ -48,13 +62,13 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 else
 
-                    idx_ff = collect((1:nnel) .- (n-1))
-                    idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
+                    idx_ff, idx_points = calc_idx_permutation(nnel,n)
 
-                    idx_points = collect((1:nnel) .+ (n-1))
-                    idx_points[idx_points.>nnel] = idx_points[idx_points.>nnel] .-nnel
+                    # normal_sing, J_sing, omega_sing, gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
 
-                    normal_sing, J_sing, omega_sing, gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
+                    normal_sing, J_sing = calc_n_J_matrix(dNcdcsi_sing, dNcdeta_sing, field_points[idx_points,:])
+                    gauss_points_sing = Nc_sing[:,idx_ff]*field_points
+
                     GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
                     HELEM, GELEM2 = integrate_sing_static(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
 
