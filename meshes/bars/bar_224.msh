@@ -1,6 +1,6 @@
 $Material
 1
-4.0E+00 0.25 0.01 1.0
+5.000000E+00 0.0 0.01 1.0
 $EndMaterial
 $MeshType
 8
@@ -12,9 +12,9 @@ $MeshFormat
 $EndMeshFormat
 $PhysicalNames
 3
-2 1 "u 0.0 0.0 0.0 1"
-2 2 "t 0.0 0.0 0.0 1"
-2 3 "t 1.0 0.0 0.0 1"
+2 1 "u 0.0 u 0.0 u 0.0 1"
+2 2 "t 0.0 t 0.0 t 0.0 1"
+2 3 "t 1.0 t 0.0 t 0.0 1"
 $EndPhysicalNames
 $Entities
 8 12 6 0

@@ -1,6 +1,5 @@
 function csis_sing(offset,Nc,omegas)
 
-    l1 = 2*offset
 
     p1 = [-1 -1]
     p2 = [1 -1]
@@ -13,22 +12,62 @@ function csis_sing(offset,Nc,omegas)
     q3 = [p3;p4;p5;p5]
     q4 = [p4;p1;p5;p5]
 
-    a1 = calc_area(q1)
-    a2 = calc_area(q2)
-    a3 = calc_area(q3)
-    a4 = calc_area(q4)
+    csi_sing = generate_points_in_elem(Nc,q1)
+    csi_sing = [csi_sing;generate_points_in_elem(Nc,q2)]
+    csi_sing = [csi_sing;generate_points_in_elem(Nc,q3)]
+    csi_sing = [csi_sing;generate_points_in_elem(Nc,q4)]
+
+    return csi_sing
+
+end
+
+function csis_sing2(offset,Nc,dNcdcsi,dNcdeta)
+
+    p1 = [-1 -1]
+    p2 = [1 -1]
+    p3 = [1 1]
+    p4 = [-1 1]
+    p5 = [-1+offset -1+offset]
+
+    q1 = [p1;p2;p5;p5]
+    q2 = [p2;p3;p5;p5]
+    q3 = [p3;p4;p5;p5]
+    q4 = [p4;p1;p5;p5]
 
     csi_sing = generate_points_in_elem(Nc,q1)
-    omegas_sing = omegas.*a1./4
+    # @infiltrate
+    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q1 zeros(4)])
+    Jb_sing = J
     csi_sing = [csi_sing;generate_points_in_elem(Nc,q2)]
-    omegas_sing = [omegas_sing; omegas.*a2./4]
+    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q2 zeros(4)])
+    Jb_sing = [Jb_sing; J]
     csi_sing = [csi_sing;generate_points_in_elem(Nc,q3)]
-    omegas_sing = [omegas_sing; omegas.*a3./4]
+    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q3 zeros(4)])
+    Jb_sing = [Jb_sing; J]
     csi_sing = [csi_sing;generate_points_in_elem(Nc,q4)]
-    omegas_sing = [omegas_sing; omegas.*a4./4]
+    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q4 zeros(4)])
+    Jb_sing = [Jb_sing; J]
 
-    return csi_sing, omegas_sing
+    return csi_sing, Jb_sing
 
+end
+
+function csis_sing3(offset,Nc,dNcdcsi,dNcdeta)
+
+    c, IEN = divide_elem2(offset)
+
+    nsubelem = size(IEN,2)
+
+    csi_sing = generate_points_in_elem(Nc,c[IEN[:,1],:])
+    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[IEN[:,1],:] zeros(4)])
+    Jb_sing = J
+    
+    for i in 2:nsubelem
+        csi_sing = [csi_sing;generate_points_in_elem(Nc,c[IEN[:,i],:])]
+        _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[IEN[:,i],:] zeros(4)])
+        Jb_sing = [Jb_sing; J]
+    end
+    return csi_sing, Jb_sing
 
 end
 
@@ -77,6 +116,30 @@ function divide_elem(e)
         2 3 4 1
         5 5 5 5
         5 5 5 5
+    ]
+
+    return c, IEN
+end
+
+function divide_elem2(e)
+    c = [
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        -1+e -1+e
+        -1+2e -1
+        1 -1+2e
+        -1+2e 1
+        -1 -1+2e
+        -1+2e -1+2e
+    ]
+
+    IEN = [
+        1 6 10 9 6 10 9
+        6 10 9 1 2 7 10
+        5 5 5 5 7 3 8
+        5 5 5 5 10 8 4
     ]
 
     return c, IEN

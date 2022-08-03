@@ -56,9 +56,9 @@ function integrate_sing_static(source_node,gauss_points_sing,N_sing,normal_sing,
             if k!=n
                 HELEM[:,3*(k-1)+1:3*k] += t.*P
             end
-            if k == n
+            # if k == n
                 GELEM[:,3*(k-1)+1:3*k] += u.*P
-            end
+            # end
         end
     end
     return HELEM, GELEM

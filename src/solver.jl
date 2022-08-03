@@ -8,3 +8,21 @@ function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, proble
 
     return solver_var
 end
+
+function solvestatic(inp_file)
+    mesh, material, problem, solver_var = read_msh(inp_file)
+
+    derive_data!(material, problem, solver_var)
+
+    generate_mesh!(mesh)
+
+    calc_GH!(mesh, material, problem, solver_var)
+
+    applyBC_nonrb3!(mesh, solver_var)
+
+    x = solver_var.ma \ mesh.zbcvalue
+
+    u,t = returnut3(mesh,x)
+
+    return mesh, material, problem, solver_var, u, t
+end

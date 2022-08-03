@@ -128,7 +128,7 @@ function parse_physicalnames(io)
     
     nphys = parse(Int,readline(io))
 
-    bc = zeros(nphys,2)
+    bc = zeros(nphys,4)
     bcvalue = zeros(nphys,3)
     mat = zeros(nphys,2)
 
@@ -136,13 +136,15 @@ function parse_physicalnames(io)
         data = split(replace(readline(io), "\"" =>""))
         bc[i,1] = parse(Float64, data[2])
         mat[i,:] = [parse(Float64, data[2]); parse(Float64, data[end])]
-        bcvalue[i,:] = parse.(Float64,data[4:6])
-        if data[3] == "u"
-            bc[i,2] = 1
-        elseif data[3] == "t"
-            bc[i,2] = 2
-        elseif data[3] == "rb"
-            bc[i,2] = 3
+        bcvalue[i,:] = parse.(Float64,data[[4,6,8]])
+        for j in 1:3
+            if data[2*j+1] == "u"
+                bc[i,j+1] = 1
+            elseif data[2*j+1] == "t"
+                bc[i,j+1] = 2
+            elseif data[2*j+1] == "rb"
+                bc[i,j+1] = 3
+            end
         end
     end
     endblock = readline(io)
@@ -204,8 +206,8 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
     mesh.nelem = num_elements
     
     mesh.IEN_geo = zeros(Int32, 4, num_elements)
-    mesh.bc = zeros(Int16,num_elements)
-    mesh.bcvalue = zeros(Float64,3*num_elements+6)
+    mesh.bc = zeros(Int16,num_elements,3)
+    mesh.bcvalue = zeros(Float64,num_elements,3)
     mesh.material = zeros(Int16,num_elements)
 
     for index_entity in 1:num_entity_blocks
@@ -218,8 +220,8 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
             for i in 1:elements_in_block
                 e, n1, n2, n3, n4 = parse.(Int, split(readline(io)))
                 mesh.IEN_geo[:,e] = [n1, n2, n3, n4]
-                mesh.bc[e] = bc[ptag,2]
-                mesh.bcvalue[3*(e-1)+1:3*e] = bcvalue[ptag,:]
+                mesh.bc[e,:] = bc[ptag,2:end]
+                mesh.bcvalue[e,:] = bcvalue[ptag,:]
                 mesh.material[e] = mat[ptag,2]
             end
         else

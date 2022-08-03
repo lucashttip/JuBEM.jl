@@ -48,15 +48,15 @@ mutable struct mesh_type
     IEN_geo :: Array{Int32,2}   
     IEN :: Array{Int32,2}   
     LM :: Array{Int32,2}    
-    bc :: Array{Int16,1}    
+    bc :: Array{Int16,2}    
     material :: Array{Int16,1}  
     points :: Array{Float64,2}  
     nodes :: Array{Float64,2}   
-    bcvalue :: Array{Float64,1} 
+    bcvalue :: Array{Float64,2} 
     zbcvalue :: Array{Float64,1}    
     mesh_type() = new(0,0,0,0,0,Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0),
-    Array{Int16,1}(undef,0), Array{Int16,1}(undef,0), Array{Float64,2}(undef,0,0), Array{Float64,2}(undef,0,0), 
-    Array{Float64,1}(undef,0), Array{Float64,1}(undef,0))
+    Array{Int16,2}(undef,0,0), Array{Int16,1}(undef,0), Array{Float64,2}(undef,0,0), Array{Float64,2}(undef,0,0), 
+    Array{Float64,2}(undef,0,0), Array{Float64,1}(undef,0))
 end
 
 # !> @brief Type that holds the information of 

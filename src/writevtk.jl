@@ -9,6 +9,7 @@ function writevtk(mesh,u,t,filename)
         vtk["disp_x"] = u[:,1]
         vtk["disp_y"] = u[:,2]
         vtk["disp_z"] = u[:,3]
+        vtk["disp"] = u'
         vtk["tractions_x"] = t[:,1]
         vtk["tractions_y"] = t[:,2]
         vtk["tractions_z"] = t[:,3]

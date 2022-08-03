@@ -13,12 +13,46 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/bars/bar_32.msh"
-#     ! =================================================
-#     ! =================================================
-#     ! ===================== Input =====================
-#     ! =================================================
-#     ! =================================================
+    inp_file = "meshes/vigas/viga_2_20.msh"
+    # ref = -3.2
+    G = 4e3
+    v = 0.25
+    E = 2*G*(1+v)
+    L = 10
+    q = 1
+    l = 1
+    I = l^4/12
+    A = l^2
+    ref = -(q*l^4)/(24*E*I) # Carga distribuída ao longo de x
+    # ref = -(q*l^3)/(3*E*I) # Carga concentrada em x = L
+    # ref2 = (q*A)*L/(E*A)
+
+    mesh, material, problem, solver_var, u, t = solvestatic(inp_file)
+
+    # applyBC_nonrb!(mesh, solver_var)
+
+    # Post-processing
+    ut = u[mesh.IEN[:,mesh.bc[:,2].==2][:],:]
+
+    neu = sum(mesh.bc[:,2].==1)
+
+    ud = sum(ut[1:4*neu,2])./(4*neu)
+    erro = ((ud-ref)/ref)*100
+
+    up,tp = calc_utpoints(mesh,u,t)
+
+    writevtk(mesh,up,tp,"vis")
+    
+    erro, ud
+
+#=
+    # ref = 1
+    #     ! =================================================
+    #     ! =================================================
+    #     ! ===================== Input =====================
+    #     ! =================================================
+    #     ! =================================================
+
 
     # ! ## Read from input
     mesh, material, problem, solver_var = read_msh(inp_file)
@@ -39,7 +73,7 @@ using JuBEM
     # ! ================================================
     # ! ================================================
 
-
+    
     # do i = 1, size(problem%frequencies)
     # problem.frequency = problem.frequencies[1]
     # println("Rodando o para a frequencia 1: ", string(problem.frequency))
@@ -48,7 +82,7 @@ using JuBEM
         
         # ! ## Calculate G and H
         calc_GH!(mesh, material, problem, solver_var)
-
+    
         # ! ## Apply BC, arranging Ax = b
         applyBC_nonrb!(mesh, solver_var)
         # applyBC_nonrb2!(mesh, solver_var)
@@ -58,17 +92,8 @@ using JuBEM
 
         # u,t = returnut2(mesh,x)
         u,t = returnut(mesh,x)
-
-        ut = u[mesh.IEN[:,mesh.bc.==2][:],:]
-
-        neu = sum(mesh.bc.==1)
-
-        ud = sum(ut[1:4*neu,1])/(4*neu)
-        erro = (ud-1)*100
-
-        # up,tp = calc_utpoints(mesh,u,t)
-
-        # writevtk(mesh,up,tp,"vis")
+       
+    
         
 
     # end do
@@ -89,3 +114,5 @@ using JuBEM
 
 
     ## Free spaces and close files
+ =#
+    

@@ -16,7 +16,7 @@ export calc_N_matrix,calc_N_matrix2, calc_dNdcsi_matrix, calc_k, calc_dNdeta_mat
 export calc_csis_grid
 
 include("elementsubdivision.jl")
-export csis_sing_1, csis_sing_2 , csis_sing_3, divide_elem
+export csis_sing, csis_sing_2 , csis_sing_3, divide_elem
 
 include("derivedata.jl")
 export derive_data!
@@ -37,10 +37,10 @@ include("solverstatics.jl")
 include("solverdynamics.jl")
 
 include("solver.jl")
-export calc_GH!
+export calc_GH!, solvestatic
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2
+export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3
 
 include("plotting.jl")
 export visualize_mesh, visualize_mesh_raw, visualize_result, calc_utpoints
