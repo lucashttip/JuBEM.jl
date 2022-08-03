@@ -79,3 +79,117 @@ function integrate_rigid_body!(H,mesh)
     
     return H
 end
+
+function integrate_const_static(source_node, gauss_points, normal, J, omegas, delta, C_stat)
+    nGP = length(omegas)
+    HELEM = zeros(3,3)
+    GELEM = zeros(3,3)
+    for i in 1:nGP
+        u, t = calc_funsol_static(source_node,gauss_points[i,:], normal[i,:], delta, C_stat)
+            
+        P = J[i]*omegas[i]
+
+        HELEM += t.*P
+        GELEM += u.*P
+        
+    end
+    return HELEM, GELEM
+end
+
+function integration_const_raw(source_node, points, normal, csis, omegas, delta, C_stat)
+
+    # implicit none
+    # integer :: nGP
+    # type(cmplx_consts) :: zconsts
+    # real(kind=dp), dimension(:,:) :: delta, points
+    # real(kind=dp), dimension(:) :: node, csi, omega, eta
+    # complex(kind=dp), dimension(3,3) :: ZHELEM,ZGELEM,ZU,ZT
+    # complex(kind=dp) :: zGe,zSwv,zPwv
+    # real(kind=dp), dimension(3) :: gp
+    # real(kind=dp) :: P(2,4),XJ(2,3),F(4)
+    # real(kind=dp) :: G1,P1,RP,RM,G2,P2,SP,SM,TEMP,DET,PI,P12,FR
+    # integer :: I,J,K,ig,JG
+
+    ngp = length(csis)
+
+    HELEM = zeros(3,3)
+    GELEM = zeros(3,3)
+
+    P = zeros(2,4)
+    F = zeros(4)
+    XJ = zeros(2,3)
+    gp = zeros(3)
+
+        for JG in 1:ngp
+
+            G2=csis[JG]
+            P2=omegas[JG]
+            SP=1.0+G2
+            SM=1.0-G2
+            P[1,1] = -0.25*SM
+            P[1,2] =  0.25*SM
+            P[1,3] =  0.25*SP
+            P[1,4] = -0.25*SP
+
+            for ig in 1:ngp
+
+                G1=csis[ig]
+                P1=omegas[ig]
+                RP=1.0+G1
+                RM=1.0-G1
+                F[1]=0.25*RM*SM
+                F[2]=0.25*RP*SM
+                F[3]=0.25*RP*SP
+                F[4]=0.25*RM*SP
+                P[2,1]=-0.25*RM
+                P[2,2]=-0.25*RP
+                P[2,3]= 0.25*RP
+                P[2,4]= 0.25*RM
+
+
+                # ! *
+                # ! * CALCULA A RELAÇÃO ENTRE AS COORDENADAS CARTESIANAS E HOMOGสNEAS
+                # ! *
+                for i in 1:2
+                    for j in 1:3
+                    TEMP=0.0
+                        for k in 1:4
+                            TEMP=TEMP+P[i,k]*points[k,j]
+                        end
+                    XJ[i,j]=TEMP
+                    end
+                end
+                # ! *
+                # ! * CALCULA O JACOBIANO
+                # ! *
+                DET=sqrt((XJ[1,2]*XJ[2,3]-XJ[2,2]*XJ[1,3])^2 + (XJ[2,1]*XJ[1,3]-XJ[1,1]*XJ[2,3])^2 + (XJ[1,1]*XJ[2,2]-XJ[2,1]*XJ[1,2])^2  )
+
+                # if DET - 1.0e-7 < 0
+                #     error("NONSING : ERRO, JACOBIANO NULO OU NEGATIVO = ")
+                # end
+
+                # ! *
+                # ! * CALCULA AS COORDENADAS DO PONTO DE INTEGRAÇÃO
+                # ! *
+                gp .= 0.0
+                for i in 1:4
+                    gp[1]=gp[1]+points[i,1]*F[i]
+                    gp[2]=gp[2]+points[i,2]*F[i]
+                    gp[3]=gp[3]+points[i,3]*F[i]
+                end
+                # ! *
+                # ! * ACIONA ROTINA QUE CALCULA A SOLUวรO FUNDAMENTAL DINÂMICA 3D
+                # ! *
+                u, t = calc_funsol_static(source_node,gp, normal, delta, C_stat)
+
+
+                P12=P1*P2*DET
+                HELEM = HELEM + t*P12
+                GELEM = GELEM + u*P12
+
+
+            end
+        end
+        return HELEM, GELEM
+
+end

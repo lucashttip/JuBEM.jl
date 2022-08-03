@@ -58,7 +58,7 @@ function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points
     v = cross(dpdcsi', dpdeta')
-    J = norm(v)
+    J = norm(v,2)
     n = v./J
 
     return n, J

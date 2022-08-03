@@ -55,3 +55,8 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
     end
     return solver_var
 end
+
+function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type, frequency::Float64)
+
+
+end

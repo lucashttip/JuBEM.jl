@@ -1,9 +1,17 @@
 function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, problem::problem_type, solver_var::solver_var_type)
 
     if !isempty(problem.nFr)
-        calc_GH_dynamic_non_const!(mesh, material, solver_var, problem.frequency)
+        if mesh.eltype >0
+            calc_GH_dynamic_non_const!(mesh, material, solver_var, problem.frequency)
+        else
+            calc_GH_dynamic_const!(mesh, material, solver_var, problem.frequency)
+        end
     else
-        calc_GH_static_non_const!(mesh, material, solver_var)
+        if mesh.eltype >0
+            calc_GH_static_non_const!(mesh, material, solver_var)
+        else
+            calc_GH_static_const!(mesh, material, solver_var)
+        end
     end
 
     return solver_var
