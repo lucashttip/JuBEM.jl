@@ -30,8 +30,10 @@ using JuBEM
 
     neu = sum(mesh.bc[:,1].==1)
 
+    nnel = (mesh.eltype+1)^2
+
     # ud = sum(ut[1:4*neu,1])/(4*neu)
-    ud = sum(ut[1:4*neu,1])/(4*neu)
+    ud = sum(ut[1:nnel*neu,1])/(nnel*neu)
 
     erro = ((ud-ref)/ref)*100
 

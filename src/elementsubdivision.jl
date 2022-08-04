@@ -1,77 +1,105 @@
-function csis_sing(offset,Nc,omegas)
+function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
-
-    p1 = [-1 -1]
-    p2 = [1 -1]
-    p3 = [1 1]
-    p4 = [-1 1]
-    p5 = [-1+offset -1+offset]
-
-    q1 = [p1;p2;p5;p5]
-    q2 = [p2;p3;p5;p5]
-    q3 = [p3;p4;p5;p5]
-    q4 = [p4;p1;p5;p5]
-
-    csi_sing = generate_points_in_elem(Nc,q1)
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q2)]
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q3)]
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q4)]
-
-    return csi_sing
-
-end
-
-function csis_sing2(offset,Nc,dNcdcsi,dNcdeta)
-
-    p1 = [-1 -1]
-    p2 = [1 -1]
-    p3 = [1 1]
-    p4 = [-1 1]
-    p5 = [-1+offset -1+offset]
-
-    q1 = [p1;p2;p5;p5]
-    q2 = [p2;p3;p5;p5]
-    q3 = [p3;p4;p5;p5]
-    q4 = [p4;p1;p5;p5]
-
-    csi_sing = generate_points_in_elem(Nc,q1)
-    # @infiltrate
-    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q1 zeros(4)])
-    Jb_sing = J
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q2)]
-    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q2 zeros(4)])
-    Jb_sing = [Jb_sing; J]
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q3)]
-    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q3 zeros(4)])
-    Jb_sing = [Jb_sing; J]
-    csi_sing = [csi_sing;generate_points_in_elem(Nc,q4)]
-    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [q4 zeros(4)])
-    Jb_sing = [Jb_sing; J]
-
-    return csi_sing, Jb_sing
-
-end
-
-function csis_sing3(offset,Nc,dNcdcsi,dNcdeta)
-
-    c, IEN = divide_elem2(offset)
+    if eltype == 1
+        c, IEN = divide_elem_lin(offset)
+        n = 1
+    elseif eltype == 2
+        c, IEN = divide_elem_quad(offset)
+        n = 3
+    end
 
     nsubelem = size(IEN,2)
+    npg = size(Nc,1)
+    nnel = (eltype+1)^2
+    csi_sing = zeros(nsubelem*npg,2,n)
+    Jb_sing = zeros(nsubelem*npg,n)
 
-    csi_sing = generate_points_in_elem(Nc,c[IEN[:,1],:])
-    _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[IEN[:,1],:] zeros(4)])
-    Jb_sing = J
-    
-    for i in 2:nsubelem
-        csi_sing = [csi_sing;generate_points_in_elem(Nc,c[IEN[:,i],:])]
-        _, J = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[IEN[:,i],:] zeros(4)])
-        Jb_sing = [Jb_sing; J]
+    for j in 1:n       
+        for i in 1:nsubelem
+            csi_sing[npg*(i-1)+1:npg*i,:,n] = generate_points_in_elem(Nc,c[j][IEN[:,i],:])
+            _, Jb_sing[npg*(i-1)+1:npg*i,n] = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[j][IEN[:,i],:] zeros(4)])
+        end
     end
+
     return csi_sing, Jb_sing
 
 end
 
-function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
+
+
+
+function divide_elem_lin(e)
+    c = [[
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        -1+e -1+e
+    ]]
+
+    IEN = [
+        1 2 3 4
+        2 3 4 1
+        5 5 5 5
+        5 5 5 5
+    ]
+
+    return c, IEN
+end
+
+function divide_elem_quad(e)
+    c = [
+        [-1 -1
+        1 -1
+        1 1
+        -1 1
+        -1+e -1+e],
+        [-1 -1
+        1 -1
+        1 1
+        -1 1 
+        -1+e 0],
+        [-1 -1
+        1 -1
+        1 1
+        -1 1 
+        0 0]
+    ]
+
+    IEN = [
+        1 2 3 4
+        2 3 4 1
+        5 5 5 5
+        5 5 5 5
+    ]
+    return c, IEN
+end
+
+function divide_elem2(e)
+    c = [
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        -1+e -1+e
+        -1+2e -1
+        1 -1+2e
+        -1+2e 1
+        -1 -1+2e
+        -1+2e -1+2e
+    ]
+
+    IEN = [
+        1 6 10 9 6 10 9
+        6 10 9 1 2 7 10
+        5 5 5 5 7 3 8
+        5 5 5 5 10 8 4
+    ]
+
+    return c, IEN
+end
+
+function calc_subelems(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
 
     npg2 = size(dNcdcsi,1)
     At = calc_area(points)
@@ -99,50 +127,6 @@ function divide_elem(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
 
     end
     return normal_sing, J_sing, omega_sing, gauss_points_sing
-end
-
-
-function divide_elem(e)
-    c = [
-        -1 -1
-        1 -1
-        1 1
-        -1 1
-        -1+e -1+e
-    ]
-
-    IEN = [
-        1 2 3 4
-        2 3 4 1
-        5 5 5 5
-        5 5 5 5
-    ]
-
-    return c, IEN
-end
-
-function divide_elem2(e)
-    c = [
-        -1 -1
-        1 -1
-        1 1
-        -1 1
-        -1+e -1+e
-        -1+2e -1
-        1 -1+2e
-        -1+2e 1
-        -1 -1+2e
-        -1+2e -1+2e
-    ]
-
-    IEN = [
-        1 6 10 9 6 10 9
-        6 10 9 1 2 7 10
-        5 5 5 5 7 3 8
-        5 5 5 5 10 8 4
-    ]
-
-    return c, IEN
 end
 
 function calc_idx_permutation(nnel,n)

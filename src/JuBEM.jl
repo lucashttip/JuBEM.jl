@@ -40,10 +40,10 @@ include("solver.jl")
 export calc_GH!, solvestatic
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3
+export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3,calc_utpoints
 
 include("plotting.jl")
-export visualize_mesh, visualize_mesh_raw, visualize_result, calc_utpoints
+export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh
 
 include("writevtk.jl")
 export writevtk

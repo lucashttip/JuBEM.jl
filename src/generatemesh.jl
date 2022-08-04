@@ -59,8 +59,27 @@ end
 
 function generate_cont_mesh!(mesh)
     # Generate nodes, IEN, ID and LM
+    nel = mesh.nelem
+    nnel = (eltype+1)^2
+    nnodes = mesh.npoints
+
+    mesh.nnodes = nnodes
+    mesh.nodes = mesh.points
+    mesh.IEN = mesh.IEN_geo
+    mesh.ID = zeros(3,nnodes)
+    mesh.LM = zeros(3*nnel,nel)
+    
+
+    mesh.nodes[:,1] = 1:nel
+    mesh.IEN[:] = 1:nel
+    mesh.ID = reshape(1:3*nel,size(mesh.ID))
+
+    for e in 1:nel
+            mesh.LM[:,e] = mesh.ID[:,mesh.IEN[:,e]][:]
+    end
 
     return mesh
+
 end
 
 function generate_const_mesh!(mesh)

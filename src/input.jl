@@ -178,6 +178,7 @@ end
 function parse_nodes!(io,mesh)
     entity_blocks, num_nodes, min_node_tag, max_node_tag = parse.(Int, split(readline(io)))
     mesh.npoints = num_nodes
+
     mesh.points = zeros(num_nodes,4)
 
     for index_entity in 1:entity_blocks
@@ -204,8 +205,18 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
     
     num_entity_blocks, num_elements, min_element_tag, max_element_tag = num_elements
     mesh.nelem = num_elements
+
+    if mesh.eltype < 2
+        npel = 4
+    else
+        if mesh.eltype == 2
+            npel = 9
+        else
+            error("eltype not supported")
+        end
+    end
     
-    mesh.IEN_geo = zeros(Int32, 4, num_elements)
+    mesh.IEN_geo = zeros(Int32, npel, num_elements)
     mesh.bc = zeros(Int16,num_elements,3)
     mesh.bcvalue = zeros(Float64,num_elements,3)
     mesh.material = zeros(Int16,num_elements)
@@ -214,20 +225,21 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
 
         dim, tag, element_type, elements_in_block = parse.(Int, split(readline(io)))
         s = findfirst(s_entities[:,1].==tag)
+        # @infiltrate
         ptag = Int(s_entities[s,2])
 
-        if element_type == 3 # Quadrangles
+        if element_type == 3 || element_type == 10
             for i in 1:elements_in_block
-                e, n1, n2, n3, n4 = parse.(Int, split(readline(io)))
-                mesh.IEN_geo[:,e] = [n1, n2, n3, n4]
+                e, n... = parse.(Int, split(readline(io)))
+                mesh.IEN_geo[:,e] = n
                 mesh.bc[e,:] = bc[ptag,2:end]
                 mesh.bcvalue[e,:] = bcvalue[ptag,:]
                 mesh.material[e] = mat[ptag,2]
             end
         else
-            # for now we ignore all other elements (points, lines, hedrons, etc)
             for i in 1:elements_in_block
                 readline(io)
+                
             end
         end
     end

@@ -25,11 +25,11 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     Nd = Nc*G
     # @infiltrate
     
-    csi_sing, Jb_sing = csis_sing2(mesh.offset, Nc, dNcdcsi,dNcdeta)
-    Nc_sing2 = calc_N_matrix(csis_cont,csi_sing)
-    dNcdcsi_sing2 = calc_dNdcsi_matrix(csis_cont,csi_sing)
-    dNcdeta_sing2 = calc_dNdeta_matrix(csis_cont,csi_sing)
-    Nd_sing2 = calc_N_matrix(csis_descont,csi_sing)
+    csi_sing, Jb_sing = csis_sing(mesh.offset, Nc, dNcdcsi,dNcdeta,mesh.eltype)
+    Nc_sing = calc_N_matrix(csis_cont,csi_sing)
+    dNcdcsi_sing = calc_dNdcsi_matrix(csis_cont,csi_sing)
+    dNcdeta_sing = calc_dNdeta_matrix(csis_cont,csi_sing)
+    Nd_sing = calc_N_matrix(csis_descont,csi_sing)
     omega_sing = repeat(omegas,4)
 
     # c_sing, IEN_sing = divide_elem(mesh.offset)
@@ -70,14 +70,14 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
                     # normal_sing, J_sing, omega_sing, gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
 
-                    normal_sing, J_sing = calc_n_J_matrix(dNcdcsi_sing2, dNcdeta_sing2, field_points[idx_points,:])
+                    normal_sing, J_sing = calc_n_J_matrix(dNcdcsi_sing, dNcdeta_sing, field_points[idx_points,:])
                     # @infiltrate
                     J_sing = J_sing.*Jb_sing
                     # @infiltrate
-                    gauss_points_sing = Nc_sing2[:,idx_ff]*field_points
+                    gauss_points_sing = Nc_sing[:,idx_ff]*field_points
                     # @infiltrate
                     # GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
-                    HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, Nd_sing2[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
                     # GELEM = GELEM + GELEM1
 
                     # HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
