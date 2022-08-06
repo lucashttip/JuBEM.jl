@@ -36,11 +36,11 @@ using JuBEM
 
     neu = sum(mesh.bc[:,2].==1)
 
-    ud = sum(ut[1:4*neu,2])./(4*neu)
+    ud = sum(ut[1:nnel*neu,2])./(nnel*neu)
     erro = ((ud-ref)/ref)*100
 
     up,tp = calc_utpoints(mesh,u,t)
 
-    writevtk(mesh,up,tp,"vis")
+    # writevtk(mesh,up,tp,"vis")
     
     erro, ud

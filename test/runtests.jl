@@ -23,4 +23,4 @@ x = solver_var.ma \ mesh.zbcvalue
 
 u,t = returnut3(mesh,x)
 # maximum(u[:,1])
-minimum(u[:,2])
+# minimum(u[:,2])

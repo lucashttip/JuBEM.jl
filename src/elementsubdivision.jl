@@ -16,17 +16,14 @@ function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
     for j in 1:n       
         for i in 1:nsubelem
-            csi_sing[npg*(i-1)+1:npg*i,:,n] = generate_points_in_elem(Nc,c[j][IEN[:,i],:])
-            _, Jb_sing[npg*(i-1)+1:npg*i,n] = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[j][IEN[:,i],:] zeros(4)])
+            csi_sing[npg*(i-1)+1:npg*i,:,j] = generate_points_in_elem(Nc,c[j][IEN[:,i],:])
+            _, Jb_sing[npg*(i-1)+1:npg*i,j] = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[j][IEN[:,i],:] zeros(4)])
         end
     end
 
     return csi_sing, Jb_sing
 
 end
-
-
-
 
 function divide_elem_lin(e)
     c = [[
@@ -58,7 +55,7 @@ function divide_elem_quad(e)
         1 -1
         1 1
         -1 1 
-        -1+e 0],
+        0 -1+e],
         [-1 -1
         1 -1
         1 1
@@ -133,10 +130,23 @@ function calc_idx_permutation(nnel,n)
     if nnel == 4
         idx_ff = collect((1:nnel) .- (n-1))
         idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
+        nperm = 1
 
-        idx_points = collect((1:nnel) .+ (n-1))
-        idx_points[idx_points.>nnel] = idx_points[idx_points.>nnel] .-nnel
+    elseif nnel == 9
+        idx = [0,1,2,3,0,1,2,3,0]
+        idx_ff1 = collect((1:4) .- idx[n])
+        idx_ff1[idx_ff1.<1] = idx_ff1[idx_ff1.<1] .+4
+        idx_ff2 = collect((5:8) .- idx[n])
+        idx_ff2[idx_ff2.<5] = idx_ff2[idx_ff2.<5] .+4
+        idx_ff = [idx_ff1; idx_ff2; 9]
+        
+        if n < 5
+            nperm = 1
+        elseif n>=5 && n<=8
+            nperm = 2
+        elseif n == 9
+            nperm = 3
+        end
     end
-
-    return idx_ff, idx_points
+    return idx_ff, nperm
 end

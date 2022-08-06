@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/bars/bar_32.msh"
+    inp_file = "meshes/bars/bar_32_quad.msh"
      # ref = -3.2
      E = 10
      L = 10
@@ -37,9 +37,9 @@ using JuBEM
 
     erro = ((ud-ref)/ref)*100
 
-    up,tp = calc_utpoints(mesh,u,t)
+    # up,tp = calc_utpoints(mesh,u,t)
 
-    writevtk(mesh,up,tp,"vis")
+    # writevtk(mesh,up,tp,"vis")
     erro, ud
 
     # maximum(ut, dims=1)

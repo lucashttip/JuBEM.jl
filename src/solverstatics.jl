@@ -24,12 +24,35 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     Nd = Nc*G
     # @infiltrate
+
+    if mesh.eltype == 2
+        csis_cont_lin = range(-1,1,length = 2)
+
+        Nc_lin = calc_N_matrix(csis_cont_lin,csis)
+        dNcdcsi_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
+        dNcdeta_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
+        nperm = 3
+    elseif mesh.eltype < 2
+        Nc_lin = Nc
+        dNcdcsi_lin = dNcdcsi
+        dNcdeta_lin = dNcdeta
+        nperm = 1
+    end
+
     
-    csi_sing, Jb_sing = csis_sing(mesh.offset, Nc, dNcdcsi,dNcdeta,mesh.eltype)
-    Nc_sing = calc_N_matrix(csis_cont,csi_sing)
-    dNcdcsi_sing = calc_dNdcsi_matrix(csis_cont,csi_sing)
-    dNcdeta_sing = calc_dNdeta_matrix(csis_cont,csi_sing)
-    Nd_sing = calc_N_matrix(csis_descont,csi_sing)
+    csi_sing, Jb_sing = csis_sing(mesh.offset, Nc_lin, dNcdcsi_lin,dNcdeta_lin,mesh.eltype)
+    npg_sing = size(csi_sing,1)
+    Nc_sing = zeros(npg_sing,nnel,nperm)
+    dNcdcsi_sing = zeros(npg_sing,nnel,nperm)
+    dNcdeta_sing = zeros(npg_sing,nnel,nperm)
+    Nd_sing = zeros(npg_sing,nnel,nperm)
+
+    for i in 1:nperm
+        Nc_sing[:,:,i] = calc_N_matrix(csis_cont,csi_sing[:,:,i])
+        dNcdcsi_sing[:,:,i] = calc_dNdcsi_matrix(csis_cont,csi_sing[:,:,i])
+        dNcdeta_sing[:,:,i] = calc_dNdeta_matrix(csis_cont,csi_sing[:,:,i])
+        Nd_sing[:,:,i] = calc_N_matrix(csis_descont,csi_sing[:,:,i])
+    end
     omega_sing = repeat(omegas,4)
 
     # c_sing, IEN_sing = divide_elem(mesh.offset)
@@ -66,18 +89,18 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 else
 
-                    idx_ff, idx_points = calc_idx_permutation(nnel,n)
-
+                    idx_ff, nperm = calc_idx_permutation(nnel,n)
+                    # @infiltrate
                     # normal_sing, J_sing, omega_sing, gauss_points_sing = divide_elem(source_node,field_points[idx_points,:],Nc,dNcdcsi,dNcdeta,omegas)
 
-                    normal_sing, J_sing = calc_n_J_matrix(dNcdcsi_sing, dNcdeta_sing, field_points[idx_points,:])
+                    normal_sing, J_sing = calc_n_J_matrix(dNcdcsi_sing[:,idx_ff,nperm], dNcdeta_sing[:,idx_ff,nperm], field_points)
                     # @infiltrate
-                    J_sing = J_sing.*Jb_sing
+                    J_sing = J_sing.*Jb_sing[:,nperm]
                     # @infiltrate
-                    gauss_points_sing = Nc_sing[:,idx_ff]*field_points
+                    gauss_points_sing = Nc_sing[:,idx_ff,nperm]*field_points
                     # @infiltrate
                     # GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
-                    HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, Nd_sing[:,idx_ff], normal_sing, J_sing, omega_sing, delta, C_stat, n)
+                    HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, Nd_sing[:,idx_ff,nperm], normal_sing, J_sing, omega_sing, delta, C_stat, n)
                     # GELEM = GELEM + GELEM1
 
                     # HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
