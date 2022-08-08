@@ -13,12 +13,12 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/vigas/viga_4_15.msh"
+    inp_file = "meshes/vigas/quad/viga_4_12_quad.msh"
     # ref = -3.2
     G = 4e3
     v = 0.25
     E = 2*G*(1+v)
-    L = 20
+    L = 10
     q = 1
     l = 1
     I = l^4/12
@@ -35,7 +35,7 @@ using JuBEM
     ut = u[mesh.IEN[:,mesh.bc[:,2].==2][:],:]
 
     neu = sum(mesh.bc[:,2].==1)
-
+    nnel = (mesh.eltype+1)^2
     ud = sum(ut[1:nnel*neu,2])./(nnel*neu)
     erro = ((ud-ref)/ref)*100
 

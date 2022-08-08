@@ -130,6 +130,7 @@ function calc_idx_permutation(nnel,n)
     if nnel == 4
         idx_ff = collect((1:nnel) .- (n-1))
         idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
+
         nperm = 1
 
     elseif nnel == 9
@@ -149,4 +150,5 @@ function calc_idx_permutation(nnel,n)
         end
     end
     return idx_ff, nperm
+    
 end

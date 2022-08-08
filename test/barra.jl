@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/bars/bar_32_quad.msh"
+    inp_file = "meshes/bars/bar_128.msh"
      # ref = -3.2
      E = 10
      L = 10
