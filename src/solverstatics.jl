@@ -14,32 +14,40 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
     omegas = calc_omegas(solver_var.omega)
 
+    # Cálculos para elementos não singulares
+    gp, dists = calc_points_weights()
     k = calc_k(nnel)
+
+    Nc_nonsing = []
+    dNcdcsi_nonsing = []
+    dNcdeta_nonsing = []
+    Nd_nonsing = []
+
+    for i in eachindex(gp)
+        N = calc_N_matrix(csis_cont,gp[i].csi)
+        Nd = calc_N_matrix(csis_descont,gp[i].csi)
+        Ncsi = calc_dNdcsi_matrix(csis_cont,gp[i].csi)
+        Neta = calc_dNdeta_matrix(csis_cont,gp[i].csi)
+        push!(Nc_nonsing,N)
+        push!(dNcdcsi_nonsing,Ncsi)
+        push!(dNcdeta_nonsing,Neta)
+        push!(Nd_nonsing,Nd)
+    end
+
+
+    # Cálculos para elementos singulares
     csis = calc_csis_grid(solver_var.csi)
-    Nc = calc_N_matrix(csis_cont,csis)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
-    dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
-
-    G = calc_G(csis_cont,csis_descont,k)
-
-    Nd = Nc*G
-    # @infiltrate
+    csis_cont_lin = range(-1,1,length = 2)
+    Nc_lin = calc_N_matrix(csis_cont_lin,csis)
+    dNcdcsi_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
+    dNcdeta_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
 
     if mesh.eltype == 2
-        csis_cont_lin = range(-1,1,length = 2)
-
-        Nc_lin = calc_N_matrix(csis_cont_lin,csis)
-        dNcdcsi_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
-        dNcdeta_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
         nperm = 3
     elseif mesh.eltype < 2
-        Nc_lin = Nc
-        dNcdcsi_lin = dNcdcsi
-        dNcdeta_lin = dNcdeta
         nperm = 1
     end
 
-    
     csi_sing, Jb_sing = csis_sing(mesh.offset, Nc_lin, dNcdcsi_lin,dNcdeta_lin,mesh.eltype)
     npg_sing = size(csi_sing,1)
     Nc_sing = zeros(npg_sing,nnel,nperm)
@@ -55,30 +63,26 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
     end
     omega_sing = repeat(omegas,4)
 
-    # c_sing, IEN_sing = divide_elem_lin(mesh.offset)
-    # npg2 = size(Nc,1)
-    # nsubelem = size(IEN_sing,2)
-    # Nc_sing2 = zeros(nsubelem*npg2,nnel)
-    # dNcdcsi_sing2 = zeros(nsubelem*npg2,nnel)
-    # dNcdeta_sing2 = zeros(nsubelem*npg2,nnel)
-    # # omega_sing2 = repeat(omegas,nsubelem)
-
-    # for e in 1:nsubelem
-    #     tmp_N = calc_N_matrix(csis_cont,c_sing[1][IEN_sing[:,e],:])
-    #     Nc_sing2[(e-1)*npg2+1:e*npg2,:] = Nc*tmp_N
-    #     dNcdcsi_sing2[(e-1)*npg2+1:e*npg2,:] = dNcdcsi*tmp_N
-    #     dNcdeta_sing2[(e-1)*npg2+1:e*npg2,:] = dNcdeta*tmp_N
-    # end
-
+    # @infiltrate
     # Field loop:
     Threads.@threads for fe in 1:nelem
     # for fe in 1:nelem
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
-        normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
-        gauss_points = Nc*field_points
-        # @infiltrate
+        normal = []
+        J = []
+        gauss_points = []
+
+        for i in eachindex(gp)
+            normal2, J2 = calc_n_J_matrix(dNcdcsi_nonsing[i], dNcdeta_nonsing[i], field_points)
+            gauss_points2 = Nc_nonsing[i]*field_points
+            push!(normal,normal2)
+            push!(J,J2)
+            push!(gauss_points,gauss_points2)
+        end
+
+        
         # source loop:
         for se in 1:nelem
             for n = 1:nnel
@@ -86,7 +90,9 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                 source_node = mesh.nodes[sn,2:end]
 
                 if fe != se
-                    HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
+
+                    r = calc_dist(source_node, field_points, dists)
+                    HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points[r],Nd_nonsing[r],normal[r],J[r], gp[r].omega, delta, C_stat)
                 else
 
                     idx_ff, nperm = calc_idx_permutation(nnel,n)
@@ -97,16 +103,15 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     J_sing = J_sing.*Jb_sing[:,nperm]
                     pesos = zeros(length(omega_sing),nnel)
 
-
                     for k in 1:nnel
                         pesos[:,k] = J_sing.*omega_sing.*Nd_sing[:,idx_ff[k],nperm]
                     end
                     # @infiltrate
                     gauss_points_sing = Nc_sing[:,idx_ff,nperm]*field_points
                     # @infiltrate
-                    # GELEM1 = integrate_nonsing_static2(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat,n)
+                    GELEM1 = integrate_nonsing_static2(source_node,gauss_points[end],Nd_nonsing[end],normal[end],J[end], gp[end].omega, delta, C_stat,n)
                     HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, normal_sing, delta, C_stat, pesos, n)
-                    # GELEM = GELEM + GELEM1
+                    GELEM = GELEM + GELEM1
 
                     # HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
                 end

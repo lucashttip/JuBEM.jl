@@ -13,10 +13,10 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/vigas/quad/viga_4_12_quad.msh"
+    inp_file = "meshes/vigas/quad/viga_2_3_quad.msh"
     # ref = -3.2
-    G = 4e3
-    v = 0.25
+    G = 5e3
+    v = 0.0
     E = 2*G*(1+v)
     L = 10
     q = 1
@@ -43,4 +43,4 @@ using JuBEM
 
     # writevtk(mesh,up,tp,"vis")
     
-    erro, ud
+    erro, ud, ref

@@ -103,3 +103,33 @@ function calc_static_constants(material)
     return C_stat
 
 end
+
+
+function calc_dist(source, points,dists)
+
+    dist = Inf
+
+    for i in eachindex(points[:,1])
+        d = norm((source - points[i,:]))
+        if d < dist
+            dist = d
+        end
+    end
+
+    l = maximum([norm(points[2,:] - points[1,:]),norm(points[4,:] - points[3,:])])
+
+    d = dist/l
+
+    r = 0
+    for i in eachindex(dists)
+        if d > dists[i]
+            r = i
+            break
+        end
+    end
+    if r == 0
+        r = length(dists)+1
+    end
+
+    return r
+end

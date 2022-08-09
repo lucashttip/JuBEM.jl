@@ -72,6 +72,45 @@ function divide_elem_quad(e)
     return c, IEN
 end
 
+function divide_elem_quasising()
+
+    c = [[
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        0 0
+        0 -1
+        1 0
+        0 1
+        -1 0
+    ]]
+
+    IEN = [
+        1 6 5 9
+        6 2 7 5
+        5 7 3 8
+        9 5 8 4
+    ]
+
+    return c, IEN
+end
+
+function csis_quasi_sing(Nc)
+    c, IEN = divide_elem_quasising()
+
+    nsubelem = size(IEN,2)
+    npg = size(Nc,1)
+    csi = zeros(nsubelem*npg,2)
+
+    for i in 1:nsubelem
+        csi[npg*(i-1)+1:npg*i,:] = generate_points_in_elem(Nc,c[1][IEN[:,i],:])
+    end
+
+
+    return csi
+end
+
 function divide_elem2(e)
     c = [
         -1 -1
@@ -151,4 +190,30 @@ function calc_idx_permutation(nnel,n)
     end
     return idx_ff, nperm
     
+end
+
+function calc_points_weights()
+
+    subelem = [1,1,4,4,4]
+    npg = [4,6,4,6,8]
+    dists = [4,2,0.5,0.2]
+    pw = gausslegendre.(npg)
+
+    gp = gauss_points[]
+
+    for i in eachindex(npg)
+
+        if subelem[i] == 1
+            csis = calc_csis_grid(pw[i][1])
+            omegas = calc_omegas(pw[i][2])
+        elseif subelem[i] == 4
+            csi = calc_csis_grid(pw[i][1])
+            Nc = calc_N_matrix([-1,1],csi)
+            csis = csis_quasi_sing(Nc)
+            omegas = repeat(calc_omegas(pw[i][2])./4,4)
+        end
+        push!(gp,gauss_points(csis,omegas))
+
+    end
+    return gp, dists
 end

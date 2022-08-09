@@ -16,7 +16,7 @@ export calc_N_matrix,calc_N_matrix2, calc_dNdcsi_matrix, calc_k, calc_dNdeta_mat
 export calc_csis_grid
 
 include("elementsubdivision.jl")
-export csis_sing, csis_sing_2 , csis_sing_3, divide_elem
+export csis_sing, csis_sing_2 , csis_sing_3, divide_elem, calc_points_weights
 
 include("derivedata.jl")
 export derive_data!

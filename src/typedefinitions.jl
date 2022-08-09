@@ -127,3 +127,8 @@ mutable struct cmplx_consts
         new(zWi, zC0, zC1, zC2, zKP, zKS)
     end
 end
+
+mutable struct gauss_points
+    csi :: Array{Float64,2}
+    omega :: Array{Float64,1}
+end
