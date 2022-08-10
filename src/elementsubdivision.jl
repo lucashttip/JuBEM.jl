@@ -111,6 +111,33 @@ function csis_quasi_sing(Nc)
     return csi
 end
 
+function csis_quasi_sing(Nc, nsubx, nsuby)
+    p0 = [-1 -1]
+    d = 2
+    dx = d/nsubx
+    dy = d/nsuby
+
+    npg = size(Nc,1)
+    csi = zeros(nsubx*nsuby*npg,2)
+    
+    k = 1
+    for i in 1:nsubx
+        for j in 1:nsuby
+            p1 = p0+[(i-1)*dx (j-1)*dy]
+            p2 = p0+[(i)*dx (j-1)*dy]            
+            p3 = p0+[(i)*dx (j)*dy]            
+            p4 = p0+[(i-1)*dx (j)*dy]            
+
+            p = [p1;p2;p3;p4]
+            csi[npg*(k-1)+1:npg*k,:] = generate_points_in_elem(Nc,p)
+            k +=1
+        end
+    end
+
+
+    return csi
+end
+
 function divide_elem2(e)
     c = [
         -1 -1
@@ -194,24 +221,20 @@ end
 
 function calc_points_weights()
 
-    subelem = [1,1,4,4,4]
-    npg = [4,6,4,6,8]
+    subelem = [(1,1),(2,2),(2,2),(2,2),(3,3)]
+    npg = [4,4,6,8,8]
     dists = [4,2,0.5,0.2]
     pw = gausslegendre.(npg)
 
     gp = gauss_points[]
 
     for i in eachindex(npg)
+        csi = calc_csis_grid(pw[i][1])
+        Nc = calc_N_matrix([-1,1],csi)
+        csis = csis_quasi_sing(Nc,subelem[i][1],subelem[i][2])
+        fact = subelem[i][1]*subelem[i][2]
+        omegas = repeat(calc_omegas(pw[i][2])./fact,fact)
 
-        if subelem[i] == 1
-            csis = calc_csis_grid(pw[i][1])
-            omegas = calc_omegas(pw[i][2])
-        elseif subelem[i] == 4
-            csi = calc_csis_grid(pw[i][1])
-            Nc = calc_N_matrix([-1,1],csi)
-            csis = csis_quasi_sing(Nc)
-            omegas = repeat(calc_omegas(pw[i][2])./4,4)
-        end
         push!(gp,gauss_points(csis,omegas))
 
     end

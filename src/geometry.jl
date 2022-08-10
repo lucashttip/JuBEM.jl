@@ -116,7 +116,7 @@ function calc_dist(source, points,dists)
         end
     end
 
-    l = maximum([norm(points[2,:] - points[1,:]),norm(points[4,:] - points[3,:])])
+    l = minimum([norm(points[2,:] - points[1,:]),norm(points[4,:] - points[3,:])])
 
     d = dist/l
 

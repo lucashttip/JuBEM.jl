@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/vigas/quad/viga_4_4_quad.msh"
+    inp_file = "meshes/vigas/quad/viga_4_6_quad.msh"
     # ref = -3.2
     G = 5e3
     v = 0.0
