@@ -9,7 +9,10 @@
 # end type material_table_type
 
 # "Type that holds the information of material tables"
-mutable struct material_table_type
+
+abstract type JuBEMtypes end
+
+mutable struct material_table_type <: JuBEMtypes
     Ge :: Float64
     Nu :: Float64
     Dam :: Float64
@@ -19,7 +22,6 @@ mutable struct material_table_type
     zPwv :: ComplexF64
     material_table_type(Ge,Nu,Dam,Rho) = new(Ge,Nu,Dam,Rho, 0.0 + 0.0im,0.0 + 0.0im,0.0 + 0.0im)
 end
-
 
 # type :: mesh_type
 # integer :: nelem       !> Number of boundary elements
@@ -38,7 +40,7 @@ end
 # complex(kind=dp), dimension(:), allocatable :: zbcvalue     !> Array of the boundary conditions values (complex)
 # end type mesh_type
 # "Type that holds the information of  3D general mesh"
-mutable struct mesh_type
+mutable struct mesh_type <: JuBEMtypes
     nelem :: Int64
     npoints :: Int64
     nnodes :: Int64
@@ -68,7 +70,7 @@ end
 # real(kind=dp), dimension(:), allocatable :: frequencies !> Frequencies array
 # end type problem_type
 
-mutable struct problem_type
+mutable struct problem_type <: JuBEMtypes
     frequency :: Float64
     nFr :: Array{Int32,1}
     fr_range :: Array{Float64,1}
@@ -87,7 +89,7 @@ end
 # complex(kind=dp), dimension(:,:), allocatable :: zma
 # end type solver_var_type
 
-mutable struct solver_var_type
+mutable struct solver_var_type <: JuBEMtypes
     nGP :: Int16
     csi :: Array{Float64,1}
     omega :: Array{Float64,1}
@@ -109,7 +111,7 @@ end
 # complex(kind=dp) :: zKS
 # end type cmplx_consts
 
-mutable struct cmplx_consts
+mutable struct cmplx_consts <: JuBEMtypes
     zWi :: ComplexF64
     zC0 :: ComplexF64
     zC1 :: ComplexF64
@@ -128,7 +130,26 @@ mutable struct cmplx_consts
     end
 end
 
-mutable struct gauss_points
+mutable struct gauss_points <: JuBEMtypes
     csi :: Array{Float64,2}
     omega :: Array{Float64,1}
+end
+
+
+
+==(a::JuBEMtypes,b::JuBEMtypes) = begin
+    if typeof(a) != typeof(b)
+        return false
+    end
+    fields = fieldnames(typeof(a))
+
+    for field in fields
+        f1 = getfield(a,field)
+        f2 = getfield(b,field)
+        if f1 != f2
+            return false
+        end
+    end
+    return true
+
 end

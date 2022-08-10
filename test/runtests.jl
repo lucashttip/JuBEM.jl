@@ -7,7 +7,7 @@ using JuBEM
 # end
 
 # inp_file = "meshes/vigas/viga_4_15.msh"
-inp_file = "meshes/vigas/viga_2_5.msh"
+inp_file = "meshes/vigas/quad/viga_2_3_quad.msh"
 
 mesh, material, problem, solver_var = read_msh(inp_file)
 
