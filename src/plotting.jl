@@ -68,3 +68,32 @@ function view_mesh(mesh)
     return fig
 end
 
+function view_res(mesh,u)
+    fig,ax,plt = mk.scatter(mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=80, color = :blue)
+    # mk.scatter!(ax,mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=70, color = :blue)
+
+    mk.scatter!(ax,mesh.nodes[:,2],mesh.nodes[:,3],mesh.nodes[:,4], markersize=80, color = :red,marker=:cross)
+
+    csi_cont = range(-1,1,length = mesh.eltype+1)
+    csi_descont = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
+
+    csis = calc_csis_grid(csi_cont)
+    N = calc_N_matrix(csi_descont,csis)
+    
+
+    for e in 1:mesh.nelem
+        p1, p2, p3, p4 = mesh.IEN_geo[1:4,e]
+        px = mesh.points[[p1,p2,p3,p4,p1],2]
+        py = mesh.points[[p1,p2,p3,p4,p1],3]
+        pz = mesh.points[[p1,p2,p3,p4,p1],4]
+
+        pxt = [mesh.points[[p1,p2,p3],2];mesh.points[[p3,p4,p1],2]]
+        pyt = [mesh.points[[p1,p2,p3],3];mesh.points[[p3,p4,p1],3]]
+        pzt = [mesh.points[[p1,p2,p3],4];mesh.points[[p3,p4,p1],4]]
+
+        xyz = reshape([pxt[:] pyt[:] pzt[:]]', :)
+        # mk.poly!(ax,gb.connect(xyz, gb.Point{3}), gb.connect(1:length(pxt), gb.TriangleFace), color = :white, strokecolor = :black, strokewidth = 0)
+        mk.lines!(ax,px,py,pz,color=:black)
+    end
+    return fig
+end
