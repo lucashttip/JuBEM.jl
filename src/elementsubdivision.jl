@@ -221,12 +221,12 @@ end
 
 function calc_points_weights()
 
-    subelem = [(1,1),(2,2),(2,2),(2,2),(3,3)]
-    npg = [4,4,6,8,8]
+    subelem = [(1,1),(1,1),(2,2),(2,2),(2,2)]
+    npg = [5,6,5,6,8]
     dists = [4,2,0.5,0.2]
     pw = gausslegendre.(npg)
 
-    gp = gauss_points[]
+    gp = gauss_points_type[]
 
     for i in eachindex(npg)
         csi = calc_csis_grid(pw[i][1])
@@ -234,8 +234,7 @@ function calc_points_weights()
         csis = csis_quasi_sing(Nc,subelem[i][1],subelem[i][2])
         fact = subelem[i][1]*subelem[i][2]
         omegas = repeat(calc_omegas(pw[i][2])./fact,fact)
-
-        push!(gp,gauss_points(csis,omegas))
+        push!(gp,gauss_points_type(csis,omegas))
 
     end
     return gp, dists

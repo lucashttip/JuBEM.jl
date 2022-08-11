@@ -130,7 +130,7 @@ mutable struct cmplx_consts <: JuBEMtypes
     end
 end
 
-mutable struct gauss_points <: JuBEMtypes
+mutable struct gauss_points_type <: JuBEMtypes
     csi :: Array{Float64,2}
     omega :: Array{Float64,1}
 end
