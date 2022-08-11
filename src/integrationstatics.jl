@@ -96,18 +96,6 @@ end
 
 function integration_const_raw(source_node, points, normal, csis, omegas, delta, C_stat)
 
-    # implicit none
-    # integer :: nGP
-    # type(cmplx_consts) :: zconsts
-    # real(kind=dp), dimension(:,:) :: delta, points
-    # real(kind=dp), dimension(:) :: node, csi, omega, eta
-    # complex(kind=dp), dimension(3,3) :: ZHELEM,ZGELEM,ZU,ZT
-    # complex(kind=dp) :: zGe,zSwv,zPwv
-    # real(kind=dp), dimension(3) :: gp
-    # real(kind=dp) :: P(2,4),XJ(2,3),F(4)
-    # real(kind=dp) :: G1,P1,RP,RM,G2,P2,SP,SM,TEMP,DET,PI,P12,FR
-    # integer :: I,J,K,ig,JG
-
     ngp = length(csis)
 
     HELEM = zeros(3,3)
@@ -179,7 +167,6 @@ function integration_const_raw(source_node, points, normal, csis, omegas, delta,
                 # ! * ACIONA ROTINA QUE CALCULA A SOLUวรO FUNDAMENTAL DINÂMICA 3D
                 # ! *
                 u, t = calc_funsol_static(source_node,gp, normal, delta, C_stat)
-
 
                 P12=P1*P2*DET
                 HELEM = HELEM + t*P12
