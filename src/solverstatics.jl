@@ -153,7 +153,7 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
     dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
-    points2 = zeros(4,3)
+    
     
     # Field loop:
     Threads.@threads for fe in 1:nelem
@@ -171,11 +171,12 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
                 source_node = mesh.nodes[sn,2:end]
 
                 if fe != se
-                    # HELEM, GELEM = integration_const_raw(source_node, field_points, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
-                    HELEM, GELEM = integrate_const_static(source_node,gauss_points,normal,J, omegas, delta, C_stat)
+                    HELEM, GELEM = integration_const_raw(source_node, field_points, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
+                    # HELEM, GELEM = integrate_const_static(source_node,gauss_points,normal,J, omegas, delta, C_stat)
                 else
                     GELEM = zeros(3,3)
                     HELEM = zeros(3,3)
+                    points2 = zeros(4,3)
                     points2[3,:] = source_node
                     points2[4,:] = source_node
                     for k in 1:4
@@ -203,8 +204,8 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
                     normal2, J2= calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
                     gauss_points2 = Nc*field_points
 
-                    _, GELEM2 = integrate_const_static(source_node, gauss_points2, normal2, J2, omegas, delta, C_stat)
-                    # _, GELEM2 = integration_const_raw(source_node, points2, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
+                    # _, GELEM2 = integrate_const_static(source_node, gauss_points2, normal2, J2, omegas, delta, C_stat)
+                    _, GELEM2 = integration_const_raw(source_node, points2, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
 
                     GELEM = GELEM + GELEM2
                 end
@@ -217,7 +218,17 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     
     end
 
+
+    
+    for n in 1:mesh.nnodes
+        solver_var.H[mesh.ID[:,n],mesh.ID[:,n]] .= 0
+    end
+
     integrate_rigid_body!(solver_var.H,mesh)
+
+    # for n in 1:mesh.nnodes
+    #     solver_var.H[mesh.ID[:,n],mesh.ID[:,n]] = delta./2
+    # end
     
     return solver_var
 
