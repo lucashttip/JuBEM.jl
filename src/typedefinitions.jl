@@ -71,11 +71,10 @@ end
 # end type problem_type
 
 mutable struct problem_type <: JuBEMtypes
-    frequency :: Float64
     nFr :: Array{Int32,1}
     fr_range :: Array{Float64,1}
     frequencies :: Array{Float64,1}
-    problem_type() = new(0,[],[],[])
+    problem_type() = new([],[],[])
 end
 
 # !> @brief Type that holds the information of 
@@ -93,11 +92,13 @@ mutable struct solver_var_type <: JuBEMtypes
     nGP :: Int16
     csi :: Array{Float64,1}
     omega :: Array{Float64,1}
-    zvetsol :: Array{ComplexF64,1}
-    H
-    G
+    H :: Array{Float64,2}
+    G :: Array{Float64,2}
+    zH :: Array{ComplexF64,2}
+    zG :: Array{ComplexF64,2}
     ma
-    solver_var_type() = new(0,[],[],Array{ComplexF64,1}(undef,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0))
+    zvetsol
+    solver_var_type() = new(0,[],[],Array{Float64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{Float64,1}(undef,0))
 end
 
 

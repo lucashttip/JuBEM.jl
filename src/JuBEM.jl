@@ -3,7 +3,7 @@ module JuBEM
 # Write your package code here.
 
 using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra, Infiltrator
-using WriteVTK
+using WriteVTK, HDF5
 import Base.:(==)
 
 include("typedefinitions.jl")
@@ -48,5 +48,8 @@ export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh
 
 include("writevtk.jl")
 export writevtk
+
+include("output.jl")
+export output_freq_h5, output_vars_h5
 
 end
