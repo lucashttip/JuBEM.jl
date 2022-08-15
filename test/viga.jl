@@ -13,17 +13,17 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/vigas/quad/viga_4_6_quad.msh"
+    inp_file = "meshes/vigas/viga_4_6.msh"
     # ref = -3.2
     G = 5e3
     v = 0.0
     E = 2*G*(1+v)
-    L = 10
+    L = 5
     q = 1
     l = 1
     I = l^4/12
     A = l^2
-    ref = -(q*L^4)/(24*E*I) # Carga distribuída ao longo de x
+    ref = -(3*q*L^4)/(24*E*I) # Carga distribuída ao longo de x
     # ref = -(q*L^3)/(3*E*I) # Carga concentrada em x = L
     # ref2 = (q*A)*L/(E*A)
 

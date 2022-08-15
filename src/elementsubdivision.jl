@@ -222,7 +222,7 @@ end
 function calc_points_weights()
 
     subelem = [(1,1),(1,1),(2,2),(2,2),(2,2)]
-    npg = [5,6,5,6,8]
+    npg = [5,6,6,7,8]
     dists = [4,2,0.5,0.2]
     pw = gausslegendre.(npg)
 
