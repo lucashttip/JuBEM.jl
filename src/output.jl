@@ -17,10 +17,10 @@ function output_vars_h5(filename, mesh::mesh_type, problem::problem_type, solver
         for material in materials
             groupname = string("material_",i)
             g = create_group(file, groupname) # create a group
-            fields = fieldnames(typeof(var))
+            fields = fieldnames(typeof(material))
             for field in fields
                 field_str = string(field)
-                g[field_str] = getfield(var,field)     
+                g[field_str] = getfield(material,field)     
             end   
             i +=1
         end

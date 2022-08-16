@@ -55,7 +55,7 @@ mutable struct mesh_type <: JuBEMtypes
     points :: Array{Float64,2}  
     nodes :: Array{Float64,2}   
     bcvalue :: Array{Float64,2} 
-    zbcvalue :: Array{Float64,1}    
+    zbcvalue
     mesh_type() = new(0,0,0,0,0,Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0),
     Array{Int16,2}(undef,0,0), Array{Int16,1}(undef,0), Array{Float64,2}(undef,0,0), Array{Float64,2}(undef,0,0), 
     Array{Float64,2}(undef,0,0), Array{Float64,1}(undef,0))

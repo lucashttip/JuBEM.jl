@@ -1,5 +1,12 @@
 function writevtk(mesh,u,t,filename)
 
+    if mesh.eltype != 1
+        error("Element type not yet supported")
+    end
+    if mesh.offset > 0
+        u,t = calc_utpoints(mesh,u,t)
+    end
+
     points = mesh.points[:,2:end]'
 
     cells = [MeshCell(VTKCellTypes.VTK_QUAD,mesh.IEN_geo[:,e]) for e in 1:mesh.nelem]

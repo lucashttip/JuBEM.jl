@@ -288,24 +288,24 @@ function applyBC_nonrb2!(mesh, solver_var)
     return mesh,solver_var
 end
 
-function applyBC_nonrb3!(mesh, solver_var)
+function applyBC_nonrb3!(mesh, solver_var,H,G)
 
     nnel = size(mesh.IEN,1)
    
-    solver_var.ma = zeros(size(solver_var.H))
-    mb = zeros(size(solver_var.H))
+    solver_var.ma = zeros(typeof(H[1]),size(H))
+    mb = zeros(typeof(H[1]),size(H))
 
-    y = zeros(3*mesh.nnodes)
+    y = zeros(typeof(H[1]),3*mesh.nnodes)
 
     for e in 1:mesh.nelem
         for n in 1:nnel
             for i in 1:3
                 if mesh.bc[e,i] == 1
-                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = - solver_var.G[:,mesh.ID[i,mesh.IEN[n,e]]]
-                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = - solver_var.H[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = - G[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = - H[:,mesh.ID[i,mesh.IEN[n,e]]]
                 elseif mesh.bc[e,i] == 2
-                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = solver_var.H[:,mesh.ID[i,mesh.IEN[n,e]]]
-                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = solver_var.G[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = H[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = G[:,mesh.ID[i,mesh.IEN[n,e]]]
                 end
             end
         end
@@ -395,9 +395,10 @@ end
 
 function returnut3(mesh,x)
     nnel = (mesh.eltype+1)^2
-    u = zeros(mesh.nnodes,3)
-    t = zeros(mesh.nnodes,3)
+    u = zeros(typeof(x[1]),mesh.nnodes,3)
+    t = zeros(typeof(x[1]),mesh.nnodes,3)
 
+        
 
     for e in 1:mesh.nelem
         for i in 1:3
@@ -415,7 +416,6 @@ function returnut3(mesh,x)
 
     return u, t
 end
-
 
 function calc_utpoints(mesh,u,t)
     csi_points = range(-1,1,length = mesh.eltype+1)

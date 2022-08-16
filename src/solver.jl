@@ -24,24 +24,60 @@ function solvestatic(inp_file)
 
     generate_mesh!(mesh)
 
+    solvestatic(mesh, material, problem, solver_var)
+end
+
+function solvestatic(mesh, material, problem, solver_var)
+
     calc_GH!(mesh, material, solver_var,-1.0)
 
-    applyBC_nonrb3!(mesh, solver_var)
+    applyBC_nonrb3!(mesh, solver_var, solver_var.H, solver_var.G)
 
-    x = solver_var.ma \ mesh.zbcvalue
+    solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
 
-    u,t = returnut3(mesh,x)
+    u,t = returnut3(mesh,solver_var.zvetsol)
 
-    return mesh, material, problem, solver_var, u, t
+    output_vars_h5("output", mesh, problem, solver_var, material)
+    output_freq_h5("output",u,t,0)
+
 end
 
 function solvedynamic(inp_file)
+
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)
     generate_mesh!(mesh)
+    solvedynamic(mesh, material, problem, solver_var)
+
+end
+
+function solvedynamic(mesh, material, problem, solver_var)
 
     calc_GH!(mesh, material, solver_var,-1.0)
     output_vars_h5("output", mesh, problem, solver_var, material)
 
+    for frequency in problem.frequencies
+    # frequency = problem.frequencies[1]
+        println("Rodando para frequencia: ", frequency)
+        calc_GH!(mesh, material, solver_var, frequency)
+        applyBC_nonrb3!(mesh, solver_var, solver_var.zH, solver_var.zG)
+        solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+        zu,zt = returnut3(mesh,solver_var.zvetsol)
 
+        output_freq_h5("output",zu,zt,frequency)
+    end
+
+end
+
+
+function solve(inp_file)
+    mesh, material, problem, solver_var = read_msh(inp_file)
+    derive_data!(material, problem, solver_var)
+    generate_mesh!(mesh)
+
+    if isempty(problem.nFr)
+        solvestatic(mesh, material, problem, solver_var)
+    else
+        solvedynamic(mesh, material, problem, solver_var)
+    end
 end

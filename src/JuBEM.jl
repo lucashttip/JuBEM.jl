@@ -38,7 +38,7 @@ include("solverstatics.jl")
 include("solverdynamics.jl")
 
 include("solver.jl")
-export calc_GH!, solvestatic
+export calc_GH!, solvestatic, solvedynamic, solve
 
 include("applyBC.jl")
 export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3,calc_utpoints
@@ -51,5 +51,8 @@ export writevtk
 
 include("output.jl")
 export output_freq_h5, output_vars_h5
+
+include("readout.jl")
+export readvars_out, getnoderes_out, getfreqres_out
 
 end
