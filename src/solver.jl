@@ -31,6 +31,10 @@ function solvestatic(mesh, material, problem, solver_var)
 
     calc_GH!(mesh, material, solver_var,-1.0)
 
+    if 0 in mesh.bc
+        remove_EE!(mesh, solver_var)
+    end
+
     applyBC_nonrb3!(mesh, solver_var, solver_var.H, solver_var.G)
 
     solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue

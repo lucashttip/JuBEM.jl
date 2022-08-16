@@ -144,6 +144,8 @@ function parse_physicalnames(io)
                 bc[i,j+1] = 2
             elseif data[2*j+1] == "rb"
                 bc[i,j+1] = 3
+            elseif data[2*j+1] == "ee"
+                bc[i,j+1] = 0
             end
         end
     end

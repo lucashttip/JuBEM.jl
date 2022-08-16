@@ -7,7 +7,13 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/dynamic/bars/bar_2_3.msh"
+inp_file = "meshes/static/soils/soilEE.msh"
+
+mesh, material, problem, solver_var = read_msh(inp_file)
+derive_data!(material, problem, solver_var)
+generate_mesh!(mesh)
+calc_GH!(mesh, material, solver_var,-1.0)
+
 
 solve(inp_file)
 
