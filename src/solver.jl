@@ -58,6 +58,9 @@ end
 function solvedynamic(mesh, material, problem, solver_var)
 
     calc_GH!(mesh, material, solver_var,-1.0)
+    if 0 in mesh.bc
+        remove_EE!(mesh, solver_var)
+    end
     output_vars_h5("output", mesh, problem, solver_var, material)
 
     for frequency in problem.frequencies

@@ -1,10 +1,15 @@
 function writevtk(mesh,u,t,filename)
 
-    if mesh.eltype != 1
+    if mesh.eltype > 1
         error("Element type not yet supported")
     end
     if mesh.offset > 0
         u,t = calc_utpoints(mesh,u,t)
+    end
+
+    if typeof(u[1]) == ComplexF64
+        u = real.(u)
+        t = real.(t)
     end
 
     points = mesh.points[:,2:end]'

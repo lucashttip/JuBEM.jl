@@ -4,8 +4,8 @@ import GeometryBasics
 const mk = GLMakie
 const gb = GeometryBasics
 # const mk = CairoMakie
-# using Meshes
-# using MeshViz
+using Meshes
+using MeshViz
 
 
 # function visualize_mesh(mesh)
@@ -96,4 +96,53 @@ function view_res(mesh,u)
         mk.lines!(ax,px,py,pz,color=:black)
     end
     return fig
+end
+
+function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4")
+
+    u1,_ = calc_utpoints(mesh,u,u).*frac
+
+    points = mesh.points[:,2:end] .+ real.(u1)
+    elem = mesh.IEN_geo'
+    conn = connect.([Tuple(elem[i,:]) for i in axes(elem,1)])
+    faces = [gb.QuadFace(elem[n,:]) for n in axes(elem,1)]
+    ps = [gb.Point3f0(points[n,:]) for n in axes(points,1)]
+
+    m = gb.normal_mesh(ps, faces)
+
+    if dir == 0
+        c = [norm(real(u1[n,:])) for n in axes(u1,1)]
+    else
+        c = real.(u1[:,dir])
+    end
+
+    fig,ax,plt = mk.mesh(m,color = c)
+    plt2 = mk.wireframe!(ax, m, color=(:black, 0.5), linewidth=2, transparency=true)
+
+    # animation settings
+    ti = 0
+    tf = 10
+    framerate = 30
+    nframes = 30*(tf-ti)
+    time_iterator = range(ti, tf, length=nframes)
+
+    mk.record(fig, filename, time_iterator; framerate = framerate) do time
+        change = exp(freq*time*im)
+        u2 = u1.*change
+        points = mesh.points[:,2:end] .+ real.(u2)
+        ps = [gb.Point3f0(points[n,:]) for n in axes(points,1)]
+        m = gb.normal_mesh(ps, faces)
+
+        if dir == 0
+            c = [norm(real(u2[n,:])) for n in axes(u2,1)]
+        else
+            c = real.(u2[:,dir])
+        end
+
+        plt.input_args[1][] = m
+        plt.attributes.color[] = c
+        plt2.input_args[1][] = m
+    end
+
+
 end

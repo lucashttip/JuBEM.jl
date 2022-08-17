@@ -4,7 +4,7 @@ $Material
 $EndMaterial
 $Frequencies
 1
-0.01 5 2
+0.01 1 2 
 $EndFrequencies
 $MeshType
 8
@@ -16,9 +16,9 @@ $MeshFormat
 $EndMeshFormat
 $PhysicalNames
 3
-2 1 "t 0.0 0.0 1.0"
-2 2 "t 0.0 0.0 0.0"
-2 3 "ee 0.0 0.0 0.0"
+2 1 "t 0.0 t 0.0 t 1.0"
+2 2 "t 0.0 t 0.0 t 0.0"
+2 3 "ee 0.0 ee 0.0 ee 0.0"
 $EndPhysicalNames
 $Entities
 24 44 18 0

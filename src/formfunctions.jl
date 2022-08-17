@@ -6,8 +6,9 @@ function calc_csis_grid(csis)
 end
 
 function calc_k(nnel)
-
-    if nnel == 4
+    if nnel == 1
+        k = ([1,1],)
+    elseif nnel == 4
         k = (
             [1,1],
             [2,1],

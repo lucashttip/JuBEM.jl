@@ -43,8 +43,10 @@ export calc_GH!, solvestatic, solvedynamic, solve
 include("applyBC.jl")
 export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3,calc_utpoints
 
+include("EE.jl")
+
 include("plotting.jl")
-export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh
+export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh, animate_res_freq
 
 include("writevtk.jl")
 export writevtk

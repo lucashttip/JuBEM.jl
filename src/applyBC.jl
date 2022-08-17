@@ -418,13 +418,20 @@ function returnut3(mesh,x)
 end
 
 function calc_utpoints(mesh,u,t)
-    csi_points = range(-1,1,length = mesh.eltype+1)
-    csi_nodes = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
-    csi_vec = calc_csis_grid(csi_points)
-    N = calc_N_matrix(csi_nodes,csi_vec)
+    if mesh.eltype>0
+        csi_points = range(-1,1,length = mesh.eltype+1)
+        csi_nodes = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
+        csi_vec = calc_csis_grid(csi_points)
+        N = calc_N_matrix(csi_nodes,csi_vec)
+    else
+        csi_points = [-1.0,1.0]
+        csi_nodes = 0.0
+        csi_vec = calc_csis_grid(csi_points)
+        N = calc_N_matrix(csi_nodes,csi_vec)
+    end
 
-    up = zeros(mesh.npoints,3)
-    tp = zeros(mesh.npoints,3)
+    up = zeros(typeof(u[1]),mesh.npoints,3)
+    tp = zeros(typeof(t[1]),mesh.npoints,3)
 
     for e in 1:mesh.nelem
         tmpu = N*u[mesh.IEN[:,e],:]
@@ -432,7 +439,7 @@ function calc_utpoints(mesh,u,t)
 
         points = mesh.IEN_geo[:,e]
 
-        for p in 1:length(points)
+        for p in eachindex(points)
             np = count(==(points[p]),mesh.IEN_geo)
             up[points[p],:] .= up[points[p],:] .+ tmpu[p,:]./np
             tp[points[p],:] .= tp[points[p],:] .+ tmpt[p,:]./np
