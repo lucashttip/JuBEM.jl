@@ -1,6 +1,5 @@
 function remove_EE!(mesh,solver_var)
 
-    ee = findall(x->x==0,mesh.bc[:,1])
     nonee = findall(x->x != 0 , mesh.bc[:,1])
     
     # Remover as colunas de LM, IEN, IEN_geo

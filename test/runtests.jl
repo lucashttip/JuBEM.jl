@@ -7,7 +7,7 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/dynamic/soils/soilEE.msh"
+inp_file = "meshes/dynamic/bars/bar_2_3.msh"
 # inp_file = "meshes/static/bars/bar_1_1.msh"
 
 
@@ -25,7 +25,7 @@ solver_var.H
 node = findfirst(x->x==10,mesh.nodes[:,2])
 
 u, t, freqs = getnoderes_out("output",node)
-u,t = getfreqres_out("output",1.0)
+u,t = getfreqres_out("output",0.001)
 
 writevtk(mesh,u,t,"test")
 
