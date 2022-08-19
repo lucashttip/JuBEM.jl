@@ -17,17 +17,17 @@ function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, solver
     return solver_var
 end
 
-function solvestatic(inp_file)
+function solvestatic(inp_file;file_out="output")
     mesh, material, problem, solver_var = read_msh(inp_file)
 
     derive_data!(material, problem, solver_var)
 
     generate_mesh!(mesh)
 
-    solvestatic(mesh, material, problem, solver_var)
+    solvestatic(mesh, material, problem, solver_var;file_out=file_out)
 end
 
-function solvestatic(mesh, material, problem, solver_var)
+function solvestatic(mesh, material, problem, solver_var;file_out = "output")
 
     calc_GH!(mesh, material, solver_var,-1.0)
 
@@ -41,27 +41,27 @@ function solvestatic(mesh, material, problem, solver_var)
 
     u,t = returnut3(mesh,solver_var.zvetsol)
 
-    output_vars_h5("output", mesh, problem, solver_var, material)
-    output_freq_h5("output",u,t,0)
+    output_vars_h5(file_out, mesh, problem, solver_var, material)
+    output_freq_h5(file_out,u,t,0)
 
 end
 
-function solvedynamic(inp_file)
+function solvedynamic(inp_file;file_out="output")
 
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)
     generate_mesh!(mesh)
-    solvedynamic(mesh, material, problem, solver_var)
+    solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
 
 end
 
-function solvedynamic(mesh, material, problem, solver_var)
+function solvedynamic(mesh, material, problem, solver_var;file_out="output")
 
     calc_GH!(mesh, material, solver_var,-1.0)
     if 0 in mesh.bc
         remove_EE!(mesh, solver_var)
     end
-    output_vars_h5("output", mesh, problem, solver_var, material)
+    output_vars_h5(file_out, mesh, problem, solver_var, material)
 
     for frequency in problem.frequencies
     # frequency = problem.frequencies[1]
@@ -71,20 +71,20 @@ function solvedynamic(mesh, material, problem, solver_var)
         solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
         zu,zt = returnut3(mesh,solver_var.zvetsol)
 
-        output_freq_h5("output",zu,zt,frequency)
+        output_freq_h5(file_out,zu,zt,frequency)
     end
 
 end
 
 
-function solve(inp_file)
+function solve(inp_file;file_out="output")
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)
     generate_mesh!(mesh)
 
     if isempty(problem.nFr)
-        solvestatic(mesh, material, problem, solver_var)
+        solvestatic(mesh, material, problem, solver_var;file_out=file_out)
     else
-        solvedynamic(mesh, material, problem, solver_var)
+        solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
     end
 end
