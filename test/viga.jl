@@ -13,12 +13,12 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/vigas/viga_4_6.msh"
+    inp_file = "meshes/static/vigas/viga10_4_6.msh"
     # ref = -3.2
     G = 5e3
     v = 0.0
     E = 2*G*(1+v)
-    L = 5
+    L = 10
     q = 1
     l = 1
     I = l^4/12
@@ -28,6 +28,8 @@ using JuBEM
     # ref2 = (q*A)*L/(E*A)
 
     mesh, material, problem, solver_var, u, t = solvestatic(inp_file)
+    mesh,material,problem,solver_var = readvars_out("output")
+    u,t = getfreqres_out("output",0)
 
     # applyBC_nonrb!(mesh, solver_var)
 

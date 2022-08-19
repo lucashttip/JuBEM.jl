@@ -1,6 +1,6 @@
 $Material
 1
-5.0E+00 0.0 0.01 0.25
+5.0E+03 0.0 0.01 0.25
 $EndMaterial
 $Frequencies
 1
@@ -18,7 +18,7 @@ $PhysicalNames
 3
 2 1 "u 0.0 u 0.0 u 0.0 1"
 2 2 "t 0.0 t 0.0 t 0.0 1"
-2 3 "t 1.0 t 0.0 t 0.0 1"
+2 3 "t 0.0 t -1.0 t 0.0 1"
 $EndPhysicalNames
 $Entities
 8 12 6 0

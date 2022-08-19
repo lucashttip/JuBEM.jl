@@ -156,8 +156,8 @@ function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table
     dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
     # Field loop:
-    # Threads.@threads for fe in 1:nelem
-    for fe in 1:nelem
+    Threads.@threads for fe in 1:nelem
+    # for fe in 1:nelem
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 

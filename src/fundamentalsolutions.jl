@@ -61,10 +61,6 @@ function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
     ZBB=4.0*ZCAPPA/R-2.0*ZCAPPADR
     ZCC=(zC1-2.0)*(ZAA+5.0-1*ZBB-3.0*ZCAPPA/R)-2.0*ZCAPPA/R      
     
-    if source_node[1] ≈ 0.5 && source_node[2] ≈ 0.5
-        @infiltrate
-    end
-
     for j in 1:3
         for i in 1:3
             zu[i,j]=zC0*(ZFHI*delta[i,j]-ZCAPPA*Rd[j]*Rd[i])
