@@ -83,7 +83,7 @@ function integrate_const_dynamic(source_node, gauss_points, normal, J, omegas, d
     zGELEM = zeros(ComplexF64,3,3)
     for i in 1:nGP
         zu, zt = calc_funsol_dynamic(source_node,gauss_points[i,:], normal[i,:], delta, zconsts)
-            
+        
         P = J[i]*omegas[i]
 
         zHELEM += zt.*P

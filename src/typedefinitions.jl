@@ -121,12 +121,12 @@ mutable struct cmplx_consts <: JuBEMtypes
     zKS :: ComplexF64
 
     function cmplx_consts(material :: material_table_type, fr :: Float64)
-        zWi= 0.0 + fr*im                  
-        zC0=(1.0 + 0.0im)/((4.0*pi + 0.0im)*material.zGe)  
-        zC1=(material.zPwv/material.zSwv)^2.0                             
-        zC2=(material.zSwv/material.zPwv)^2.0                            
-        zKP=-zWi/material.zPwv                                   
-        zKS=-zWi/material.zSwv                 
+        zWi= 0.0 + fr*im
+        zC0=(1.0 + 0.0im)/((4.0*pi + 0.0im)*material.zGe)
+        zC1=(material.zPwv/material.zSwv)^2.0
+        zC2=(material.zSwv/material.zPwv)^2.0
+        zKP=-zWi/material.zPwv
+        zKS=-zWi/material.zSwv
         new(zWi, zC0, zC1, zC2, zKP, zKS)
     end
 end
