@@ -76,7 +76,6 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output")
 
 end
 
-
 function solve(inp_file;file_out="output")
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)

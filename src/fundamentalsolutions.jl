@@ -59,10 +59,13 @@ function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
 
     ZAA=ZFHIDR-ZCAPPA/R
     ZBB=4.0*ZCAPPA/R-2.0*ZCAPPADR
-    ZCC=(zC1-2.0)*(ZAA+5.0-1*ZBB-3.0*ZCAPPA/R)-2.0*ZCAPPA/R      
+    ZCC=(zC1-2.0)*(ZAA+0.5*ZBB-3.0*ZCAPPA/R)-2.0*ZCAPPA/R      
     
     for j in 1:3
         for i in 1:3
+            if i == 1 && j == 3
+                # @infiltrate
+            end
             zu[i,j]=zC0*(ZFHI*delta[i,j]-ZCAPPA*Rd[j]*Rd[i])
             zt[i,j]=(1.0/(4.0*pi))*((ZAA*(Rdn*delta[i,j]+Rd[j]*normal[i])) + Rd[i]*Rd[j]*Rdn*ZBB+Rd[i]*normal[j]*ZCC)
         end

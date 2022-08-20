@@ -7,15 +7,13 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/dynamic/viga/viga_2_3.msh"
+inp_file = "meshes/dynamic/soils/soilEE_109.msh"
 # inp_file = "meshes/static/bars/bar_1_1.msh"
 
 solve(inp_file)
 
 mesh,material,problem,solver_var = readvars_out("output")
 solver_var.H
-
-frequency = problem.frequencies[1]; calc_GH!(mesh, material, solver_var, frequency)
 
 node = findfirst(x->x==10,mesh.nodes[:,2])
 
@@ -32,3 +30,5 @@ mesh, material, problem, solver_var = read_msh(inp_file)
 derive_data!(material, problem, solver_var)
 generate_mesh!(mesh)
 calc_GH!(mesh, material, solver_var,-1.0)
+
+frequency = problem.frequencies[1]; calc_GH!(mesh, material, solver_var, frequency)
