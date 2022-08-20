@@ -59,7 +59,7 @@ function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
 
     ZAA=ZFHIDR-ZCAPPA/R
     ZBB=4.0*ZCAPPA/R-2.0*ZCAPPADR
-    ZCC=(zC1-2.0)*(ZAA+0.5*ZBB-3.0*ZCAPPA/R)-2.0*ZCAPPA/R      
+    ZCC=(zC1-2.0)*(ZAA+0.5*ZBB-3.0*ZCAPPA/R)-2.0*ZCAPPA/R
     
     for j in 1:3
         for i in 1:3

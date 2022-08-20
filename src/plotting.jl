@@ -98,7 +98,7 @@ function view_res(mesh,u)
     return fig
 end
 
-function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4")
+function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4",res = (800, 600))
 
     u1,_ = calc_utpoints(mesh,u,u).*frac
 
@@ -111,12 +111,15 @@ function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4")
     m = gb.normal_mesh(ps, faces)
 
     if dir == 0
-        c = [norm(real(u1[n,:])) for n in axes(u1,1)]
+        c = [norm(real.(u1[n,:])) for n in axes(u1,1)]
     else
         c = real.(u1[:,dir])
     end
 
-    fig,ax,plt = mk.mesh(m,color = c)
+    fig = mk.Figure(resolution = res)
+    ax = mk.Axis3(fig[1, 1])
+    # fig,ax,plt = mk.mesh(m,color = c)
+    plt = mk.mesh!(ax,m,color = c)
     plt2 = mk.wireframe!(ax, m, color=(:black, 0.5), linewidth=2, transparency=true)
 
     # animation settings
