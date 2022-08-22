@@ -98,7 +98,7 @@ function view_res(mesh,u)
     return fig
 end
 
-function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4",res = (800, 600))
+function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4",res = (800, 600),t = 0)
 
     u1,_ = calc_utpoints(mesh,u,u).*frac
 
@@ -117,16 +117,20 @@ function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4",re
     end
 
     fig = mk.Figure(resolution = res)
-    ax = mk.Axis3(fig[1, 1])
+    ax = mk.Axis3(fig[1, 1],aspect=:data)
     # fig,ax,plt = mk.mesh(m,color = c)
     plt = mk.mesh!(ax,m,color = c)
     plt2 = mk.wireframe!(ax, m, color=(:black, 0.5), linewidth=2, transparency=true)
 
     # animation settings
     ti = 0
-    tf = 10
+    if t <= 0
+        tf = 2*pi/freq
+    else
+        tf = t
+    end
     framerate = 30
-    nframes = 30*(tf-ti)
+    nframes = Int(round(30*(tf-ti)))
     time_iterator = range(ti, tf, length=nframes)
 
     mk.record(fig, filename, time_iterator; framerate = framerate) do time
