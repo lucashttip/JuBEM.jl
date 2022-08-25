@@ -11,8 +11,6 @@ function read_msh(inp_file)
     problem = problem_type()
     solver_var = solver_var_type()
 
-    F = zeros(6)
-
     vars=[]
 
     while !eof(io)
@@ -24,7 +22,7 @@ function read_msh(inp_file)
         elseif BlockType == MSHMeshTypeBlock
             parse_meshtype!(io, mesh, solver_var)
         elseif BlockType == MSHForcesBlock
-            parse_forces!(io,F)
+            parse_forces!(io,mesh)
         elseif BlockType == MSHPhysicalNamesBlock
             bc, bcvalue, mat = parse_physicalnames(io)
             push!(vars,bc)
@@ -113,15 +111,18 @@ function parse_meshtype!(io, mesh, solver_var)
     return mesh, solver_var
 end
 
-function parse_forces!(io, F)
-    for i in 1:6
-        F[i] = parse(Float64, readline(io))
+function parse_forces!(io, mesh)
+    nrb = parse(Int64, readline(io))
+    mesh.forces = zeros(6,nrb)
+    for i in 1:nrb
+        data = split(readline(io))
+        mesh.forces[:,i] = parse.(Float64, data)
     end
     endblock = readline(io)
     if endblock != "\$EndForces"
         error("expected end block tag, got $endblock")
     end
-    return F
+    return mesh
 end
 
 function parse_physicalnames(io)
@@ -132,6 +133,8 @@ function parse_physicalnames(io)
     bcvalue = zeros(nphys,3)
     mat = zeros(nphys,2)
 
+    rbidx = 3
+    rbidx2 = 3
     for i in 1:nphys
         data = split(replace(readline(io), "\"" =>""))
         bc[i,1] = parse(Float64, data[2])
@@ -143,10 +146,14 @@ function parse_physicalnames(io)
             elseif data[2*j+1] == "t"
                 bc[i,j+1] = 2
             elseif data[2*j+1] == "rb"
-                bc[i,j+1] = 3
+                bc[i,j+1] = rbidx
+                rbidx2 = rbidx+1
             elseif data[2*j+1] == "ee"
                 bc[i,j+1] = 0
             end
+        end
+        if rbidx != rbidx2
+            rbidx = rbidx2
         end
     end
     endblock = readline(io)

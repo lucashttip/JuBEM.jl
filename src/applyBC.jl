@@ -209,8 +209,7 @@ function calc_CeD(mesh,nerb,elem_rb,origin)
     return c, d
 end
 
-
-function applyBC_nonrb!(mesh, solver_var)
+function applyBC_rb!(mesh, solver_var,H,G)
 
     nnel = (mesh.eltype+1)^2
 
@@ -222,14 +221,19 @@ function applyBC_nonrb!(mesh, solver_var)
 
     nu = count(==(1),mesh.bc)
     nt = count(==(2),mesh.bc)
+    nrrb = count(>=(3),unique(mesh.bc))
+    nrb = zeros(nrrb)
+    for i in 1:nrrb
+        nrb[i] = count(==(2+i), mesh.bc[:,1])
+    end
 
-    mb = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
-    solver_var.ma = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
+    mb = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
+    solver_var.ma = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
 
     iu = findall(x->x==1,mesh.bc)
     it = findall(x->x==2,mesh.bc)
     
-    y = zeros(typeof(solver_var.H[1]), 3*mesh.nnodes)
+    y = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb)
 
     for i in 1:nu
         i1 = nnel*(i-1)+1
@@ -245,85 +249,125 @@ function applyBC_nonrb!(mesh, solver_var)
         y[i1:i2] .= mesh.bcvalue[it[i]]
     end
 
-    solver_var.ma[:,1:nnel*nu] = - solver_var.G[:,LM[:,iu][:]]
-    solver_var.ma[:,nnel*nu+1:end] = solver_var.H[:,LM[:,it][:]]
+    j = nnel*(nu+nt)
+
+    for i in 1:nrrb
+        i1 = j+6*(i-1)+1
+        i2 = j+6*i
+        y[i1:i2] = mesh.forces[:,i]
+    end
+
+    C = []
+    D = []
+
+    for i in 1:nrrb
+        rbidx = 2+nrb[i]
+        iaux = findfisrt(mesh.bc[:,1].==rbidx)
+        rbcenter = mesh.bcvalue[iaux,:]
+        c,d = calc_CD_discont(mesh,solver_var,rbcenter,rbidx)
+        C = [C;c]
+        D = [D;d]
+    end
+
+    solver_var.ma[:,1:nnel*nu] = - G[:,LM[:,iu][:]]
+    solver_var.ma[:,nnel*nu+1:end] = H[:,LM[:,it][:]]
     
-    mb[:,1:nnel*nu] = - solver_var.H[:,LM[:,iu][:]]
-    mb[:,nnel*nu+1:end] = solver_var.G[:,LM[:,it][:]]
+    mb[:,1:nnel*nu] = - H[:,LM[:,iu][:]]
+    mb[:,nnel*nu+1:end] = G[:,LM[:,it][:]]
     mesh.zbcvalue = mb*y
 
     return mesh,solver_var
 end
 
+function returnut_rb(mesh,x)
+    nnel = (mesh.eltype+1)^2
+    u = zeros(3*mesh.nnodes)
+    t = zeros(3*mesh.nnodes)
 
-function applyBC_nonrb2!(mesh, solver_var)
-
-    nnel = size(mesh.IEN,1)
-   
-    solver_var.ma = zeros(size(solver_var.H))
-    mb = zeros(size(solver_var.H))
-
-    y = zeros(3*nnel*length(mesh.bc))
-
-    for e in 1:mesh.nelem
-        for i in 1:3
-            if mesh.bc[e,i] == 1
-                solver_var.ma[:,mesh.LM[:,e]] = -solver_var.G[:,mesh.LM[:,e]]
-                mb[:,mesh.LM[:,e]] = - solver_var.H[:,mesh.LM[:,e]]
-            elseif mesh.bc[e,i] == 2
-                solver_var.ma[:,mesh.LM[:,e]] = solver_var.H[:,mesh.LM[:,e]]
-                mb[:,mesh.LM[:,e]] = solver_var.G[:,mesh.LM[:,e]]
-            end
-        end
+    bcvalue = reshape(mesh.bcvalue',length(mesh.bcvalue))
+    LM = zeros(Int64,nnel,size(mesh.LM,2),3)
+    for i in 1:3
+        LM[:,:,i] = mesh.LM[i:3:end,:]
     end
 
-    for e in 1:mesh.nelem
-        i1 = 3*nnel*(e-1)+1
-        i2 = 3*nnel*e
-        y[i1:i2] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+    nu = count(==(1),mesh.bc)
+    nt = count(==(2),mesh.bc)
+
+    iu = findall(x->x==1,mesh.bc)
+    it = findall(x->x==2,mesh.bc)
+
+
+    t[LM[:,iu][:]] = x[1:nnel*nu]
+    for i in 1:nu
+        u[LM[:,iu[i]][:]] .= mesh.bcvalue[iu[i]]
+    end
+
+    u[LM[:,it][:]] = x[nnel*nu+1:end]
+    for i in 1:nt
+        t[LM[:,it[i]][:]] .= mesh.bcvalue[it[i]]
     end
     
+    # t[mesh.LM[:,elem_u]] = x[1:3*nnel*neu]
+    # u[mesh.LM[:,elem_t]] = x[3*nnel*neu+1:end]
+
+    # for e in elem_t
+    #     t[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+    # end
+
+    # for e in elem_u
+    #     u[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
+    # end
+
+    u = [u[1:3:end] u[2:3:end] u[3:3:end]]
+    t = [t[1:3:end] t[2:3:end] t[3:3:end]]
+
+    return u, t
+end
+
+function applyBC_nonrb!(mesh, solver_var,H,G)
+
+    nnel = (mesh.eltype+1)^2
+
+    bcvalue = reshape(mesh.bcvalue',length(mesh.bcvalue))
+    LM = zeros(Int64,nnel,size(mesh.LM,2),3)
+    for i in 1:3
+        LM[:,:,i] = mesh.LM[i:3:end,:]
+    end
+
+    nu = count(==(1),mesh.bc)
+    nt = count(==(2),mesh.bc)
+
+    mb = zeros(typeof(H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
+    solver_var.ma = zeros(typeof(H[1]), 3*mesh.nnodes, 3*mesh.nnodes)
+
+    iu = findall(x->x==1,mesh.bc)
+    it = findall(x->x==2,mesh.bc)
+    
+    y = zeros(typeof(H[1]), 3*mesh.nnodes)
+
+    for i in 1:nu
+        i1 = nnel*(i-1)+1
+        i2 = nnel*i
+        y[i1:i2] .= mesh.bcvalue[iu[i]]
+    end
+
+    j = nnel*nu
+
+    for i in 1:nt
+        i1 = j + nnel*(i-1)+1
+        i2 = j + nnel*i
+        y[i1:i2] .= mesh.bcvalue[it[i]]
+    end
+
+    solver_var.ma[:,1:nnel*nu] = - G[:,LM[:,iu][:]]
+    solver_var.ma[:,nnel*nu+1:end] = H[:,LM[:,it][:]]
+    
+    mb[:,1:nnel*nu] = - H[:,LM[:,iu][:]]
+    mb[:,nnel*nu+1:end] = G[:,LM[:,it][:]]
     mesh.zbcvalue = mb*y
 
     return mesh,solver_var
 end
-
-function applyBC_nonrb3!(mesh, solver_var,H,G)
-
-    nnel = size(mesh.IEN,1)
-   
-    solver_var.ma = zeros(typeof(H[1]),size(H))
-    mb = zeros(typeof(H[1]),size(H))
-
-    y = zeros(typeof(H[1]),3*mesh.nnodes)
-
-    for e in 1:mesh.nelem
-        for n in 1:nnel
-            for i in 1:3
-                if mesh.bc[e,i] == 1
-                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = - G[:,mesh.ID[i,mesh.IEN[n,e]]]
-                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = - H[:,mesh.ID[i,mesh.IEN[n,e]]]
-                elseif mesh.bc[e,i] == 2
-                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = H[:,mesh.ID[i,mesh.IEN[n,e]]]
-                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = G[:,mesh.ID[i,mesh.IEN[n,e]]]
-                end
-            end
-        end
-    end
-
-    for e in 1:mesh.nelem
-        for n in 1:nnel
-            for i in 1:3
-            y[mesh.ID[i,mesh.IEN[n,e]]] = mesh.bcvalue[e,i]
-            end
-        end
-    end
-    
-    mesh.zbcvalue = mb*y
-
-    return mesh,solver_var
-end
-
 
 function returnut(mesh,x)
     nnel = (mesh.eltype+1)^2
@@ -370,27 +414,40 @@ function returnut(mesh,x)
     return u, t
 end
 
-function returnut2(mesh,x)
-    nnel = (mesh.eltype+1)^2
-    u = zeros(3*mesh.nnodes)
-    t = zeros(3*mesh.nnodes)
+function applyBC_nonrb3!(mesh, solver_var,H,G)
 
+    nnel = size(mesh.IEN,1)
+   
+    solver_var.ma = zeros(typeof(H[1]),size(H))
+    mb = zeros(typeof(H[1]),size(H))
+
+    y = zeros(typeof(H[1]),3*mesh.nnodes)
 
     for e in 1:mesh.nelem
-        if mesh.bc[e] == 1
-            u[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
-            t[mesh.LM[:,e]] = x[mesh.LM[:,e]]
-        elseif mesh.bc[e] == 2
-            t[mesh.LM[:,e]] = repeat(mesh.bcvalue[3*(e-1)+1:3*(e)],nnel)
-            u[mesh.LM[:,e]] = x[mesh.LM[:,e]]
+        for n in 1:nnel
+            for i in 1:3
+                if mesh.bc[e,i] == 1
+                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = - G[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = - H[:,mesh.ID[i,mesh.IEN[n,e]]]
+                elseif mesh.bc[e,i] == 2
+                    solver_var.ma[:,mesh.ID[i,mesh.IEN[n,e]]] = H[:,mesh.ID[i,mesh.IEN[n,e]]]
+                    mb[:,mesh.ID[i,mesh.IEN[n,e]]] = G[:,mesh.ID[i,mesh.IEN[n,e]]]
+                end
+            end
         end
     end
 
-    u = [u[1:3:end] u[2:3:end] u[3:3:end]]
-    t = [t[1:3:end] t[2:3:end] t[3:3:end]]
+    for e in 1:mesh.nelem
+        for n in 1:nnel
+            for i in 1:3
+            y[mesh.ID[i,mesh.IEN[n,e]]] = mesh.bcvalue[e,i]
+            end
+        end
+    end
+    
+    mesh.zbcvalue = mb*y
 
-
-    return u, t
+    return mesh,solver_var
 end
 
 function returnut3(mesh,x)

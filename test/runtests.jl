@@ -7,12 +7,13 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/dynamic/soils/soilEE_109.msh"
+inp_file = "meshes/static/bars/bar_2_3.msh"
 # inp_file = "meshes/static/bars/bar_1_1.msh"
 
 solve(inp_file)
-
 mesh,material,problem,solver_var = readvars_out("output")
+u,t = getfreqres_out("output",0)
+
 solver_var.H
 
 node = findfirst(x->x==10,mesh.nodes[:,2])

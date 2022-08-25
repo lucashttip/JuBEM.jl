@@ -56,9 +56,10 @@ mutable struct mesh_type <: JuBEMtypes
     nodes :: Array{Float64,2}   
     bcvalue :: Array{Float64,2} 
     zbcvalue
+    forces :: Array{Float64,2}
     mesh_type() = new(0,0,0,0,0,Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0), Array{Int32,2}(undef,0,0),
     Array{Int16,2}(undef,0,0), Array{Int16,1}(undef,0), Array{Float64,2}(undef,0,0), Array{Float64,2}(undef,0,0), 
-    Array{Float64,2}(undef,0,0), Array{Float64,1}(undef,0))
+    Array{Float64,2}(undef,0,0), Array{Float64,1}(undef,0), Array{Float64,2}(undef,0,0))
 end
 
 # !> @brief Type that holds the information of 

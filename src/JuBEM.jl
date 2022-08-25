@@ -45,6 +45,8 @@ export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_no
 
 include("EE.jl")
 
+include("rbmotion.jl")
+
 include("plotting.jl")
 export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh, animate_res_freq
 
