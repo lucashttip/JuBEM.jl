@@ -87,3 +87,23 @@ function solve(inp_file;file_out="output")
         solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
     end
 end
+
+function solve_rb(inp_file;file_out="output")
+    mesh, material, problem, solver_var = read_msh(inp_file)
+    derive_data!(material, problem, solver_var)
+    generate_mesh!(mesh)
+    calc_GH!(mesh, material, solver_var,-1.0)
+    if 0 in mesh.bc
+        remove_EE!(mesh, solver_var)
+    end
+    output_vars_h5(file_out, mesh, problem, solver_var, material)
+
+    for frequency in problem.frequencies
+    # frequency = problem.frequencies[1]
+        println("Rodando para frequencia: ", frequency)
+        calc_GH!(mesh, material, solver_var, frequency)
+        applyBC_rb!(mesh, solver_var, solver_var.zH, solver_var.zG)
+        solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+        output_frb_h5(file_out,solver_var.zvetsol[1:6],frequency)
+    end
+end

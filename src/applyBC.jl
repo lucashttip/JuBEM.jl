@@ -221,24 +221,99 @@ function applyBC_rb!(mesh, solver_var,H,G)
 
     nu = count(==(1),mesh.bc)
     nt = count(==(2),mesh.bc)
+    ifu = findall(x->x==1,mesh.bc)
+    ift = findall(x->x==2,mesh.bc)
+    elem_F = findall(mesh.bc[:,1].<3)
+
+
     nrrb = count(>=(3),unique(mesh.bc))
     nrb = zeros(nrrb)
+    elem_r = findall(mesh.bc[:,1].>=3)
+    elem_ri = Array{Any,1}(undef,nrrb)
+    C = Array{Any,1}(undef,nrrb)
+    D = Array{Any,1}(undef,nrrb)
     for i in 1:nrrb
         nrb[i] = count(==(2+i), mesh.bc[:,1])
+        rbidx = 2+i
+        elem_ri[i] = sort(findall(mesh.bc[:,1].==rbidx))
+        iaux = findfirst(mesh.bc[:,1].==rbidx)
+        rbcenter = mesh.bcvalue[iaux,:]
+        c,d = calc_CD_discont(mesh,solver_var,rbcenter,rbidx)
+        C[i] = c
+        D[i] = d
+    end
+    nerb = Int(sum(nrb))
+    ngF = Int((nu+nt))
+
+
+    Hrirj = Array{Any,2}(undef,nrrb,nrrb)
+    HFri = Array{Any,1}(undef,nrrb)
+    Grirj = Array{Any,2}(undef,nrrb,nrrb)
+    GFri= Array{Any,1}(undef,nrrb)
+
+    for i in 1:nrrb
+        for j in 1:nrrb
+            Hrirj[i,j] = H[mesh.LM[:,elem_ri[i]][:], mesh.LM[:,elem_ri[j]][:]]*C[j]
+            Grirj[i,j] = G[mesh.LM[:,elem_ri[i]][:], mesh.LM[:,elem_ri[j]][:]]
+        end
+        HFri[i] = H[mesh.LM[:,elem_F][:], mesh.LM[:,elem_ri[i]][:]]*C[i]
+        GFri[i] = G[mesh.LM[:,elem_F][:], mesh.LM[:,elem_ri[i]][:]]
     end
 
-    mb = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
-    solver_var.ma = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
+    HrFt = H[mesh.LM[:,elem_r][:], LM[:,ift][:]]
+    HFFt = H[mesh.LM[:,elem_F][:], LM[:,ift][:]]
+    HrFu = H[mesh.LM[:,elem_r][:], LM[:,ifu][:]]
+    HFFu = H[mesh.LM[:,elem_F][:], LM[:,ifu][:]]
+    GrFt = G[mesh.LM[:,elem_r][:], LM[:,ift][:]]
+    GFFt = G[mesh.LM[:,elem_F][:], LM[:,ift][:]]
+    GrFu = G[mesh.LM[:,elem_r][:], LM[:,ifu][:]]
+    GFFu = G[mesh.LM[:,elem_F][:], LM[:,ifu][:]]
 
-    iu = findall(x->x==1,mesh.bc)
-    it = findall(x->x==2,mesh.bc)
-    
-    y = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb)
+    Hrr = zeros(typeof(H[1]), 3*nnel*nerb, 6*nrrb)
+    HFr = zeros(typeof(H[1]), nnel*ngF, 6*nrrb)
+    Grr = zeros(typeof(H[1]), 3*nnel*nerb, 3*nnel*nerb)
+    GFr = zeros(typeof(H[1]), nnel*ngF, 3*nnel*nerb)
+
+    i1 = 1
+    i2 = 0
+    for i in 1:nrrb
+        neri = Int(nrb[i])
+        i2 = i2+3*nnel*neri
+        j1 = 1
+        j2 = 0
+        for j in 1:nrrb
+            nerj = Int(nrb[j])
+            j2 = j2+3*nnel*nerj
+            Hrr[i1:i2,6*(j-1)+1:6*j] = Hrirj[i,j]
+            Grr[i1:i2,j1:j2] = Grirj[i,j]
+            j1 = j2+1
+        end
+        HFr[:,6*(i-1)+1:6*i] = HFri[i]
+        GFr[:,i1:i2] = GFri[i]
+        i1 = i2+1
+    end
+
+    Dg = zeros(6*nrrb, 3*nnel*nerb)
+    If = I(6*nrrb)
+
+    j1 = 1
+    j2 = 0
+    for i in 1:nrrb
+        nerj = Int(nrb[i])
+        j2 = j2+3*nnel*nerj
+        Dg[6*(i-1)+1:6*i,j1:j2] = D[i]
+        j1 = j2+1
+    end
+
+    # mb = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
+    # solver_var.ma = zeros(typeof(H[1]), 3*mesh.nnodes+6*nrrb, 3*mesh.nnodes+6*nrrb)
+
+    y = zeros(typeof(H[1]), nnel*(nu+nt)+6*nrrb)
 
     for i in 1:nu
         i1 = nnel*(i-1)+1
         i2 = nnel*i
-        y[i1:i2] .= mesh.bcvalue[iu[i]]
+        y[i1:i2] .= mesh.bcvalue[ifu[i]]
     end
 
     j = nnel*nu
@@ -246,7 +321,7 @@ function applyBC_rb!(mesh, solver_var,H,G)
     for i in 1:nt
         i1 = j + nnel*(i-1)+1
         i2 = j + nnel*i
-        y[i1:i2] .= mesh.bcvalue[it[i]]
+        y[i1:i2] .= mesh.bcvalue[ift[i]]
     end
 
     j = nnel*(nu+nt)
@@ -256,24 +331,32 @@ function applyBC_rb!(mesh, solver_var,H,G)
         i2 = j+6*i
         y[i1:i2] = mesh.forces[:,i]
     end
-
-    C = []
-    D = []
-
-    for i in 1:nrrb
-        rbidx = 2+nrb[i]
-        iaux = findfisrt(mesh.bc[:,1].==rbidx)
-        rbcenter = mesh.bcvalue[iaux,:]
-        c,d = calc_CD_discont(mesh,solver_var,rbcenter,rbidx)
-        C = [C;c]
-        D = [D;d]
-    end
-
-    solver_var.ma[:,1:nnel*nu] = - G[:,LM[:,iu][:]]
-    solver_var.ma[:,nnel*nu+1:end] = H[:,LM[:,it][:]]
     
-    mb[:,1:nnel*nu] = - H[:,LM[:,iu][:]]
-    mb[:,nnel*nu+1:end] = G[:,LM[:,it][:]]
+    l1 = 6*nrrb
+    O1 = zeros(l1,size(Hrr,2))
+    O2 = zeros(l1,size(HFFt,2))
+    O3 = zeros(l1,size(GFFu,2))
+    O4 = zeros(size(HrFu,1),l1)
+    O5 = zeros(size(HFFu,1),l1)
+    O6 = zeros(l1,size(HFFu,2))
+    O7 = zeros(l1,size(GFFt,2))
+
+    solver_var.ma = [
+        Hrr HrFt -Grr -GrFu
+        HFr HFFt -GFr -GFFu
+        O1 O2 Dg O3
+    ]
+    mb = [
+        -HrFu GrFt O4
+        -HFFu GFFt O5
+        O6 O7 collect(If)
+    ]
+
+    # solver_var.ma[:,1:nnel*nu] = - G[:,LM[:,iu][:]]
+    # solver_var.ma[:,nnel*nu+1:end] = H[:,LM[:,it][:]]
+    
+    # mb[:,1:nnel*nu] = - H[:,LM[:,iu][:]]
+    # mb[:,nnel*nu+1:end] = G[:,LM[:,it][:]]
     mesh.zbcvalue = mb*y
 
     return mesh,solver_var
@@ -387,12 +470,13 @@ function returnut(mesh,x)
     it = findall(x->x==2,mesh.bc)
 
 
-    t[LM[:,iu][:]] = x[1:nnel*nu]
+    u[LM[:,it][:]] = x[1:nnel*nt]
+    t[LM[:,iu][:]] = x[nnel*nt+1:end]
+
     for i in 1:nu
         u[LM[:,iu[i]][:]] .= mesh.bcvalue[iu[i]]
     end
 
-    u[LM[:,it][:]] = x[nnel*nu+1:end]
     for i in 1:nt
         t[LM[:,it[i]][:]] .= mesh.bcvalue[it[i]]
     end

@@ -7,22 +7,26 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/static/bars/bar_2_3.msh"
+inp_file = "meshes/dynamic/soils/soilEE_109_rb.msh"
 # inp_file = "meshes/static/bars/bar_1_1.msh"
 
+file_out = "teste_rb"
+JuBEM.solve_rb(inp_file;file_out=file_out)
+
 solve(inp_file)
-mesh,material,problem,solver_var = readvars_out("output")
-u,t = getfreqres_out("output",0)
+mesh,material,problem,solver_var = readvars_out(file_out)
+u,t = getfreqres_out(file_out,0)
 
 solver_var.H
 
 node = findfirst(x->x==10,mesh.nodes[:,2])
 node = 1
 
-u, t, freqs = getnoderes_out("output",node)
-u,t = getfreqres_out("output",freqs[3])
-u,t = getfreqres_out("output",0)
+u, t, freqs = getnoderes_out(file_out,node)
+u,t = getfreqres_out(file_out,freqs[3])
+u,t = getfreqres_out(file_out,0)
 
+phiyFx_rb,freqs = geturb_out(file_out,5)
 
 writevtk(mesh,u,t,"test")
 

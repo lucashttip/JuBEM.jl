@@ -58,6 +58,29 @@ function getnoderes_out(filename,node)
     return u,t,freqs
 end
 
+function geturb_out(filename,dim)
+    filename = string(filename,".h5")
+    fid = h5open(filename, "r")
+
+    groupnames = keys(fid)
+    freqs, names = get_nums(groupnames,"freq")
+    p = sortperm(freqs)
+    freqs = freqs[p]
+    names = names[p]
+
+    nf = length(freqs)
+    u = zeros(ComplexF64,nf)
+
+    for n in 1:nf
+        u[n] = read(fid[names[n]],"u")[dim]
+    end
+
+
+    close(fid)
+
+    return u,freqs
+end
+
 function getfreqres_out(filename, freq)
     filename = string(filename,".h5")
     fid = h5open(filename, "r")
