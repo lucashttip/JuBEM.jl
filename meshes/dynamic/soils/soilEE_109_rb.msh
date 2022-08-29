@@ -4,7 +4,7 @@ $Material
 $EndMaterial
 $Frequencies
 1
-0.001 5.0 50
+0.001 5.0 2
 $EndFrequencies
 $MeshType
 8

@@ -29,15 +29,18 @@ end
 
 
 
-function output_freq_h5(filename, u, t, freq)
+function output_freq_h5(filename, freq, u, t, urb = [])
 
     groupname = string("freq_",freq)
     filename = string(filename,".h5")
 
     h5open(filename, "cw") do file
-    g = create_group(file, groupname) # create a group
-    g["u"] = u                  
-    g["t"] = t                  
+        g = create_group(file, groupname) # create a group
+        g["u"] = u
+        g["t"] = t
+        if !isempty(urb)
+            g["urb"] = urb
+        end
     end
 end
 

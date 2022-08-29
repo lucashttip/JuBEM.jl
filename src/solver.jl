@@ -102,7 +102,7 @@ function solve_rb(inp_file;file_out="output")
     # frequency = problem.frequencies[1]
         println("Rodando para frequencia: ", frequency)
         calc_GH!(mesh, material, solver_var, frequency)
-        applyBC_rb!(mesh, solver_var, solver_var.zH, solver_var.zG)
+        mesh, solver_var,C = applyBC_rb(mesh, solver_var, solver_var.zH, solver_var.zG)
         solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
         output_frb_h5(file_out,solver_var.zvetsol[1:6],frequency)
     end

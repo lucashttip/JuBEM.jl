@@ -48,4 +48,10 @@ derive_data!(material, problem, solver_var)
 generate_mesh!(mesh)
 calc_GH!(mesh, material, solver_var,-1.0)
 
+mesh, solver_var, C = JuBEM.applyBC_rb(mesh, solver_var,solver_var.H,solver_var.G)
+solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+
+u,t,urb = JuBEM.returnut_rb(mesh,solver_var.zvetsol, C)
+
+JuBEM.remove_EE!(mesh, solver_var)
 frequency = problem.frequencies[1]; calc_GH!(mesh, material, solver_var, frequency)
