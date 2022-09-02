@@ -11,9 +11,9 @@ inp_file = "meshes/dynamic/soils/soilEE_109_rb.msh"
 # inp_file = "meshes/static/bars/bar_1_1.msh"
 
 file_out = "teste_rb"
-JuBEM.solve_rb(inp_file;file_out=file_out)
+# JuBEM.solve_rb(inp_file;file_out=file_out)
 
-solve(inp_file)
+solve(inp_file;file_out=file_out)
 mesh,material,problem,solver_var = readvars_out(file_out)
 u,t = getfreqres_out(file_out,0)
 
@@ -50,8 +50,13 @@ calc_GH!(mesh, material, solver_var,-1.0)
 
 mesh, solver_var, C = JuBEM.applyBC_rb(mesh, solver_var,solver_var.H,solver_var.G)
 solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
-
 u,t,urb = JuBEM.returnut_rb(mesh,solver_var.zvetsol, C)
+
+applyBC_nonrb3!(mesh, solver_var, solver_var.H, solver_var.G)
+solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+u2,t2 = returnut3(mesh,solver_var.zvetsol)
+
+
 
 JuBEM.remove_EE!(mesh, solver_var)
 frequency = problem.frequencies[1]; calc_GH!(mesh, material, solver_var, frequency)

@@ -35,14 +35,17 @@ function solvestatic(mesh, material, problem, solver_var;file_out = "output")
         remove_EE!(mesh, solver_var)
     end
 
-    applyBC_nonrb3!(mesh, solver_var, solver_var.H, solver_var.G)
-
+    mesh, solver_var, C = applyBC(mesh, solver_var,solver_var.H,solver_var.G)
     solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+    u,t,urb = returnut(mesh,solver_var.zvetsol, C)
 
-    u,t = returnut3(mesh,solver_var.zvetsol)
+
+    # applyBC_nonrb3!(mesh, solver_var, solver_var.H, solver_var.G)
+    # solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+    # u,t = returnut3(mesh,solver_var.zvetsol)
 
     output_vars_h5(file_out, mesh, problem, solver_var, material)
-    output_freq_h5(file_out,u,t,0)
+    output_freq_h5(file_out,u,t,0, urb)
 
 end
 
@@ -67,11 +70,15 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output")
     # frequency = problem.frequencies[1]
         println("Rodando para frequencia: ", frequency)
         calc_GH!(mesh, material, solver_var, frequency)
-        applyBC_nonrb3!(mesh, solver_var, solver_var.zH, solver_var.zG)
+        mesh, solver_var, C = applyBC(mesh, solver_var,solver_var.zH,solver_var.zG)
         solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
-        zu,zt = returnut3(mesh,solver_var.zvetsol)
+        zu,zt,zurb = returnut(mesh,solver_var.zvetsol, C)
 
-        output_freq_h5(file_out,zu,zt,frequency)
+        # applyBC_nonrb3!(mesh, solver_var, solver_var.zH, solver_var.zG)
+        # solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+        # zu,zt = returnut3(mesh,solver_var.zvetsol)
+
+        output_freq_h5(file_out,zu,zt,frequency,zurb)
     end
 
 end
