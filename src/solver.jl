@@ -45,7 +45,7 @@ function solvestatic(mesh, material, problem, solver_var;file_out = "output")
     # u,t = returnut3(mesh,solver_var.zvetsol)
 
     output_vars_h5(file_out, mesh, problem, solver_var, material)
-    output_freq_h5(file_out,u,t,0, urb)
+    output_freq_h5(file_out,0,u,t, urb)
 
 end
 

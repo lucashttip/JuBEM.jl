@@ -47,6 +47,8 @@ include("EE.jl")
 
 include("rbmotion.jl")
 
+include("posprocessor.jl")
+
 include("plotting.jl")
 export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh, animate_res_freq
 
