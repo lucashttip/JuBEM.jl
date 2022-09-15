@@ -13,7 +13,7 @@
 using Revise
 using JuBEM
 
-    inp_file = "meshes/static/vigas/viga10_4_6.msh"
+    inp_file = "meshes/static/vigas_reg/viga_4_40.msh"
     # ref = -3.2
     G = 5e3
     v = 0.0
@@ -23,11 +23,11 @@ using JuBEM
     l = 1
     I = l^4/12
     A = l^2
-    ref = -(3*q*L^4)/(24*E*I) # Carga distribuída ao longo de x
-    # ref = -(q*L^3)/(3*E*I) # Carga concentrada em x = L
+    # ref = -(3*q*L^4)/(24*E*I) # Carga distribuída ao longo de x
+    ref = -(q*L^3)/(3*E*I) # Carga concentrada em x = L
     # ref2 = (q*A)*L/(E*A)
 
-    mesh, material, problem, solver_var, u, t = solvestatic(inp_file)
+    solve(inp_file)
     mesh,material,problem,solver_var = readvars_out("output")
     u,t = getfreqres_out("output",0)
 
