@@ -78,7 +78,7 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output")
         # solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
         # zu,zt = returnut3(mesh,solver_var.zvetsol)
 
-        output_freq_h5(file_out,zu,zt,frequency,zurb)
+        output_freq_h5(file_out,frequency,zu,zt,zurb)
     end
 
 end
