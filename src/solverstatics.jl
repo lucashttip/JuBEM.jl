@@ -65,8 +65,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     # @infiltrate
     # Field loop:
-    Threads.@threads for fe in 1:nelem
-    # for fe in 1:nelem
+    # Threads.@threads for fe in 1:nelem
+    for fe in 1:nelem
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
         normal = []
         J = []
@@ -165,7 +165,7 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
     dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
-    
+    dists = [0.5]
     
     # Field loop:
     Threads.@threads for fe in 1:nelem
@@ -183,8 +183,22 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
                 source_node = mesh.nodes[sn,2:end]
 
                 if fe != se
-                    # HELEM, GELEM = integration_const_raw(source_node, field_points, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
-                    HELEM, GELEM = integrate_const_static(source_node,gauss_points,normal,J, omegas, delta, C_stat)
+
+                    r, c = calc_dist(source_node, field_points, dists,csis_cont)
+
+                    if r > 0
+                        # HELEM, GELEM = integration_const_raw(source_node, field_points, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
+                        HELEM, GELEM = integrate_const_static(source_node,gauss_points,normal,J, omegas, delta, C_stat)
+                    else
+                        # near integration
+                        gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc, dNcdcsi, dNcdeta, omegas)
+                        N_near = calc_N_matrix(csis_cont,gp_local_near)
+                        dNc_near = calc_dNdcsi_matrix(csis_cont,gp_local_near)
+                        dNe_near = calc_dNdeta_matrix(csis_cont,gp_local_near)
+                        gp_near = N_near*field_points
+                        normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
+                        HELEM, GELEM = integrate_const_static(source_node,gp_near,normal_near,J_near,weights_near, delta, C_stat)
+                    end
                 else
                     GELEM = zeros(3,3)
                     HELEM = zeros(3,3)

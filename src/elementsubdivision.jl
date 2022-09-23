@@ -221,9 +221,15 @@ end
 
 function calc_points_weights()
 
-    subelem = [(1,1),(1,1),(1,1),(2,2)]
-    npg = [4,6,8,8]
-    dists = [4,2,1,0.5]
+    # subelem = [(1,1),(1,1),(1,1),(2,2)]
+    # npg = [4,6,8,8]
+    # dists = [4,2,1,0.5]
+    # subelem = [(1,1),(1,1),(2,2),(2,2)]
+    # npg = [5,6,6,7]
+    # dists = [4,2,0.5,0.2]
+    subelem = [(1,1),(1,1),(2,2)]
+    npg = [5,6,6]
+    dists = [4,2,0.5]
     pw = gausslegendre.(npg)
 
     gp = gauss_points_type[]
