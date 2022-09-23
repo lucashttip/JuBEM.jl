@@ -17,7 +17,7 @@ solve(inp_file;file_out=file_out)
 mesh,material,problem,solver_var = readvars_out(file_out)
 
 using Statistics, LinearAlgebra
-mean(diag(solver_var.H))
+a = mean(diag(solver_var.H))
 
 u,t = getfreqres_out(file_out,0)
 

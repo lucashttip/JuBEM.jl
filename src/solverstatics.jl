@@ -165,11 +165,11 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
     dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
-    dists = [0.5]
+    dists = [1.0]
     
     # Field loop:
-    Threads.@threads for fe in 1:nelem
-    # for fe in 1:nelem
+    # Threads.@threads for fe in 1:nelem
+    for fe in 1:nelem
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
@@ -198,6 +198,7 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
                         gp_near = N_near*field_points
                         normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
                         HELEM, GELEM = integrate_const_static(source_node,gp_near,normal_near,J_near,weights_near, delta, C_stat)
+                        # @infiltrate
                     end
                 else
                     GELEM = zeros(3,3)
