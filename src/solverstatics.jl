@@ -165,7 +165,7 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
     dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
-    dists = [1.0]
+    dists = [0.2]
     
     # Field loop:
     # Threads.@threads for fe in 1:nelem
