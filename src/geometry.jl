@@ -116,23 +116,23 @@ function calc_dist(source, points,dists,csis_cont)
         end
     end
 
-    l = maximum([norm(points[2,:] - points[1,:]),norm(points[3,:] - points[2,:])])
+    l = [norm(points[2,:] - points[1,:]),norm(points[3,:] - points[2,:])]
 
-    d = dist/l
+    d = dist./l
     c = []
-    if d < 1
+    if any(d .< 1)
         p1, c, dist = find_closest_dist(points,source,csis_cont)
-        d = dist/l
+        d = dist./l
     end
     r = 0
     for i in eachindex(dists)
-        if d > dists[i]
+        if all(d .> dists[i])
             r = i
             break
         end
     end
 
-    return r, c
+    return r, c, d
 end
 
 function find_closest_dist(points,source_point,csis_cont)
