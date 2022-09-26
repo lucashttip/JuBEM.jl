@@ -188,8 +188,8 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     csis_telles, omegas_telles =  gausslegendre(12)
 
     # Field loop:
-    # Threads.@threads for fe in 1:nelem
-    for fe in 1:nelem
+    Threads.@threads for fe in 1:nelem
+    # for fe in 1:nelem
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
