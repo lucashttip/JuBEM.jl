@@ -16,7 +16,6 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     # Cálculos para elementos não singulares
     gp, dists = calc_points_weights()
-    k = calc_k(nnel)
 
     Nc_nonsing = []
     dNcdcsi_nonsing = []
@@ -65,8 +64,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     # @infiltrate
     # Field loop:
-    # Threads.@threads for fe in 1:nelem
-    for fe in 1:nelem
+    Threads.@threads for fe in 1:nelem
+    # for fe in 1:nelem
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
         normal = []
         J = []
@@ -161,11 +160,26 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     omegas = calc_omegas(solver_var.omega)
 
     csis = calc_csis_grid(solver_var.csi)
-    Nc = calc_N_matrix(csis_cont,csis)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
-    dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
+    # Nc = calc_N_matrix(csis_cont,csis)
+    # dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
+    # dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
 
-    dists = [0.2]
+
+     # Cálculos para elementos não singulares
+     gp, dists = calc_points_weights()
+ 
+    Nc = []
+    dNcdcsi = []
+    dNcdeta = []
+ 
+    for i in eachindex(gp)
+        N = calc_N_matrix(csis_cont,gp[i].csi)
+        Ncsi = calc_dNdcsi_matrix(csis_cont,gp[i].csi)
+        Neta = calc_dNdeta_matrix(csis_cont,gp[i].csi)
+        push!(Nc,N)
+        push!(dNcdcsi,Ncsi)
+        push!(dNcdeta,Neta)
+    end
     
     # Field loop:
     # Threads.@threads for fe in 1:nelem
@@ -173,8 +187,19 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
-        normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
-        gauss_points = Nc*field_points
+        normal = []
+        J = []
+        gauss_points = []
+        for i in eachindex(gp)
+            normal2, J2 = calc_n_J_matrix(dNcdcsi[i], dNcdeta[i], field_points)
+            gauss_points2 = Nc[i]*field_points
+            push!(normal,normal2)
+            push!(J,J2)
+            push!(gauss_points,gauss_points2)
+        end
+
+        # normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
+        # gauss_points = Nc*field_points
 
         # source loop:
         for se in 1:nelem
@@ -188,10 +213,10 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
 
                     if r > 0
                         # HELEM, GELEM = integration_const_raw(source_node, field_points, normal[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
-                        HELEM, GELEM = integrate_const_static(source_node,gauss_points,normal,J, omegas, delta, C_stat)
+                        HELEM, GELEM = integrate_const_static(source_node,gauss_points[r],normal[r],J[r], gp[r].omega, delta, C_stat)
                     else
                         # near integration
-                        gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc, dNcdcsi, dNcdeta, omegas)
+                        gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc[end], dNcdcsi[end], dNcdeta[end], gp[end].omega)
                         N_near = calc_N_matrix(csis_cont,gp_local_near)
                         dNc_near = calc_dNdcsi_matrix(csis_cont,gp_local_near)
                         dNe_near = calc_dNdeta_matrix(csis_cont,gp_local_near)
@@ -229,10 +254,10 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
                         end
                     
 
-                        normal2, J2= calc_n_J_matrix(dNcdcsi, dNcdeta, points2)
-                        gauss_points2 = Nc*points2
+                        normal2, J2= calc_n_J_matrix(dNcdcsi[end], dNcdeta[end], points2)
+                        gauss_points2 = Nc[end]*points2
 
-                        _, GELEM2 = integrate_const_static(source_node, gauss_points2, normal2, J2, omegas, delta, C_stat)
+                        _, GELEM2 = integrate_const_static(source_node, gauss_points2, normal2, J2, gp[end].omega, delta, C_stat)
                         # _, GELEM2 = integration_const_raw(source_node, points2, normal2[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
                         # @infiltrate
                         GELEM = GELEM + GELEM2
