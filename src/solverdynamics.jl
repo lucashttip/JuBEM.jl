@@ -122,12 +122,12 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
                     # @infiltrate
                     gauss_points_sing = Nc_sing[:,idx_ff,np]*field_points
                     # @infiltrate
-                    nk = 5
-                    zGELEM1 = integrate_nonsing_dynamic2(source_node,gauss_points[nk],Nd_nonsing[nk],normal[nk],J[nk], gp[nk].omega, delta, zconsts,n)
-                    zHELEM1, zGELEM2 = integrate_sing_dynamic(source_node, gauss_points_sing, normal_sing, delta, zconsts, pesos, n)
+                    # nk = 5
+                    # zGELEM1 = integrate_nonsing_dynamic2(source_node,gauss_points[nk],Nd_nonsing[nk],normal[nk],J[nk], gp[nk].omega, delta, zconsts,n)
+                    zHELEM1, zGELEM = integrate_sing_dynamic(source_node, gauss_points_sing, normal_sing, delta, zconsts, pesos, n)
                     zHELEM2 = integrate_sing_dynamic2(source_node,gauss_points_sing,normal_sing, delta, zconsts,C_stat,pesos,n)
 
-                    zGELEM = zGELEM1 + zGELEM2
+                    # zGELEM = zGELEM1 + zGELEM
                     zHELEM = zHELEM1 + zHELEM2
                     # @infiltrate
 
