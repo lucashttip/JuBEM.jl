@@ -121,10 +121,10 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
                     # @infiltrate
                     gauss_points_sing = Nc_sing[:,idx_ff,np]*field_points
                     # @infiltrate
-                    GELEM1 = integrate_nonsing_static2(source_node,gauss_points[end],Nd_nonsing[end],normal[end],J[end], gp[end].omega, delta, C_stat,n)
+                    # GELEM1 = integrate_nonsing_static2(source_node,gauss_points[end],Nd_nonsing[end],normal[end],J[end], gp[end].omega, delta, C_stat,n)
 
                     HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, normal_sing, delta, C_stat, pesos, n)
-                    GELEM = GELEM + GELEM1
+                    # GELEM = GELEM + GELEM1
                     # @infiltrate
 
                     # HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points,Nd,normal,J, omegas, delta, C_stat)
