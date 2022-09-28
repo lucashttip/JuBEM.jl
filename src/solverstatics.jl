@@ -285,6 +285,9 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     end
 
     integrate_rigid_body!(solver_var.H,mesh)
+    # for i in axes(solver_var.H,1)
+    #     solver_var.H[i,i] = 0.5
+    # end
     
     return solver_var
 
