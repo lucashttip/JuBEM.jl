@@ -221,8 +221,14 @@ end
 
 function calc_points_weights()
 
-    subelem = [(1,1),(1,1),(2,2),(2,2),(2,2)]
-    npg = [5,6,6,7,8]
+    # subelem = [(1,1),(1,1),(1,1),(2,2)]
+    # npg = [4,6,8,8]
+    # dists = [4,2,1,0.5]
+    # subelem = [(1,1),(1,1),(2,2),(2,2)]
+    # npg = [5,6,6,8]
+    # dists = [4,2,0.5,0.2]
+    subelem = [(1,1),(1,1),(1,1),(1,1)]
+    npg = [4,5,6,8]
     dists = [4,2,0.5,0.2]
     pw = gausslegendre.(npg)
 
@@ -235,7 +241,36 @@ function calc_points_weights()
         fact = subelem[i][1]*subelem[i][2]
         omegas = repeat(calc_omegas(pw[i][2])./fact,fact)
         push!(gp,gauss_points_type(csis,omegas))
-
     end
     return gp, dists
+end
+
+function pontos_pesos_local_subelem(csi_source, eta_source,Nc_lin,dNcdcsi_lin,dNcdeta_lin,omegas)
+    points = [-1 -1
+        1 -1
+        1 1
+        -1 1]
+    source = [csi_source eta_source]
+
+    npg = length(omegas)
+    pontos_gauss = zeros(4*npg,2)
+    pesos = zeros(4*npg)
+
+    p1p2 = [
+        1 2
+        2 3
+        3 4
+        4 1
+    ]
+
+    for t in 1:4
+        points2 = [points[p1p2[t,:],:];source; source]
+        i1 = npg*(t-1) +1
+        i2 = npg*t
+        pontos_gauss[i1:i2,:] = Nc_lin*points2
+        _,J = calc_n_J_matrix(dNcdcsi_lin, dNcdeta_lin, [points2 zeros(4)])
+        pesos[i1:i2] = J.*omegas
+
+    end
+    return pontos_gauss, pesos
 end

@@ -63,6 +63,9 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
     end
     omega_sing = repeat(omegas,4)
 
+    csis_telles, omegas_telles =  gausslegendre(12)
+
+
     # @infiltrate
     # Field loop:
     Threads.@threads for fe in 1:nelem
@@ -87,8 +90,22 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
 
                 if fe != se
 
-                    r = calc_dist(source_node, field_points, dists)
-                    zHELEM, zGELEM = integrate_nonsing_dynamic(source_node,gauss_points[r],Nd_nonsing[r],normal[r],J[r], gp[r].omega, delta, zconsts)
+                    r, c, d = calc_dist(source_node, field_points, dists,csis_cont)
+
+                    if r > 0
+                        zHELEM, zGELEM = integrate_nonsing_dynamic(source_node,gauss_points[r],Nd_nonsing[r],normal[r],J[r], gp[r].omega, delta, zconsts)
+                    else
+                        # near integration
+                        gp_local_near, weights_near = pontos_pesos_local_telles(csis_telles, omegas_telles, c[1:2],d)
+                        # gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc_lin, dNcdcsi_lin, dNcdeta_lin, omegas)
+                        N_near = calc_N_matrix(csis_cont,gp_local_near)
+                        dNc_near = calc_dNdcsi_matrix(csis_cont,gp_local_near)
+                        dNe_near = calc_dNdeta_matrix(csis_cont,gp_local_near)
+                        Nd_near = calc_N_matrix(csis_descont,gp_local_near)
+                        gp_near = N_near*field_points
+                        normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
+                        zHELEM, zGELEM = integrate_nonsing_dynamic(source_node,gp_near,Nd_near,normal_near,J_near, weights_near, delta, zconsts)
+                    end
                 else
 
                     idx_ff, np = calc_idx_permutation(nnel,n)
@@ -105,12 +122,12 @@ function calc_GH_dynamic_non_const!(mesh::mesh_type, material::Vector{material_t
                     # @infiltrate
                     gauss_points_sing = Nc_sing[:,idx_ff,np]*field_points
                     # @infiltrate
-                    nk = 5
-                    zGELEM1 = integrate_nonsing_dynamic2(source_node,gauss_points[nk],Nd_nonsing[nk],normal[nk],J[nk], gp[nk].omega, delta, zconsts,n)
-                    zHELEM1, zGELEM2 = integrate_sing_dynamic(source_node, gauss_points_sing, normal_sing, delta, zconsts, pesos, n)
+                    # nk = 5
+                    # zGELEM1 = integrate_nonsing_dynamic2(source_node,gauss_points[nk],Nd_nonsing[nk],normal[nk],J[nk], gp[nk].omega, delta, zconsts,n)
+                    zHELEM1, zGELEM = integrate_sing_dynamic(source_node, gauss_points_sing, normal_sing, delta, zconsts, pesos, n)
                     zHELEM2 = integrate_sing_dynamic2(source_node,gauss_points_sing,normal_sing, delta, zconsts,C_stat,pesos,n)
 
-                    zGELEM = zGELEM1 + zGELEM2
+                    # zGELEM = zGELEM1 + zGELEM
                     zHELEM = zHELEM1 + zHELEM2
                     # @infiltrate
 
@@ -151,9 +168,28 @@ function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table
     omegas = calc_omegas(solver_var.omega)
 
     csis = calc_csis_grid(solver_var.csi)
-    Nc = calc_N_matrix(csis_cont,csis)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
-    dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
+    # Nc = calc_N_matrix(csis_cont,csis)
+    # dNcdcsi = calc_dNdcsi_matrix(csis_cont,csis)
+    # dNcdeta = calc_dNdeta_matrix(csis_cont,csis)
+
+     # Cálculos para elementos não singulares
+     gp, dists = calc_points_weights()
+ 
+    Nc = []
+    dNcdcsi = []
+    dNcdeta = []
+ 
+    for i in eachindex(gp)
+        N = calc_N_matrix(csis_cont,gp[i].csi)
+        Ncsi = calc_dNdcsi_matrix(csis_cont,gp[i].csi)
+        Neta = calc_dNdeta_matrix(csis_cont,gp[i].csi)
+        push!(Nc,N)
+        push!(dNcdcsi,Ncsi)
+        push!(dNcdeta,Neta)
+    end
+
+    csis_telles, omegas_telles =  gausslegendre(12)
+
 
     # Field loop:
     Threads.@threads for fe in 1:nelem
@@ -161,8 +197,16 @@ function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table
     
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
 
-        normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
-        gauss_points = Nc*field_points
+        normal = []
+        J = []
+        gauss_points = []
+        for i in eachindex(gp)
+            normal2, J2 = calc_n_J_matrix(dNcdcsi[i], dNcdeta[i], field_points)
+            gauss_points2 = Nc[i]*field_points
+            push!(normal,normal2)
+            push!(J,J2)
+            push!(gauss_points,gauss_points2)
+        end
 
         # source loop:
         for se in 1:nelem
@@ -172,7 +216,22 @@ function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table
 
                 if fe != se
                     # @infiltrate
-                    zHELEM, zGELEM = integrate_const_dynamic(source_node,gauss_points,normal,J, omegas, delta, zconsts)
+                    r, c, d = calc_dist(source_node, field_points, dists,csis_cont)
+
+                    if r > 0
+                        zHELEM, zGELEM = integrate_const_dynamic(source_node,gauss_points[r],normal[r],J[r], gp[r].omega, delta, zconsts)
+                    else
+                        # near integration
+                        gp_local_near, weights_near = pontos_pesos_local_telles(csis_telles, omegas_telles, c[1:2],d)
+                        N_near = calc_N_matrix(csis_cont,gp_local_near)
+                        dNc_near = calc_dNdcsi_matrix(csis_cont,gp_local_near)
+                        dNe_near = calc_dNdeta_matrix(csis_cont,gp_local_near)
+                        gp_near = N_near*field_points
+                        normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
+                        zHELEM, zGELEM = integrate_const_dynamic(source_node,gp_near,normal_near,J_near,weights_near, delta, zconsts)
+                    end
+
+                    
                 else
                     zGELEM = zeros(ComplexF64,3,3)
                     zHELEM = zeros(ComplexF64,3,3)
@@ -202,14 +261,15 @@ function calc_GH_dynamic_const!(mesh::mesh_type, material::Vector{material_table
                         end
                     
 
-                        normal2, J2= calc_n_J_matrix(dNcdcsi, dNcdeta, points2)
-                        gauss_points2 = Nc*points2
+                        normal2, J2= calc_n_J_matrix(dNcdcsi[end], dNcdeta[end], points2)
+                        gauss_points2 = Nc[end]*points2
 
-                        _, zGELEM2 = integrate_const_dynamic(source_node, gauss_points2, normal2, J2, omegas, delta, zconsts)
+
+                        _, zGELEM2 = integrate_const_dynamic(source_node, gauss_points2, normal2, J2, gp[end].omega, delta, zconsts)
                         # _, GELEM2 = integration_const_raw(source_node, points2, normal2[1,:], solver_var.csi, solver_var.omega, delta, C_stat)
                         # @infiltrate
                         zGELEM = zGELEM + zGELEM2
-                        zHELEM = zHELEM + integrate_const_sing_dynamic(source_node,gauss_points2,normal2,J2,omegas, delta, zconsts,C_stat)
+                        zHELEM = zHELEM + integrate_const_sing_dynamic(source_node,gauss_points2,normal2,J2,gp[end].omega, delta, zconsts,C_stat)
                     end
                     # zHELEM = integrate_const_sing_dynamic(source_node,gauss_points,normal,J,omegas, delta, zconsts,C_stat)
                 end

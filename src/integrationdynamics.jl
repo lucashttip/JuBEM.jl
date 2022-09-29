@@ -51,9 +51,9 @@ function integrate_sing_dynamic(source_node,gauss_points_sing,normal_sing, delta
             if k!=n
                 zHELEM[:,3*(k-1)+1:3*k] += zt.*pesos[i,k]
             end
-            if k == n
+            # if k == n
                 zGELEM[:,3*(k-1)+1:3*k] += zu.*pesos[i,k]
-            end
+            # end
         end
     end
     return zHELEM, zGELEM

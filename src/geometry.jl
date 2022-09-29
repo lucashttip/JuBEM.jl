@@ -105,7 +105,7 @@ function calc_static_constants(material)
 end
 
 
-function calc_dist(source, points,dists)
+function calc_dist(source, points,dists,csis_cont)
 
     dist = Inf
 
@@ -116,20 +116,78 @@ function calc_dist(source, points,dists)
         end
     end
 
-    l = minimum([norm(points[2,:] - points[1,:]),norm(points[4,:] - points[3,:])])
+    l = [norm(points[2,:] - points[1,:]),norm(points[3,:] - points[2,:])]
 
-    d = dist/l
-
+    d = dist./l
+    c = []
+    if any(d .< 1)
+        p1, c, dist = find_closest_dist(points,source,csis_cont)
+        d = dist./l
+    end
     r = 0
     for i in eachindex(dists)
-        if d > dists[i]
+        if all(d .> dists[i])
             r = i
             break
         end
     end
-    if r == 0
-        r = length(dists)+1
+
+    return r, c, d
+end
+
+function find_closest_dist(points,source_point,csis_cont)
+
+    tol = 1e-3
+    itermax = 30
+
+    # Primeiro ponto: ponto central do elemento.
+    l = [0, 0, 0]
+
+    N = calc_N_matrix(csis_cont,[l[1] l[2]])
+    p1 = vec(N*points)
+
+    for iter = 1:itermax
+
+        dNcsi = calc_dNdcsi_matrix(csis_cont,[l[1] l[2]])
+        dNeta = calc_dNdeta_matrix(csis_cont,[l[1] l[2]])
+        # Encontrar vetores do plano tangente ao elemento que passa pelo ponto p1:
+        ncsi = vec(dNcsi*points)
+        neta = vec(dNeta*points)
+        nzeta = cross(ncsi,neta)
+
+        # Vetor entre ponto fonte e p1
+        d = source_point - p1
+
+        l = l + [ncsi neta nzeta]\d
+
+        N = calc_N_matrix(csis_cont,[l[1] l[2]])
+
+        p2 = vec(N*points)
+
+        if norm(p2 - p1) < tol
+            p1 = p2
+            break
+        end
+        if iter == itermax
+            error("Erro encontrando ponto local mais próximo do fonte.")
+        end
+        p1 = p2
     end
 
-    return r
+    for i in 1:2
+    if l[i] > 1
+        l[i] = 1
+    end
+    if l[i]<-1
+        l[i] = -1
+    end
+    end
+
+    N = calc_N_matrix(csis_cont,[l[1] l[2]])
+
+    p1 = vec(N*points)
+    d = source_point - p1
+    dist = norm(d)
+
+    return p1, l, dist
 end
