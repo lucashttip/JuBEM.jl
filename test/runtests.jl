@@ -7,10 +7,10 @@ using Plots
 #     # Write your tests here.
 # end
 
-# inp_file = "meshes/dynamic/soils/soilEE_109_rb.msh"
-inp_file = "meshes/static/bars/bar_2_3.msh"
+inp_file = "meshes/dynamic/soils/soilEE_216_rb.msh"
+# inp_file = "meshes/static/bars/bar_2_3.msh"
 
-file_out = "output"
+file_out = "output_216_rb_my"
 # JuBEM.solve_rb(inp_file;file_out=file_out)
 
 solve(inp_file;file_out=file_out)
@@ -49,14 +49,14 @@ animate_res_freq(mesh,u,freq;frac = 2.0, filename = "anim.mp4",res = (1920, 1080
 ##
 
 mesh, material, problem, solver_var = read_msh(inp_file)
-mesh.eltype=1
+# mesh.eltype=1
 derive_data!(material, problem, solver_var)
 generate_mesh!(mesh)
 calc_GH!(mesh, material, solver_var,-1.0)
 
 JuBEM.remove_EE!(mesh, solver_var)
-# frequency = problem.frequencies[1]
-frequency = 0.0001
+frequency = problem.frequencies[1]
+# frequency = 0.0001
 calc_GH!(mesh, material, solver_var, frequency)
 
 mesh, solver_var, C = JuBEM.applyBC_rb(mesh, solver_var,solver_var.H,solver_var.G)
