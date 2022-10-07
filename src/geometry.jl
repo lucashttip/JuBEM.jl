@@ -158,7 +158,12 @@ function find_closest_dist(points,source_point,csis_cont)
         # Vetor entre ponto fonte e p1
         d = source_point - p1
 
-        l = l + [ncsi neta nzeta]\d
+        try
+            l = l + [ncsi neta nzeta]\d
+        catch
+            # @infiltrate
+            error("Erro no cálculo do ponto mais próximo.")
+        end
 
         N = calc_N_matrix(csis_cont,[l[1] l[2]])
 

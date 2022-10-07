@@ -53,7 +53,7 @@ animate_res_freq(mesh,u,freq;frac = 2.0, filename = "anim.mp4",res = (1920, 1080
 ##
 
 mesh, material, problem, solver_var = read_msh(inp_file)
-mesh.eltype=1
+# mesh.eltype=1
 derive_data!(material, problem, solver_var)
 generate_mesh!(mesh)
 calc_GH!(mesh, material, solver_var,-1.0)
