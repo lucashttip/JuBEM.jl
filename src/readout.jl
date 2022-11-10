@@ -72,7 +72,7 @@ function geturb_out(filename,dim)
     u = zeros(ComplexF64,nf)
 
     for n in 1:nf
-        u[n] = read(fid[names[n]],"u")[dim]
+        u[n] = read(fid[names[n]],"urb")[dim]
     end
 
 
