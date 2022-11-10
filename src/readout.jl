@@ -121,3 +121,14 @@ function get_nums(groupnames, str)
 
     return nums, names
 end
+
+function get_value_out(filename,groupname,fieldname)
+    filename = string(filename,".h5")
+    fid = h5open(filename, "r")
+
+    x = read(fid[groupname],fieldname)
+
+    close(fid)
+
+    return x
+end
