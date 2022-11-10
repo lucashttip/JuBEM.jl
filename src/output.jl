@@ -24,10 +24,19 @@ function output_vars_h5(filename, mesh::mesh_type, problem::problem_type, solver
             end   
             i +=1
         end
+        create_group(file,"times")
     end
 end
 
+function output_time(filename,time,label)
+    groupname = "times"
+    filename = string(filename,".h5")
 
+    h5open(filename, "cw") do file
+        g = file[groupname] # access group
+        g[label] = time
+    end
+end
 
 function output_freq_h5(filename, freq, u, t, urb = [])
 

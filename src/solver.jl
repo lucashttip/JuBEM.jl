@@ -84,6 +84,7 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output")
 end
 
 function solve(inp_file;file_out="output")
+    t1 = time()
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)
     generate_mesh!(mesh)
@@ -93,6 +94,9 @@ function solve(inp_file;file_out="output")
     else
         solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
     end
+
+    t2 = time()
+    output_time(file_out,t2-t1,"totaltime")
 end
 
 function solve_rb(inp_file;file_out="output")
