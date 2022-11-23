@@ -204,9 +204,6 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
             push!(gauss_points,gauss_points2)
         end
 
-        # normal, J = calc_n_J_matrix(dNcdcsi, dNcdeta, field_points)
-        # gauss_points = Nc*field_points
-
         # source loop:
         for se in 1:nelem
             for n = 1:nnel
@@ -285,10 +282,64 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
     end
 
     integrate_rigid_body!(solver_var.H,mesh)
-    # for i in axes(solver_var.H,1)
-    #     solver_var.H[i,i] = 0.5
-    # end
     
     return solver_var
+
+end
+
+# Work in progress
+function calc_GH_static(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
+    
+    # Define auxiliary variables
+    nelem = mesh.nelem
+    m = 1
+    C_stat = calc_static_constants(material[m])
+    delta = I(3) 
+    nnel = (mesh.eltype+1)^2
+
+    # Create and put zero values on G and H matrices
+    max_GL = maximum(mesh.ID)
+    solver_var.H = zeros(max_GL,max_GL)
+    solver_var.G = zeros(max_GL,max_GL)
+
+
+    # Cálculos de pontos de Gauss, pesos, funções de forma não singulares
+    csis_cont = range(-1,1,length = mesh.eltype+1)
+    csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
+    omegas = calc_omegas(solver_var.omega)
+
+    # Cálculos para elementos não singulares
+    Nc_nonsing, dNcdcsi_nonsinc, dNcdeta_nonsing, Nd_nonsing, gp, dists = calc_N_nonsing(mesh)
+
+
+    # Cálculos para elementos singulares
+    csis = calc_csis_grid(solver_var.csi)
+    csis_cont_lin = range(-1,1,length = 2)
+    Nc_lin = calc_N_matrix(csis_cont_lin,csis)
+    dNcdcsi_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
+    dNcdeta_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
+
+    if mesh.eltype == 2
+        nperm = 3
+    elseif mesh.eltype < 2
+        nperm = 1
+    end
+
+    csi_sing, Jb_sing = csis_sing(mesh.offset, Nc_lin, dNcdcsi_lin,dNcdeta_lin,mesh.eltype)
+    npg_sing = size(csi_sing,1)
+    Nc_sing = zeros(npg_sing,nnel,nperm)
+    dNcdcsi_sing = zeros(npg_sing,nnel,nperm)
+    dNcdeta_sing = zeros(npg_sing,nnel,nperm)
+    Nd_sing = zeros(npg_sing,nnel,nperm)
+
+    for i in 1:nperm
+        Nc_sing[:,:,i] = calc_N_matrix(csis_cont,csi_sing[:,:,i])
+        dNcdcsi_sing[:,:,i] = calc_dNdcsi_matrix(csis_cont,csi_sing[:,:,i])
+        dNcdeta_sing[:,:,i] = calc_dNdeta_matrix(csis_cont,csi_sing[:,:,i])
+        Nd_sing[:,:,i] = calc_N_matrix(csis_descont,csi_sing[:,:,i])
+    end
+    omega_sing = repeat(omegas,4)
+
+    csis_telles, omegas_telles =  gausslegendre(12)
 
 end

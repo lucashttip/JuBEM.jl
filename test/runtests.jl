@@ -7,8 +7,8 @@ using Plots
 #     # Write your tests here.
 # end
 
-inp_file = "meshes/dynamic/soils/soilEE_216_rb.msh"
-# inp_file = "meshes/static/bars/bar_2_3.msh"
+# inp_file = "meshes/dynamic/soils/soilEE_216_rb.msh"
+inp_file = "meshes/static/bars/bar_1_1.msh"
 
 file_out = "output_rb_lin"
 # JuBEM.solve_rb(inp_file;file_out=file_out)

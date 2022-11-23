@@ -111,7 +111,7 @@ function generate_nodes_in_elem(N,p,k)
 
     nl = sqrt(length(k))
 
-    idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in 1:length(k)]
+    idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in eachindex(k)]
 
     pd = N[idx,:]*p
     return pd

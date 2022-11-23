@@ -35,6 +35,7 @@ export calc_funsol_static, calc_funsol_dynamic
 
 include("integrationdynamics.jl")
 include("integrationstatics.jl")
+include("integrationpoints.jl")
 
 include("solverstatics.jl")
 include("solverdynamics.jl")
@@ -43,7 +44,7 @@ include("solver.jl")
 export calc_GH!, solvestatic, solvedynamic, solve
 
 include("applyBC.jl")
-export applyBC!, applyBC_nonrb!, returnut,applyBC_nonrb2!, returnut2, applyBC_nonrb3!, returnut3,calc_utpoints
+export applyBC!, applyBC_nonrb!, calc_utpoints
 
 include("EE.jl")
 
