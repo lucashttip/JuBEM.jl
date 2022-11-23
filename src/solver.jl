@@ -1,3 +1,5 @@
+
+# Interface to choose GH calculation type
 function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type,frequency=-1.0)
 
     if frequency >= 0.0
@@ -15,16 +17,6 @@ function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, solver
     end
 
     return solver_var
-end
-
-function solvestatic(inp_file;file_out="output")
-    mesh, material, problem, solver_var = read_msh(inp_file)
-
-    derive_data!(material, problem, solver_var)
-
-    generate_mesh!(mesh)
-
-    solvestatic(mesh, material, problem, solver_var;file_out=file_out)
 end
 
 function solvestatic(mesh, material, problem, solver_var;file_out = "output", savemat = false)
@@ -48,15 +40,6 @@ function solvestatic(mesh, material, problem, solver_var;file_out = "output", sa
         output_vars_h5(file_out, mesh, problem, solver_var, material)
     end
     output_freq_h5(file_out,0,u,t, urb)
-
-end
-
-function solvedynamic(inp_file;file_out="output")
-
-    mesh, material, problem, solver_var = read_msh(inp_file)
-    derive_data!(material, problem, solver_var)
-    generate_mesh!(mesh)
-    solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
 
 end
 
@@ -87,15 +70,22 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output", sav
 
 end
 
+
+# Main function
 function solve(inp_file;file_out="output", savemat = false)
+    
     t1 = time()
+
+    # Read mesh and generate 
     mesh, material, problem, solver_var = read_msh(inp_file)
     derive_data!(material, problem, solver_var)
     generate_mesh!(mesh)
+
     if savemat == false
         output_vars_h5(file_out, mesh, problem, solver_var, material)
     end
 
+    # Choose solver
     if isempty(problem.nFr)
         solvestatic(mesh, material, problem, solver_var;file_out=file_out, savemat = savemat)
     else
@@ -106,22 +96,23 @@ function solve(inp_file;file_out="output", savemat = false)
     output_time(file_out,t2-t1,"totaltime")
 end
 
-# function solve_rb(inp_file;file_out="output"; savemat = savemat)
-#     mesh, material, problem, solver_var = read_msh(inp_file)
-#     derive_data!(material, problem, solver_var)
-#     generate_mesh!(mesh)
-#     calc_GH!(mesh, material, solver_var,-1.0)
-#     if 0 in mesh.bc
-#         remove_EE!(mesh, solver_var)
-#     end
-#     output_vars_h5(file_out, mesh, problem, solver_var, material)
 
-#     for frequency in problem.frequencies
-#     # frequency = problem.frequencies[1]
-#         println("Rodando para frequencia: ", frequency)
-#         calc_GH!(mesh, material, solver_var, frequency)
-#         mesh, solver_var,C = applyBC_rb(mesh, solver_var, solver_var.zH, solver_var.zG)
-#         solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
-#         output_frb_h5(file_out,solver_var.zvetsol[1:6],frequency)
-#     end
-# end
+# Auxiliary functions (deprecated)
+function solvestatic(inp_file;file_out="output")
+    mesh, material, problem, solver_var = read_msh(inp_file)
+
+    derive_data!(material, problem, solver_var)
+
+    generate_mesh!(mesh)
+
+    solvestatic(mesh, material, problem, solver_var;file_out=file_out)
+end
+
+function solvedynamic(inp_file;file_out="output")
+
+    mesh, material, problem, solver_var = read_msh(inp_file)
+    derive_data!(material, problem, solver_var)
+    generate_mesh!(mesh)
+    solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
+
+end
