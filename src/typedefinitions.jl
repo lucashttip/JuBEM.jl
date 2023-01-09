@@ -153,5 +153,17 @@ end
         end
     end
     return true
+end
 
+function copy(mesh::mesh_type)
+    mesh2 = mesh_type()
+
+
+    fields = fieldnames(mesh_type)
+
+    for field in fields
+        f1 = getfield(mesh,field)
+        setfield!(mesh2,field,f1)
+    end
+    return mesh2
 end

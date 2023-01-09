@@ -51,6 +51,7 @@ include("EE.jl")
 include("rbmotion.jl")
 
 include("posprocessor.jl")
+export calc_interior_static, calc_interior_static_const
 
 include("plotting.jl")
 export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh, animate_res_freq
@@ -63,5 +64,7 @@ export output_freq_h5, output_vars_h5
 
 include("readout.jl")
 export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out
+
+include("findmind.jl")
 
 end

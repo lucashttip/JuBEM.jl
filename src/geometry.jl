@@ -121,9 +121,11 @@ function calc_dist(source, points,dists,csis_cont)
     d = dist./l
     c = []
     if any(d .< 1)
-        p1, c, dist = find_closest_dist(points,source,csis_cont)
+        # p1, c, dist = find_closest_dist(points,source,csis_cont)
+        c,dist = findmind(points,source,csis_cont)
         d = dist./l
     end
+    
     r = 0
     for i in eachindex(dists)
         if all(d .> dists[i])
@@ -145,6 +147,7 @@ function find_closest_dist(points,source_point,csis_cont)
 
     N = calc_N_matrix(csis_cont,[l[1] l[2]])
     p1 = vec(N*points)
+    p0 = p1
 
     for iter = 1:itermax
 
@@ -161,8 +164,17 @@ function find_closest_dist(points,source_point,csis_cont)
         try
             l = l + [ncsi neta nzeta]\d
         catch
-            # @infiltrate
+            @infiltrate
             error("Erro no cálculo do ponto mais próximo.")
+        end
+
+        for i in 1:2
+            if l[i] > 1
+                l[i] = 1
+            end
+            if l[i]<-1
+                l[i] = -1
+            end
         end
 
         N = calc_N_matrix(csis_cont,[l[1] l[2]])
@@ -174,19 +186,20 @@ function find_closest_dist(points,source_point,csis_cont)
             break
         end
         if iter == itermax
+            @infiltrate
             error("Erro encontrando ponto local mais próximo do fonte.")
         end
         p1 = p2
     end
 
-    for i in 1:2
-    if l[i] > 1
-        l[i] = 1
-    end
-    if l[i]<-1
-        l[i] = -1
-    end
-    end
+    # for i in 1:2
+    # if l[i] > 1
+    #     l[i] = 1
+    # end
+    # if l[i]<-1
+    #     l[i] = -1
+    # end
+    # end
 
     N = calc_N_matrix(csis_cont,[l[1] l[2]])
 

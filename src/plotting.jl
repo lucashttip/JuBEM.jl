@@ -4,8 +4,8 @@ import GeometryBasics
 const mk = GLMakie
 const gb = GeometryBasics
 # const mk = CairoMakie
-using Meshes
-using MeshViz
+# using Meshes
+# using MeshViz
 
 function view_mesh(mesh)
     # fig = mk.Figure()

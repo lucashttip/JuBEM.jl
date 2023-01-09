@@ -8,9 +8,11 @@ using Plots
 # end
 
 # inp_file = "meshes/dynamic/soils/soilEE_216_rb.msh"
+# inp_file = "meshes/static/vigas/viga_4_6.msh"
 inp_file = "meshes/static/bars/bar_1_1.msh"
 
-file_out = "output_rb_lin"
+
+file_out = "teste"
 # JuBEM.solve_rb(inp_file;file_out=file_out)
 
 solve(inp_file;file_out=file_out)
@@ -20,6 +22,7 @@ using Statistics, LinearAlgebra
 a = mean(diag(solver_var.H))
 
 u,t = getfreqres_out(file_out,0)
+JuBEM.writevtk2(mesh,u,t,"teste3")
 
 points_int = [9 0.5 0.5
     5 0.5 0.5]
