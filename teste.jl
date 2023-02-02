@@ -128,3 +128,105 @@ end
 
 
 l, p1, d = teste(points,source_point,csis_cont)
+
+
+function calc_dNdcsicsi(csisij,ordem,kij,csi,eta)
+
+    nnel = ordem^2
+
+    dNdcsi = zeros(nnel)
+
+    for k in 1:nnel
+        dNdcsi[k] = 0
+        i = kij[k][1]
+        j = kij[k][2]
+        
+
+
+        for n in 1:ordem
+            dN1 = 0
+            for m in 1:ordem
+                dN2 = 1
+                for l in 1:ordem
+                    if l != i && l != m && l != n
+                        dN2 = dN2*(csi - csisij[l])/(csisij[i] - csisij[l])
+                    end
+                end
+                if m != i && m != n
+                    dN1 = dN1 + (dN2/(csisij[i] - csisij[m]))
+                end
+            end
+
+            if n != i
+                dNdcsi[k] = dNdcsi[k] + (dN1/(csisij[i] - csisij[n]))
+            end
+        end
+
+        
+        for l in 1:ordem
+            if l != j
+                dNdcsi[k] = dNdcsi[k]*(eta - csisij[l])/(csisij[j] - csisij[l])
+            end
+        end
+    end
+    return dNdcsi
+end
+
+function calc_dNdcsieta(csisij,ordem,kij,csi,eta)
+
+    nnel = ordem^2
+
+    dNdcsi = zeros(nnel)
+
+    for k in 1:nnel
+        dNdcsi[k] = 0
+        i = kij[k][1]
+        j = kij[k][2]
+        
+
+
+        for m in 1:ordem
+            dN = 1
+            for l in 1:ordem
+                if l != i && l != m
+                    dN = dN*(csi - csisij[l])/(csisij[i] - csisij[l])
+                end
+            end
+            if m != i
+                dNdcsi[k] = dNdcsi[k] + (dN/(csisij[i] - csisij[m]))
+            end
+        end
+
+
+        dN1 = 0
+        for m in 1:ordem
+            dN = 1
+            for l in 1:ordem
+                if l != j && l != m
+                    dN = dN*(csi - csisij[l])/(csisij[j] - csisij[l])
+                end
+            end
+            if m != j
+                dN1 = dN1 + (dN/(csisij[j] - csisij[m]))
+            end
+        end
+        dNdcsi[k] = dNdcsi[k]*dN1
+
+    end
+    
+    return dNdcsi
+end
+
+
+using Plots
+function plottest(c,IEN)
+
+    scatter(c[:,1],c[:,2],color=:black,label=:none)
+    plt = scatter!([c[end,1]],[c[end,2]],color=:red,label=:none)
+
+    for e in axes(IEN,2)
+        plt = plot!(c[[IEN[:,e];IEN[1,e]],1],c[[IEN[:,e];IEN[1,e]],2],color=:black,label=:none)
+    end
+
+    return plt
+end

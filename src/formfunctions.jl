@@ -41,14 +41,46 @@ function calc_N_matrix(csisij,csis)
     kij = calc_k(nnel)
 
     for i in 1:n
-        for k in 1:nnel
-            csi = csis[i,1]
-            eta = csis[i,2]
-            N[i,k] = calc_N(csisij,ordem,kij[k][1], kij[k][2], csi, eta)
-        end
+        csi = csis[i,1]
+        eta = csis[i,2]
+        N[i,:] = calc_N(csisij,ordem,kij, csi, eta)
     end
 
     return N
+end
+
+function calc_N_gen(csisij,csis;dg = :N)
+
+    if dg == :N
+        f = calc_N
+    elseif dg == :dNdc
+        f = calc_dNdcsi
+    elseif dg == :dNde
+        f = calc_dNdeta
+    elseif dg == :d2Ndc2
+        f = calc_dNdcsicsi
+    elseif dg == :d2Ndce
+        f = calc_dNdcsieta
+    else
+        error("dg not defined. Defined symbols are :N, :dNdc, :dNde, :d2Ndc2 and :d2Ndce. Symbol passed: " ,dg)
+    end
+
+    n = size(csis,1)
+    ordem = length(csisij)
+    nnel = ordem^2
+
+    N = zeros(n,nnel)
+    kij = calc_k(nnel)
+
+    for i in 1:n
+        csi = csis[i,1]
+        eta = csis[i,2]
+        N[i,:] = f(csisij,ordem,kij, csi, eta)
+    end
+
+    return N
+
+
 end
 
 function calc_dNdcsi_matrix(csisij,csis)
@@ -86,18 +118,25 @@ function calc_dNdeta_matrix(csisij,csis)
     return dNdeta
 end
 
-function calc_N(csisij,nnel,i, j, csi, eta)
-    N = 1
+function calc_N(csisij,ordem,kij, csi, eta)
+    nnel = ordem^2
 
-    for l in 1:nnel
-        if l != i
-            N = N*(csi - csisij[l])/(csisij[i] - csisij[l])
+    N = ones(nnel)
+
+    for k in 1:nnel
+        i = kij[k][1]
+        j = kij[k][2]
+
+        for l in 1:ordem
+            if l != i
+                N[k] = N[k]*(csi - csisij[l])/(csisij[i] - csisij[l])
+            end
         end
-    end
-    
-    for l in 1:nnel
-        if l != j
-            N = N*(eta - csisij[l])/(csisij[j] - csisij[l])
+        
+        for l in 1:ordem
+            if l != j
+                N[k] = N[k]*(eta - csisij[l])/(csisij[j] - csisij[l])
+            end
         end
     end
     return N
@@ -133,6 +172,93 @@ function calc_dNdcsi(csisij,ordem,kij,csi,eta)
             end
         end
     end
+    return dNdcsi
+end
+
+function calc_dNdcsicsi(csisij,ordem,kij,csi,eta)
+
+    nnel = ordem^2
+
+    dNdcsi = zeros(nnel)
+
+    for k in 1:nnel
+        dNdcsi[k] = 0
+        i = kij[k][1]
+        j = kij[k][2]
+        
+
+
+        for n in 1:ordem
+            dN1 = 0
+            for m in 1:ordem
+                dN2 = 1
+                for l in 1:ordem
+                    if l != i && l != m && l != n
+                        dN2 = dN2*(csi - csisij[l])/(csisij[i] - csisij[l])
+                    end
+                end
+                if m != i && m != n
+                    dN1 = dN1 + (dN2/(csisij[i] - csisij[m]))
+                end
+            end
+
+            if n != i
+                dNdcsi[k] = dNdcsi[k] + (dN1/(csisij[i] - csisij[n]))
+            end
+        end
+
+        
+        for l in 1:ordem
+            if l != j
+                dNdcsi[k] = dNdcsi[k]*(eta - csisij[l])/(csisij[j] - csisij[l])
+            end
+        end
+    end
+    return dNdcsi
+end
+
+function calc_dNdcsieta(csisij,ordem,kij,csi,eta)
+
+    nnel = ordem^2
+
+    dNdcsi = zeros(nnel)
+
+    for k in 1:nnel
+        dNdcsi[k] = 0
+        i = kij[k][1]
+        j = kij[k][2]
+        
+
+
+        for m in 1:ordem
+            dN = 1
+            for l in 1:ordem
+                if l != i && l != m
+                    dN = dN*(csi - csisij[l])/(csisij[i] - csisij[l])
+                end
+            end
+            if m != i
+                dNdcsi[k] = dNdcsi[k] + (dN/(csisij[i] - csisij[m]))
+            end
+        end
+
+
+        dN1 = 0
+        for m in 1:ordem
+            dN = 1
+            for l in 1:ordem
+                if l != j && l != m
+                    dN = dN*(csi - csisij[l])/(csisij[j] - csisij[l])
+                end
+            end
+            if m != j
+                dN1 = dN1 + (dN/(csisij[j] - csisij[m]))
+            end
+        end
+        dNdcsi[k] = dNdcsi[k]*dN1
+
+    end
+    
     return dNdcsi
 end
 

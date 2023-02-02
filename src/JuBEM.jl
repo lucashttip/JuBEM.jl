@@ -35,7 +35,7 @@ export calc_funsol_static, calc_funsol_dynamic
 
 include("integrationdynamics.jl")
 include("integrationstatics.jl")
-include("integrationpoints.jl")
+include("integrationconstants.jl")
 
 include("solverstatics.jl")
 include("solverdynamics.jl")

@@ -1,5 +1,6 @@
 function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
-
+    
+    # gp = rules.gp
     nelem = mesh.nelem
     m = 1
     C_stat = calc_static_constants(material[m])
@@ -67,8 +68,8 @@ function calc_GH_static_non_const!(mesh::mesh_type, material::Vector{material_ta
 
     # @infiltrate
     # Field loop:
-    Threads.@threads for fe in 1:nelem
-    # for fe in 1:nelem
+    # Threads.@threads for fe in 1:nelem
+    for fe in 1:nelem
         field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
         normal = []
         J = []
@@ -288,60 +289,79 @@ function calc_GH_static_const!(mesh::mesh_type, material::Vector{material_table_
 
 end
 
-# Work in progress
-function calc_GH_static(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
+# Working:
+function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
     
-    # Define auxiliary variables
+    # DEFINING PARAMETERS
+    # mesh/material/other constants definition
     nelem = mesh.nelem
-    m = 1
-    C_stat = calc_static_constants(material[m])
-    delta = I(3) 
+    delta = I(3)
     nnel = (mesh.eltype+1)^2
+    C_stat = calc_static_constants(material[1])
 
-    # Create and put zero values on G and H matrices
+    # normal integration constants
+    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh,solver_var)
+    N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
+
+    # singular integration definitions
+    N_sing, dNc_sing, dNe_sing, Nd_sing, Jb_sing, omega_sing = calc_N_sing(mesh, solver_var, csis_cont, csis_descont, rules.gp[end].omega)
+
+    #matrices initialization
     max_GL = maximum(mesh.ID)
     solver_var.H = zeros(max_GL,max_GL)
     solver_var.G = zeros(max_GL,max_GL)
 
+    # FIELD ELEMENT LOOP
+    Threads.@threads for fe in 1:nelem
+    # for fe in 1:nelem
 
-    # Cálculos de pontos de Gauss, pesos, funções de forma não singulares
-    csis_cont = range(-1,1,length = mesh.eltype+1)
-    csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
-    omegas = calc_omegas(solver_var.omega)
+        # FIELD ELEMENT PARAMETER FOR INTEGRATION
+        field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
+        normal, J, gauss_points = calc_nJgp(N, dNc, dNe, rules.gp, field_points)
+        
+        # SOURCE ELEMENT LOOP
+        for se in 1:nelem
+            # SOURCE NODE LOOP
+            for n = 1:nnel
+                # SOURCE NODE DEFINITION
+                sn = mesh.IEN[n,se]
+                source_node = mesh.nodes[sn,2:end]
 
-    # Cálculos para elementos não singulares
-    Nc_nonsing, dNcdcsi_nonsinc, dNcdeta_nonsing, Nd_nonsing, gp, dists = calc_N_nonsing(mesh)
+                # NON-SINGULAR INTEGRATION
+                if fe != se
+                    r, c, d = calc_dist(source_node, field_points, rules.dists,csis_cont)
+                    if r > 0
+                        # NORMAL INTEGRATION
+                        HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points[r],Nd[r],normal[r],J[r], rules.gp[r].omega, delta, C_stat)
+                    else
+                        # NEAR INTEGRATION
+                        gauss_points_near, Nd_near, J_near, normal_near, weights_near = calc_nearpoints(rules.gp[end].csi, rules.gp[end].omega,c, d, csis_cont, csis_descont, field_points)
+                        HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points_near,Nd_near,normal_near,J_near, weights_near, delta, C_stat)
+                    end
 
+                # SINGULAR INTEGRATION
+                else
+                    normal_sing, gauss_points_sing, weights_sing = calc_points_sing(N_sing,dNc_sing, dNe_sing,Nd_sing, field_points, Jb_sing, nnel, n, omega_sing)
 
-    # Cálculos para elementos singulares
-    csis = calc_csis_grid(solver_var.csi)
-    csis_cont_lin = range(-1,1,length = 2)
-    Nc_lin = calc_N_matrix(csis_cont_lin,csis)
-    dNcdcsi_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
-    dNcdeta_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
+                    HELEM, GELEM = integrate_sing_static(source_node, gauss_points_sing, normal_sing, delta, C_stat, weights_sing, n)
+                end
 
-    if mesh.eltype == 2
-        nperm = 3
-    elseif mesh.eltype < 2
-        nperm = 1
+                # INSERT INTO GLOBAL MATRICES
+                solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
+                solver_var.G[mesh.ID[:,sn], mesh.LM[:,fe]] = GELEM
+            end
+
+        end
+    
     end
 
-    csi_sing, Jb_sing = csis_sing(mesh.offset, Nc_lin, dNcdcsi_lin,dNcdeta_lin,mesh.eltype)
-    npg_sing = size(csi_sing,1)
-    Nc_sing = zeros(npg_sing,nnel,nperm)
-    dNcdcsi_sing = zeros(npg_sing,nnel,nperm)
-    dNcdeta_sing = zeros(npg_sing,nnel,nperm)
-    Nd_sing = zeros(npg_sing,nnel,nperm)
-
-    for i in 1:nperm
-        Nc_sing[:,:,i] = calc_N_matrix(csis_cont,csi_sing[:,:,i])
-        dNcdcsi_sing[:,:,i] = calc_dNdcsi_matrix(csis_cont,csi_sing[:,:,i])
-        dNcdeta_sing[:,:,i] = calc_dNdeta_matrix(csis_cont,csi_sing[:,:,i])
-        Nd_sing[:,:,i] = calc_N_matrix(csis_descont,csi_sing[:,:,i])
+    # RIGID BODY MOTION STRATEGY
+    for n in 1:mesh.nnodes
+        solver_var.H[mesh.ID[:,n],mesh.ID[:,n]] .= 0
     end
-    omega_sing = repeat(omegas,4)
+    integrate_rigid_body!(solver_var.H,mesh)
 
-    csis_telles, omegas_telles =  gausslegendre(12)
+    return solver_var
 
 end
 

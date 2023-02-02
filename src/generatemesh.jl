@@ -85,7 +85,8 @@ end
 function generate_const_mesh!(mesh)
     # Generate nodes, IEN, ID and LM
     nel = mesh.nelem
-
+    mesh.offset = 1.0
+    
     mesh.nodes = zeros(nel,4)
     mesh.IEN = zeros(1,nel)
     mesh.ID = zeros(3,nel)

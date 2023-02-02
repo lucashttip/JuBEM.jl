@@ -1,6 +1,6 @@
 function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
-    if eltype == 1
+    if eltype <= 1
         c, IEN = divide_elem_lin(offset)
         n = 1
     elseif eltype == 2
@@ -93,6 +93,50 @@ function divide_elem_quasising()
         9 5 8 4
     ]
 
+    return c, IEN
+end
+
+function divide_elem(s)
+
+    c = [
+        -1 -1
+        1 -1
+        1 1
+        -1 1
+        s[1] s[2]
+    ]        
+
+    IEN = [
+        1 2 3 4
+        2 3 4 1
+        5 5 5 5
+        5 5 5 5
+    ]
+
+
+    if all(abs.(s) .==  1.0)
+        if s == c[1,:]
+            IEN = IEN[:,[2,3]]
+        elseif s == c[2,:]
+            IEN = IEN[:,[3,4]]
+        elseif s == c[3,:]
+            IEN = IEN[:,[4,1]]
+        elseif s == c[4,:]
+            IEN = IEN[:,[1,2]]
+        end
+
+    elseif any(abs.(s) .==  1.0)
+
+        if s[1] == -1
+            IEN = IEN[:,[1,2,3]]
+        elseif s[1] == 1
+            IEN = IEN[:,[1,3,4]]
+        elseif s[2] == -1
+            IEN = IEN[:,[2,3,4]]
+        elseif s[2] == 1
+            IEN = IEN[:,[1,2,4]]
+        end
+    end
     return c, IEN
 end
 
@@ -192,8 +236,48 @@ function calc_subelems(source_node,points,Nc,dNcdcsi,dNcdeta,omegas)
     return normal_sing, J_sing, omega_sing, gauss_points_sing
 end
 
+function calc_idx_permutation2(nnel,n)
+
+    if nnel == 1
+        idx_cont = [1,2,3,4]
+        idx_descont = [1]
+        nperm = 1
+
+    elseif nnel == 4
+        idx_cont = collect((1:nnel) .- (n-1))
+        idx_cont[idx_cont.<1] = idx_cont[idx_cont.<1] .+nnel
+        idx_descont = idx_cont
+
+        nperm = 1
+
+    elseif nnel == 9
+        idx = [0,1,2,3,0,1,2,3,0]
+        idx_ff1 = collect((1:4) .- idx[n])
+        idx_ff1[idx_ff1.<1] = idx_ff1[idx_ff1.<1] .+4
+        idx_ff2 = collect((5:8) .- idx[n])
+        idx_ff2[idx_ff2.<5] = idx_ff2[idx_ff2.<5] .+4
+        idx_cont = [idx_ff1; idx_ff2; 9]
+        idx_descont = idx_cont
+        
+        if n < 5
+            nperm = 1
+        elseif n>=5 && n<=8
+            nperm = 2
+        elseif n == 9
+            nperm = 3
+        end
+    end
+    return idx_cont,idx_descont, nperm
+    
+end
+
 function calc_idx_permutation(nnel,n)
-    if nnel == 4
+
+    if nnel == 1
+        idx_ff = [1]
+        nperm = 1
+
+    elseif nnel == 4
         idx_ff = collect((1:nnel) .- (n-1))
         idx_ff[idx_ff.<1] = idx_ff[idx_ff.<1] .+nnel
 

@@ -137,6 +137,14 @@ mutable struct gauss_points_type <: JuBEMtypes
     omega :: Array{Float64,1}
 end
 
+mutable struct integration_rules_type <: JuBEMtypes
+
+    npgs :: Array{Int64,1}
+    dists :: Array{Float64,1}
+    gp :: Array{gauss_points_type,1}
+    integration_rules_type(npgs::Array{Int64,1},dists::Array{Float64,1}) = new(npgs,dists,gauss_points_type[])
+end
+
 
 
 ==(a::JuBEMtypes,b::JuBEMtypes) = begin
