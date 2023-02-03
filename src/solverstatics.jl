@@ -335,7 +335,7 @@ function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type},
                         HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points[r],Nd[r],normal[r],J[r], rules.gp[r].omega, delta, C_stat)
                     else
                         # NEAR INTEGRATION
-                        gauss_points_near, Nd_near, J_near, normal_near, weights_near = calc_nearpoints(rules.gp[end].csi, rules.gp[end].omega,c, d, csis_cont, csis_descont, field_points)
+                        gauss_points_near, Nd_near, J_near, normal_near, weights_near = calc_nearpoints(rules.gp_near.csi, rules.gp_near.omega,c, d, csis_cont, csis_descont, field_points)
                         HELEM, GELEM = integrate_nonsing_static(source_node,gauss_points_near,Nd_near,normal_near,J_near, weights_near, delta, C_stat)
                     end
 

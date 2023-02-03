@@ -142,7 +142,9 @@ mutable struct integration_rules_type <: JuBEMtypes
     npgs :: Array{Int64,1}
     dists :: Array{Float64,1}
     gp :: Array{gauss_points_type,1}
-    integration_rules_type(npgs::Array{Int64,1},dists::Array{Float64,1}) = new(npgs,dists,gauss_points_type[])
+    npg_near :: Int64
+    gp_near :: gauss_points_type
+    integration_rules_type(npgs::Array{Int64,1},dists::Array{Float64,1}, npg_near::Int64) = new(npgs,dists,gauss_points_type[], npg_near)
 end
 
 

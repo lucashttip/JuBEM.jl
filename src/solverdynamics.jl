@@ -342,7 +342,7 @@ function calc_GH_dynamic!(mesh::mesh_type, material::Vector{material_table_type}
                         zHELEM, zGELEM = integrate_nonsing_dynamic(source_node,gauss_points[r],Nd[r],normal[r],J[r], rules.gp[r].omega, delta, zconsts)
                     else
                         # NEAR INTEGRATION
-                        gauss_points_near, Nd_near, J_near, normal_near, weights_near = calc_nearpoints(rules.gp[end].csi, rules.gp[end].omega,c, d, csis_cont, csis_descont, field_points)
+                        gauss_points_near, Nd_near, J_near, normal_near, weights_near = calc_nearpoints(rules.gp_near.csi, rules.gp_near.omega,c, d, csis_cont, csis_descont, field_points)
                         zHELEM, zGELEM = integrate_nonsing_dynamic(source_node,gauss_points_near,Nd_near,normal_near,J_near, weights_near, delta, zconsts)
                     end
 
