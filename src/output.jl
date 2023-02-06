@@ -53,6 +53,17 @@ function output_freq_h5(filename, freq, u, t, urb = [])
     end
 end
 
+function output_freqflex_h5(filename, freq, N)
+
+    groupname = string("freq_",freq)
+    filename = string(filename,".h5")
+
+    h5open(filename, "cw") do file
+        g = create_group(file, groupname) # create a group
+        g["N"] = N
+    end
+end
+
 function output_frb_h5(filename,u,freq)
     groupname = string("freq_",freq)
     filename = string(filename,".h5")

@@ -118,3 +118,59 @@ function solvedynamic(inp_file;file_out="output")
     solvedynamic(mesh, material, problem, solver_var;file_out=file_out)
 
 end
+
+function solve_flex_dyn(inp_file;file_out = "output", savemat = false)
+
+    t1 = time()
+
+    forces = Float64[
+        0 1 0 0 0 0
+        0 0 1 0 0 0
+        1 0 0 0 0 0
+        0 0 0 0 1 0
+        0 0 0 0 0 1
+        0 0 0 1 0 0
+    ]
+
+    # Read mesh and generate 
+    mesh, material, problem, solver_var = read_msh(inp_file)
+    derive_data!(material, problem, solver_var)
+    generate_mesh!(mesh)
+
+    if savemat == false
+        output_vars_h5(file_out, mesh, problem, solver_var, material)
+    end
+    
+    calc_GH!(mesh, material, solver_var,-1.0)
+    if 0 in mesh.bc
+        remove_EE!(mesh, solver_var)
+    end
+    if savemat
+        output_vars_h5(file_out, mesh, problem, solver_var, material)
+    end
+
+    for frequency in problem.frequencies
+        println("Rodando para frequencia: ", frequency)
+        calc_GH!(mesh, material, solver_var, frequency)
+
+        N = zeros(ComplexF64,6,6)
+        @showprogress 1 "Calculating flexibilities..." for i in axes(forces,2)
+            mesh.forces = zeros(6,1)
+            mesh.forces[:,1] = forces[:,i]
+
+            mesh, solver_var, C = JuBEM.applyBC(mesh, solver_var,solver_var.zH,solver_var.zG)
+            solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+            zu,zt,urb = JuBEM.returnut(mesh,solver_var.zvetsol, C)
+        
+            N[:,i] = urb[[3,1,2,6,4,5]]
+
+        end
+
+        output_freqflex_h5(file_out, frequency, N)
+    end
+    
+
+    t2 = time()
+    output_time(file_out,t2-t1,"totaltime")
+
+end

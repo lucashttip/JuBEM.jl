@@ -4,6 +4,7 @@ module JuBEM
 
 using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra, Infiltrator
 using WriteVTK, HDF5
+using ProgressMeter
 import Base.:(==)
 
 include("typedefinitions.jl")
@@ -41,7 +42,7 @@ include("solverstatics.jl")
 include("solverdynamics.jl")
 
 include("solver.jl")
-export calc_GH!, solvestatic, solvedynamic, solve
+export calc_GH!, solvestatic, solvedynamic, solve, solve_flex_dyn
 
 include("applyBC.jl")
 export applyBC!, applyBC_nonrb!, calc_utpoints
@@ -63,7 +64,7 @@ include("output.jl")
 export output_freq_h5, output_vars_h5
 
 include("readout.jl")
-export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out
+export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out,getflex_out
 
 include("findmind.jl")
 

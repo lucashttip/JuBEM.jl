@@ -307,7 +307,7 @@ function calc_GH_dynamic!(mesh::mesh_type, material::Vector{material_table_type}
 
 
     # normal integration constants
-    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh,solver_var)
+    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh)
     N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
 
     # singular integration definitions
@@ -317,6 +317,9 @@ function calc_GH_dynamic!(mesh::mesh_type, material::Vector{material_table_type}
     max_GL = maximum(mesh.ID)
     solver_var.zH = zeros(ComplexF64,max_GL,max_GL)
     solver_var.zG = zeros(ComplexF64,max_GL,max_GL)
+
+    p = Progress(nelem,1, "Computing dynamic zG and zH...", 50)
+
 
     # FIELD ELEMENT LOOP
     Threads.@threads for fe in 1:nelem
@@ -362,7 +365,7 @@ function calc_GH_dynamic!(mesh::mesh_type, material::Vector{material_table_type}
             end
 
         end
-    
+        next!(p)
     end
 
     for n in 1:mesh.nnodes

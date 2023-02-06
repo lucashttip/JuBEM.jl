@@ -300,7 +300,7 @@ function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type},
     C_stat = calc_static_constants(material[1])
 
     # normal integration constants
-    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh,solver_var)
+    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh)
     N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
 
     # singular integration definitions
@@ -311,6 +311,8 @@ function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type},
     solver_var.H = zeros(max_GL,max_GL)
     solver_var.G = zeros(max_GL,max_GL)
 
+    p = Progress(nelem,1, "Computing static G and H...", 50)
+    
     # FIELD ELEMENT LOOP
     Threads.@threads for fe in 1:nelem
     # for fe in 1:nelem
@@ -350,9 +352,9 @@ function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type},
                 solver_var.H[mesh.ID[:,sn], mesh.LM[:,fe]] = HELEM
                 solver_var.G[mesh.ID[:,sn], mesh.LM[:,fe]] = GELEM
             end
-
+            
         end
-    
+        next!(p)
     end
 
     # RIGID BODY MOTION STRATEGY

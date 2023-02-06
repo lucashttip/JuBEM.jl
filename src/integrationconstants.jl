@@ -77,7 +77,7 @@ function calc_integration_rules!(rules)
 end
 
 
-function calc_nonsing_consts(mesh,solver_var)
+function calc_nonsing_consts(mesh)
 
     npgs = Int[4,5,6,8]
     dists = [4,2,0.5,0.2]

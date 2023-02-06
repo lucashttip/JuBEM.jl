@@ -136,3 +136,100 @@ function calc_interior_static_const(mesh,material,u,t,points_int)
     return u_int, s_int
     
 end
+
+
+function calc_interior_dynamic(mesh,material,u,t,points_int,frequency)
+
+    npoints = size(points_int,1)
+    u_int = zeros(typeof(u[1]),npoints,3)
+    s_int = zeros(typeof(t[1]),npoints,3)
+
+
+    # DEFINING PARAMETERS
+    # mesh/material/other constants definition
+    nelem = mesh.nelem
+    delta = I(3)
+    nnel = (mesh.eltype+1)^2
+    C_stat = calc_static_constants(material[1])
+    zconsts = cmplx_consts(material[1],frequency)
+
+
+    # normal integration constants
+    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh)
+    N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
+    
+    # Field loop:
+    # Threads.@threads for fe in 1:nelem
+    for fe in 1:nelem
+
+        nodes_idx = mesh.IEN[:,fe]
+        field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
+        normal, J, gauss_points = calc_nJgp(N, dNc, dNe, rules.gp, field_points)
+
+
+        # source loop:
+        for sp in 1:npoints
+                source_point = points_int[sp,:]
+
+                r, c, d = calc_dist(source_point, field_points, rules.dists,csis_cont)
+                if r == 0
+                    r = 4
+                end
+                zHELEM, zGELEM = integrate_nonsing_dynamic(source_point,gauss_points[r],Nd[r],normal[r],J[r], rules.gp[r].omega, delta, zconsts)
+                u_int[sp,:] += zGELEM*vec(t[nodes_idx,:]') - zHELEM*vec(u[nodes_idx,:]')
+        end
+    
+    end
+
+
+    return u_int, s_int
+    
+end
+
+
+function calc_interior_static2(mesh,material,u,t,points_int)
+
+    npoints = size(points_int,1)
+    u_int = zeros(typeof(u[1]),npoints,3)
+    s_int = zeros(typeof(t[1]),npoints,3)
+
+
+    # DEFINING PARAMETERS
+    # mesh/material/other constants definition
+    nelem = mesh.nelem
+    delta = I(3)
+    nnel = (mesh.eltype+1)^2
+    C_stat = calc_static_constants(material[1])
+
+    # normal integration constants
+    csis_cont, csis_descont, rules  = calc_nonsing_consts(mesh)
+    N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
+    
+    # Field loop:
+    # Threads.@threads for fe in 1:nelem
+    for fe in 1:nelem
+
+        nodes_idx = mesh.IEN[:,fe]
+        field_points = mesh.points[mesh.IEN_geo[:,fe],2:end]
+        normal, J, gauss_points = calc_nJgp(N, dNc, dNe, rules.gp, field_points)
+
+
+        # source loop:
+        for sp in 1:npoints
+                source_point = points_int[sp,:]
+
+                r, c, d = calc_dist(source_point, field_points, rules.dists,csis_cont)
+                if r == 0
+                    r = 4
+                end
+                HELEM, GELEM = integrate_nonsing_static(source_point,gauss_points[r],Nd[r],normal[r],J[r], rules.gp[r].omega, delta, C_stat)
+
+                u_int[sp,:] += GELEM*vec(t[nodes_idx,:]') - HELEM*vec(u[nodes_idx,:]')
+        end
+    
+    end
+
+
+    return u_int, s_int
+    
+end

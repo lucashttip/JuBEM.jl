@@ -120,7 +120,7 @@ function calc_dist(source, points,dists,csis_cont)
 
     d = dist./l
     c = []
-    if any(d .< 1)
+    if any(d .< 1.0)
         # c, dist = find_closest_dist(points,source,csis_cont)   # Apenas algo projeção 
         c,dist = findmind(points,source,csis_cont)              # Apenas optim
         # c,dist = findmind_combined(points,source,csis_cont)    #Combinado

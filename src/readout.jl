@@ -81,6 +81,29 @@ function geturb_out(filename,dim)
     return u,freqs
 end
 
+function getflex_out(filename)
+    filename = string(filename,".h5")
+    fid = h5open(filename, "r")
+
+    groupnames = keys(fid)
+    freqs, names = get_nums(groupnames,"freq")
+    p = sortperm(freqs)
+    freqs = freqs[p]
+    names = names[p]
+
+    nf = length(freqs)
+    N = zeros(ComplexF64,nf,6,6)
+
+    for n in 1:nf
+        N[n,:,:] = read(fid[names[n]],"N")
+    end
+
+
+    close(fid)
+
+    return N,freqs
+end
+
 function getfreqres_out(filename, freq)
     filename = string(filename,".h5")
     fid = h5open(filename, "r")
