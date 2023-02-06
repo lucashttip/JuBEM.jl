@@ -73,6 +73,12 @@ function calc_integration_rules!(rules)
         omegas = calc_omegas(pw[i][2])
         push!(rules.gp,gauss_points_type(csis,omegas))
     end
+
+    pnear = gausslegendre(rules.npg_near)
+    csis = calc_csis_grid(pnear[1])
+    omegas = calc_omegas(pnear[2])
+    rules.gp_near = gauss_points_type(csis,omegas)
+
     return rules
 end
 
@@ -81,7 +87,8 @@ function calc_nonsing_consts(mesh)
 
     npgs = Int[4,5,6,8]
     dists = [4,2,0.5,0.2]
-    rules = integration_rules_type(npgs,dists)
+    npg_near = 12
+    rules = integration_rules_type(npgs,dists,npg_near)
     calc_integration_rules!(rules)
 
 
