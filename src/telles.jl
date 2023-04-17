@@ -6,7 +6,8 @@ function calc_r(D)
     if D < 0.0
         error("Valor de D incorreto, deve ser maior que zero e foi: ", D) 
     elseif D >=0.0 && D < 0.05
-        return CRB*D
+        # return CRB*D
+        return 0.0
     elseif D>=0.05 && D < 1.3
         return 0.85 + 0.24*log(D)
     elseif D >= 1.3 && D < 3.618
@@ -16,35 +17,28 @@ function calc_r(D)
     end
 end
 
-function pontos_pesos_local_telles(csis, omegas, source,D)
+function pontos_pesos_local_telles(csis, omegas, source)
 
-    npg = length(csis)
-    npontos = npg^2
-    pontos_gauss = zeros(npontos,2)
-    pesos = zeros(npontos)
+    npg = size(csis,1)
+    pontos_gauss = zeros(npg,2)
+    pesos = zeros(npg)
 
-    rb = calc_r.(D)
+    # rb = calc_r.(D)
 
-    q = (1 ./(2 .*(1 .+2 .*rb))) .* ((source.*(3 .-2 .*rb) .- (2 .*source.^3)./(1 .+ 2 .*rb)).*(1 ./(1 .+2 .*rb)) .- source)
-
-    p = (1 ./(3 .*(1 .+ 2 .*rb).^2)).*(4 .*rb.*(1 .-rb) .+ 3 .*(1 .- source.^2))
-
-    aux = sqrt.(q.^2 + p.^3)
-
-    gb = cbrt.(-q .+ aux) +cbrt.(-q .-aux) .+ (source./(1 .+ 2 .*rb)) 
+    etas = source .^2 .-1
+    gb = cbrt.(source.*etas .+abs.(etas)) .+  cbrt.(source.*etas .-abs.(etas)) .+ source
 
     Q = 1 .+ 3 .*(gb.^2) 
 
-    a = (1 .-rb) ./Q
-    b = -3 .*(1 .- rb) .*gb./Q
-    c =(rb .+ 3 .*(gb.^2))./Q
+    a = 1 ./Q
+    b = -3 .*gb./Q
+    c = 3 .*(gb.^2)./Q
     d = -b
 
 
     for i in 1:npg
-        for j in 1:npg
-            csi = csis[i]
-            eta = csis[j]
+            csi = csis[i,1]
+            eta = csis[i,2]
 
             gamma = [csi, eta]
             gp = a.*gamma.^3 + b.*gamma.^2 + c.*gamma .+ d
@@ -53,10 +47,8 @@ function pontos_pesos_local_telles(csis, omegas, source,D)
 
             J = J[1]*J[2]
 
-            idx = npg*(i-1) + j
-            pontos_gauss[idx,:] = gp
-            pesos[idx] = omegas[i]*omegas[j]*J
-        end
+            pontos_gauss[i,:] = gp
+            pesos[i] = omegas[i]*J
     end
     return pontos_gauss, pesos
 end
@@ -102,6 +94,7 @@ function pontos_pesos_local_telles2(csis, omegas, source,D)
     return pontos_gauss, pesos
 end
 
+
 function telles1(csis, omegas, d)
 
     npg = size(csis,1)
@@ -143,9 +136,42 @@ function telles1(csis, omegas, d)
     return pontos_gauss, pesos
 end
 
+function telles0(csis, omegas)
+
+    npg = size(csis,1)
+    pontos_gauss = zeros(npg,2)
+    pesos = zeros(npg)
+
+    source = 1.0
+    etas = source .^2 .-1
+    gb = cbrt.(source.*etas .+abs.(etas)) .+  cbrt.(source.*etas .-abs.(etas)) .+ source
+
+    Q = 1 .+ 3 .*(gb.^2) 
+
+    a = 1 ./Q
+    b = -3 .*gb./Q
+    c = 3 .*(gb.^2)./Q
+    d = -b
+
+
+
+    for i in 1:npg
+            csi = csis[i,1]
+            eta = csis[i,2]
+
+            gamma = a*eta^3 + b*eta^2 + c*eta + d
+            
+            J = 3*a*eta^2 + 2*b*eta + c
+
+            pontos_gauss[i,:] = [csi,gamma]
+            pesos[i] = omegas[i]*J
+    end
+    return pontos_gauss, pesos
+end
+
 function points_weights_local_near_combined(csis, omegas, source,d)
 
-    pontos_telles, pesos_telles = telles1(csis,omegas,d)
+    pontos_telles, pesos_telles = telles0(csis,omegas)
 
     csis_lin = [-1.0,1.0]
 

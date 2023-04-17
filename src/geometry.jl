@@ -120,12 +120,24 @@ function calc_dist(source, points,dists,csis_cont)
 
     d = dist./l
     c = []
+
     if any(d .< 1.0)
-        c, dist = findmind_projection(points,source,csis_cont)   # Apenas algo projeção 
-        # c,dist = findmind_optim(points,source,csis_cont)              # Apenas optim
+        # c, dist = findmind_projection(points,source,csis_cont)   # Apenas algo projeção 
+        c,dist = findmind_optim(points,source,csis_cont)              # Apenas optim
         # c,dist = findmind_combined(points,source,csis_cont)    # Combinado
         # c, dist = bialecki(points,source_point,csis_cont)       # Algoritmo baseado no paper do Bialecki
-        d = dist./l
+        # d = dist./l
+
+        csis = [1 c[2]
+        -1 c[2]
+        c[1] 1
+        c[1] -1]
+
+        N = calc_N_matrix(csis_cont,csis)
+        x = N*points
+        d[1] = 2*dist/norm(x[1,:] - x[2,:])
+        d[2] = 2*dist/norm(x[3,:] - x[4,:])
+
     end
     
     r = 0
@@ -135,6 +147,9 @@ function calc_dist(source, points,dists,csis_cont)
             break
         end
     end
+    # if r == 0
+    #     r = length(dists)
+    # end
 
     return r, c, d
 end

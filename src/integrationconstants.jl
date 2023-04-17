@@ -86,8 +86,8 @@ end
 function calc_nonsing_consts(mesh)
 
     npgs = Int[4,5,6,8]
-    dists = [4,2,0.5,0.2]
-    npg_near = 12
+    dists = [4,2,1.0,0.5]
+    npg_near = 8
     rules = integration_rules_type(npgs,dists,npg_near)
     calc_integration_rules!(rules)
 
@@ -124,8 +124,9 @@ end
 
 function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points)
 
+    # gp_local_near, weights_near = pontos_pesos_local_telles(csis, omegas, c[1:2])
     gp_local_near, weights_near = pontos_pesos_local_telles2(csis, omegas, c[1:2],d)
-    # gp_local_near, weights_near = points_weights_local_near_combined(csis, omegas, c,minimum(d))
+    # gp_local_near, weights_near = points_weights_local_near_combined(csis, omegas, c[1:2],minimum(d))
 
     # gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc_lin, dNcdcsi_lin, dNcdeta_lin, omegas)
     N_near = calc_N_matrix(csis_cont,gp_local_near)
