@@ -9,7 +9,7 @@ using Plots
 
 # inp_file = "meshes/dynamic/soils/soilEE_216_rb.msh"
 # inp_file = "meshes/static/vigas/viga_4_6.msh"
-inp_file = "meshes/static/bars/bar_2_3.msh"
+inp_file = "meshes/testmeshes/static/bar_2_3.msh"
 
 
 file_out = "teste"
@@ -59,7 +59,15 @@ mesh, material, problem, solver_var = read_msh(inp_file)
 # mesh.eltype=1
 derive_data!(material, problem, solver_var)
 generate_mesh!(mesh)
-calc_GH!(mesh, material, solver_var,-1.0)
+# calc_GH!(mesh, material, solver_var,-1.0)
+JuBEM.calc_GH_static!(mesh, material, solver_var)
+g1 = copy(solver_var.G)
+h1 = copy(solver_var.H)
+
+JuBEM.calc_GH_static_cubature!(mesh, material, solver_var)
+g2 = copy(solver_var.G)
+h2 = copy(solver_var.H)
+
 
 JuBEM.remove_EE!(mesh, solver_var)
 # frequency = problem.frequencies[1]
@@ -69,6 +77,8 @@ calc_GH!(mesh, material, solver_var, frequency)
 mesh, solver_var, C = JuBEM.applyBC_rb(mesh, solver_var,solver_var.H,solver_var.G)
 solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
 u,t,urb = JuBEM.returnut_rb(mesh,solver_var.zvetsol, C)
+
+mesh, solver_var, C = JuBEM.applyBC(mesh, solver_var,solver_var.H,solver_var.G)
 
 
 mesh, solver_var, C = JuBEM.applyBC(mesh, solver_var,solver_var.zH,solver_var.zG)

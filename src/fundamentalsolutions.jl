@@ -73,4 +73,52 @@ end
 
 
 
+function calc_funsol_static_full(csis;i, source_node, points, csis_cont, csis_descont, delta, C_stat)
+
+    csis = reshape(csis,1,2)
+
+    N = calc_N_gen(csis_cont,csis;dg = :N)
+    Nd = calc_N_gen(csis_descont,csis;dg = :N)
+    dNc = calc_N_gen(csis_cont,csis;dg = :dNdc)
+    dNe = calc_N_gen(csis_cont,csis;dg = :dNde)
+
+    # Calcular normal e jacobiano
+    normal, J = calc_n_J_matrix(dNc, dNe, points)
+    normal = normal[1,:]
+    J = J[1]
+
+    # Calcular o vetor de valores (primeiros 3*nnel termos são de G e os últimos são de H)
+
+    field_node = (N*points)[:]
+    u = zeros(3,3)
+    t = zeros(3,3)
+
+    disp = field_node-source_node
+    R = norm(disp)
+    R2 = R^2
+    # ! Derivatives with respect to coordinates
+    Rd = disp./R
+    # ! Derivative with respect to normal
+    Rdn = dot(Rd,normal)
+    # @infiltrate
+    C1 = C_stat[1]
+    C2 = C_stat[2]
+    C3 = C_stat[3]
+    C4 = C_stat[4]
+
+
+    for j in 1:3
+        for i in 1:3
+            u[i,j] = (C1/R)*(C2*delta[i,j]+Rd[i]*Rd[j])
+            t[i,j] = (C3/R2) * (Rdn * (C4*delta[i,j] + 3.0*Rd[i]*Rd[j]) + C4*(Rd[j]*normal[i] - Rd[i]*normal[j]))
+        end
+    end
+
+
+    GH = [u[:]; t[:]].*J.*Nd[i]
+
+
+    return GH
+end
+
 

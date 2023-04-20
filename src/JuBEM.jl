@@ -5,6 +5,7 @@ module JuBEM
 using Revise, DelimitedFiles, FastGaussQuadrature, LinearAlgebra, Infiltrator
 using WriteVTK, HDF5
 using ProgressMeter
+using HCubature
 import Base.:(==)
 
 include("typedefinitions.jl")

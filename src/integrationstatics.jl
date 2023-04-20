@@ -178,3 +178,28 @@ function integration_const_raw(source_node, points, normal, csis, omegas, delta,
         return HELEM, GELEM
 
 end
+
+function integrate_static_cubature(source_node, points, csis_cont, csis_descont, delta, C_stat)
+
+    nnel = Int(length(csis_cont)^2)
+    HELEM = zeros(3,3*nnel)
+    GELEM = zeros(3,3*nnel)
+
+    
+    for k in 1:nnel
+        # println("Integrating over:")
+        # println(points)
+        # println("with source on $(source_node[1]), $(source_node[2]), $(source_node[3]) and k = $k")
+        # println("")
+        val,_ = HCubature.hcubature(csis -> calc_funsol_static_full(csis;i = k, source_node=source_node, points=points, csis_cont=csis_cont, csis_descont=csis_descont, delta=delta, C_stat=C_stat), [-1,-1], [1,1]; rtol=1e-3)
+        
+        
+        GELEM[:,3*(k-1)+1:3*k] = reshape(val[1:9],3,3)
+        HELEM[:,3*(k-1)+1:3*k] = reshape(val[10:18],3,3)
+    end
+
+    
+    return HELEM, GELEM
+
+
+end
