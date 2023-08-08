@@ -304,7 +304,7 @@ function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type},
     N, dNc, dNe, Nd = calc_N_nonsing(csis_cont, csis_descont, rules)
 
     # singular integration definitions
-    N_sing, dNc_sing, dNe_sing, Nd_sing, Jb_sing, omega_sing = calc_N_sing(mesh, solver_var, csis_cont, csis_descont, rules.gp[end].omega)
+    N_sing, dNc_sing, dNe_sing, Nd_sing, Jb_sing, omega_sing = calc_N_sing(mesh, solver_var, csis_cont, csis_descont, rules.npg_sing)
 
     #matrices initialization
     max_GL = maximum(mesh.ID)

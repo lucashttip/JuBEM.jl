@@ -20,10 +20,12 @@ function calc_N_nonsing(csis_cont, csis_descont, rules)
 end
 
 
-function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,omegas)
+function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_near)
 
     # Cálculos para elementos singulares
-    csis = calc_csis_grid(solver_var.csi)
+    csi,omega = gausslegendre(npg_near)
+    csis = calc_csis_grid(csi)
+    omegas = calc_omegas(omega)
     csis_cont_lin = range(-1,1,length = 2)
     N_lin = calc_N_matrix(csis_cont_lin,csis)
     dNc_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
@@ -57,7 +59,8 @@ function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,omegas)
         dNe_sing[:,:,i] = calc_dNdeta_matrix(csis_cont,csi_sing[:,:,i])
         Nd_sing[:,:,i] = calc_N_matrix(csis_descont,csi_sing[:,:,i])
     end
-    omega_sing = repeat(omegas,4)
+    nregs = Int(length(Jb_sing)/length(omegas))
+    omega_sing = repeat(omegas,nregs)
 
     return N_sing, dNc_sing, dNe_sing, Nd_sing, Jb_sing, omega_sing
 
@@ -86,9 +89,14 @@ end
 function calc_nonsing_consts(mesh)
 
     npgs = Int[4,5,6,8]
-    dists = [4,2,0.5,0.2]
+    dists = [4,2,0.5,0.3]
     npg_near = 12
-    rules = integration_rules_type(npgs,dists,npg_near)
+    npg_sing = 5
+    # npgs = Int[4,4,4,8]
+    # dists = [4,2,0.5,0.2]
+    # npg_near = 12
+
+    rules = integration_rules_type(npgs,dists,npg_near,npg_sing)
     calc_integration_rules!(rules)
 
 
@@ -147,6 +155,7 @@ function calc_points_sing(Nc_sing,dNc_sing, dNe_sing,Nd_sing, field_points, Jb_s
     normal_sing, J_sing = calc_n_J_matrix(dNc_sing[:,idx_cont,np], dNe_sing[:,idx_cont,np], field_points)
     J_sing = J_sing.*Jb_sing[:,np]
     pesos = zeros(length(omega_sing),nnel)
+    # @infiltrate
     for kn in 1:nnel
         pesos[:,kn] = J_sing.*omega_sing.*Nd_sing[:,idx_descont[kn],np]
     end

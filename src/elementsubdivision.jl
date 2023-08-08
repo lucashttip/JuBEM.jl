@@ -1,7 +1,7 @@
 function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
     if eltype <= 1
-        c, IEN = divide_elem_lin(offset)
+        c, IEN = divide_elem_lin2(offset)
         n = 1
     elseif eltype == 2
         c, IEN = divide_elem_quad(offset)
@@ -42,6 +42,109 @@ function divide_elem_lin(e)
     ]
 
     return c, IEN
+end
+
+function calc_divisions(e,a0,c,k)  
+
+    # nsubs = Int(maximum([0,floor(log2(L/e - 2))]))
+    L = 2
+    nsubs = 0
+    l = L - 2e
+    i = 0
+    a1 = a0
+    lim = a1
+    while true
+        # println("lim: ", lim, ", l: ", l)
+        if l < lim
+            break
+        end
+        nsubs = nsubs + 1
+        i = i+1
+        a2 = c*a1
+        lim = lim - (k-1)*a1 + k*a2
+        a1 = a2
+    end
+
+    # if nsubs >= 1
+    # println(nsubs)
+    points = zeros(nsubs+1)
+    points[1] = 2e
+    a1 = a0
+    a2 = c*a1
+    for i in 1:nsubs-1
+        points[i+1] = points[i] + a2
+        a1 = a2
+        a2 = c*a1 
+    end
+    points[end] = 2.0
+    points = points .-1.0
+    points = [-1; points]
+
+    return points
+    # else 
+    #     return []
+    # end
+    # return nsubs
+end
+
+function divide_elem_lin2(e)
+    ps = calc_divisions(e,e,2,2)
+
+    nl = length(ps)
+    np = 3*nl - 1
+    c = zeros(np,2)
+    c[end,:] = [-1+e, -1+e]
+    
+    for i in 1:nl
+        c[i,:] = [ps[i],ps[1]]
+    end 
+    
+    for i in nl+1:np-1
+        k = i - nl
+        m = Int(ceil(k/2)) +1
+        k % 2 != 0 ? n = 1 : n = k ÷ 2 + 1
+        c[i,:] = [ps[n], ps[m]]
+    end
+
+    ne = 4 + ((np-5) ÷ 3)*2
+
+    IEN = zeros(Int,4,ne)
+
+    
+    p1 = 1
+    p2 = 2
+    p3 = nl+2
+    p4 = nl+1
+    p5 = np
+    
+    IEN[:,1:4] = 
+    [
+        p1 p2 p3 p4
+        p2 p3 p4 p1
+        p5 p5 p5 p5
+        p5 p5 p5 p5
+    ]
+
+    for i in 1:(ne-4)/2
+        e = Int(4+i)
+        IEN[:,e] = [
+            i+1
+            i+2
+            nl+2*(i+1)
+            nl+2*i
+        ]
+    end
+    for i in 1:(ne-4)/2
+        e = Int(4+(ne-4)/2+i)
+        IEN[:,e] = [
+            nl + 2*i - 1
+            nl + 2*i
+            nl + 2*(i+1)
+            nl + 2*(i+1) - 1
+        ]
+    end
+
+    return [c], IEN
 end
 
 function divide_elem_quad(e)
