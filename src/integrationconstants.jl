@@ -20,10 +20,10 @@ function calc_N_nonsing(csis_cont, csis_descont, rules)
 end
 
 
-function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_near)
+function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
 
     # Cálculos para elementos singulares
-    csi,omega = gausslegendre(npg_near)
+    csi,omega = gausslegendre(npg_sing)
     csis = calc_csis_grid(csi)
     omegas = calc_omegas(omega)
     csis_cont_lin = range(-1,1,length = 2)
@@ -132,7 +132,7 @@ end
 
 function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points)
 
-    gp_local_near, weights_near = pontos_pesos_local_telles2(csis, omegas, c[1:2],d)
+    gp_local_near, weights_near = pontos_pesos_local_telles(csis, omegas, c[1:2],d)
     # gp_local_near, weights_near = points_weights_local_near_combined(csis, omegas, c,minimum(d))
 
     # gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc_lin, dNcdcsi_lin, dNcdeta_lin, omegas)

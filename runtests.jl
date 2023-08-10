@@ -64,7 +64,7 @@ function teste_bar_static2(inp_file, t=0)
 end
 
 @testset "IO" begin
-    inp_file = "../meshes/static/bars/bar_2_3.msh"
+    inp_file = "meshes/static/bars/bar_2_3.msh"
     ud = teste_bar_io(inp_file)
 
     @test ud > 0.5
@@ -73,7 +73,7 @@ end
 
 @testset "bar_static" begin
 
-    inp_file = "../meshes/static/bars/bar_2_3.msh"
+    inp_file = "meshes/static/bars/bar_2_3.msh"
     ud_const = teste_bar_static(inp_file, 0)
     ud_lin = teste_bar_static(inp_file, 1)
 

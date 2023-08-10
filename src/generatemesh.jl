@@ -1,5 +1,3 @@
-
-
 function generate_mesh!(mesh::mesh_type)
 
     tipo = mesh.eltype
@@ -106,7 +104,6 @@ function generate_const_mesh!(mesh)
 
     return mesh
 end
-
 
 function generate_nodes_in_elem(N,p,k)
 

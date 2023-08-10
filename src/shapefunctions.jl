@@ -262,16 +262,6 @@ function calc_dNdcsieta(csisij,ordem,kij,csi,eta)
     return dNdcsi
 end
 
-function calc_dNdcsi2(eta)
-    dNdcsi = (1/4)*[-(1-eta), (1-eta), (1+eta), -(1+eta)]
-    return dNdcsi
-end
-
-function calc_dNdeta2(csi)
-    dNdeta = (1/4)*[-(1-csi), -(1+csi), (1+csi), (1-csi)]
-    return dNdeta
-end
-
 function calc_dNdeta(csisij,ordem,kij,csi,eta)
 
     nnel = ordem^2
@@ -305,24 +295,6 @@ function calc_dNdeta(csisij,ordem,kij,csi,eta)
     end
     
     return dNdeta
-end
-
-function calc_G(csis_cont, csis_descont, k)
-
-    nl = sqrt(length(k))
-
-    idx = [Int(nl*(k[i][1]-1)+k[i][2]) for i in 1:length(k)]
-
-    csis_vec_decont = calc_csis_grid(csis_descont)
-
-    L = calc_N_matrix(csis_cont, csis_vec_decont)
-
-    L = L[idx,:]
-
-    G = inv(L)
-
-    return G
-
 end
 
 function calc_omegas(omega)

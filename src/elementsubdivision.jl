@@ -1,7 +1,7 @@
 function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
     if eltype <= 1
-        c, IEN = divide_elem_lin2(offset)
+        c, IEN = divide_elem_lin(offset)
         n = 1
     elseif eltype == 2
         c, IEN = divide_elem_quad(offset)
@@ -25,7 +25,7 @@ function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
 end
 
-function divide_elem_lin(e)
+function divide_elem_lin2(e)
     c = [[
         -1 -1
         1 -1
@@ -87,7 +87,7 @@ function calc_divisions(e,a0,c,k)
     # return nsubs
 end
 
-function divide_elem_lin2(e)
+function divide_elem_lin(e)
     ps = calc_divisions(e,e,2,2)
 
     nl = length(ps)
@@ -175,30 +175,6 @@ function divide_elem_quad(e)
     return c, IEN
 end
 
-function divide_elem_quasising()
-
-    c = [[
-        -1 -1
-        1 -1
-        1 1
-        -1 1
-        0 0
-        0 -1
-        1 0
-        0 1
-        -1 0
-    ]]
-
-    IEN = [
-        1 6 5 9
-        6 2 7 5
-        5 7 3 8
-        9 5 8 4
-    ]
-
-    return c, IEN
-end
-
 function divide_elem(s)
 
     c = [
@@ -241,21 +217,6 @@ function divide_elem(s)
         end
     end
     return c, IEN
-end
-
-function csis_quasi_sing(Nc)
-    c, IEN = divide_elem_quasising()
-
-    nsubelem = size(IEN,2)
-    npg = size(Nc,1)
-    csi = zeros(nsubelem*npg,2)
-
-    for i in 1:nsubelem
-        csi[npg*(i-1)+1:npg*i,:] = generate_points_in_elem(Nc,c[1][IEN[:,i],:])
-    end
-
-
-    return csi
 end
 
 function csis_quasi_sing(Nc, nsubx, nsuby)

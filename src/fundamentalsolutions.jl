@@ -26,7 +26,6 @@ function calc_funsol_static(source_node,field_node, normal, delta, C_stat)
 
 end
 
-
 function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
     
     zu = zeros(ComplexF64,3,3)
@@ -70,7 +69,3 @@ function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
 
     return zu, zt
 end
-
-
-
-

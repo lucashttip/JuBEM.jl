@@ -70,7 +70,6 @@ end
 # real(kind=dp), dimension(:), allocatable :: fr_range    !> Frequency ranges
 # real(kind=dp), dimension(:), allocatable :: frequencies !> Frequencies array
 # end type problem_type
-
 mutable struct problem_type <: JuBEMtypes
     nFr :: Array{Int32,1}
     fr_range :: Array{Float64,1}
@@ -88,7 +87,6 @@ end
 # complex(kind=dp), dimension(:), allocatable :: zvetsol
 # complex(kind=dp), dimension(:,:), allocatable :: zma
 # end type solver_var_type
-
 mutable struct solver_var_type <: JuBEMtypes
     nGP :: Int16
     csi :: Array{Float64,1}
@@ -112,7 +110,6 @@ end
 # complex(kind=dp) :: zKP
 # complex(kind=dp) :: zKS
 # end type cmplx_consts
-
 mutable struct cmplx_consts <: JuBEMtypes
     zWi :: ComplexF64
     zC0 :: ComplexF64
