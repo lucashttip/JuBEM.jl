@@ -132,3 +132,74 @@ function calc_dist(source, points,dists,csis_cont)
 
     return r, c, d
 end
+
+function calc_dist2(source, points,dists,csis_cont)
+
+    dist = Inf
+
+    for i in eachindex(points[:,1])
+        d = norm((source - points[i,:]))
+        if d < dist
+            dist = d
+        end
+    end
+
+    l = [norm(points[2,:] - points[1,:]),norm(points[3,:] - points[2,:])]
+
+    d = dist./l
+    c = []
+    if any(d .< 1.0)
+        # dist = Inf
+
+        for i in 1:4
+            if i < 4
+                p1 = i
+                p2 = i+1
+            else
+                p1 = 4
+                p2 = 1
+            end
+            xv = points[p2,:] - points[p1,:]
+            pv = source - points[p1,:]
+            alfa = dot(xv,pv)
+            if alfa>0.0 && alfa <=1.0
+                xp = points[p1,:] + alfa*xv
+            elseif alfa<=0.0
+                xp = points[p1,:]
+            else
+                xp = points[p2,:]
+            end
+
+            d2 = norm(xp-source)
+            if d2<=dist
+                dist=d2
+                if i == 1
+                    xi = 2*norm((xp - points[p1,:]))/norm((points[p2,:]-points[p1,:])) - 1.0
+                    c = [xi,-1.]
+                elseif i == 2
+                    eta = 2*norm((xp - points[p1,:]))/norm((points[p2,:]-points[p1,:])) - 1.0
+                    c = [1.,eta]
+                elseif i == 3
+                    xi = 2*norm((xp - points[p2,:]))/norm((points[p1,:]-points[p2,:])) - 1.0
+                    c = [xi,1.]
+                elseif i == 4
+                    eta = 2*norm((xp - points[p2,:]))/norm((points[p1,:]-points[p2,:])) - 1.0
+                    c = [-1.,eta]
+                end
+            end
+
+        end
+
+        d = dist./l
+    end
+    
+    r = 0
+    for i in eachindex(dists)
+        if all(d .> dists[i])
+            r = i
+            break
+        end
+    end
+
+    return r, c, d
+end

@@ -1,3 +1,4 @@
+using Revise
 using JuBEM
 using Test
 using LinearAlgebra
@@ -105,13 +106,14 @@ end
 
 end
 
-@testset "soil_dyn" begin
+# @testset "soil_dyn" begin
+begin
 
     inp_file = "./meshes/dynamic/soils/soilEE_109_rb.msh"
-    ref_file = "./ref_res/test_output"
+    ref_file = "./refres/test_output"
 
     N2,freqs = teste_soil_dyn2(inp_file)
     N,freqs = getflex_out(ref_file)
 
-    @test norm(N - N2) < 1e-4
+    @test norm(N - N2,1) < 1e-7
 end
