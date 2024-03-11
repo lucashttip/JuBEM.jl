@@ -52,7 +52,6 @@ function solvedynamic(mesh, material, problem, solver_var;file_out="output", sav
 
 end
 
-
 # Main function
 function solve(inp_file;file_out="output", savemat = false)
     
@@ -77,7 +76,6 @@ function solve(inp_file;file_out="output", savemat = false)
     t2 = time()
     output_time(file_out,t2-t1,"totaltime")
 end
-
 
 function solve_flex_dyn(inp_file;file_out = "output", savemat = false)
 
@@ -130,6 +128,73 @@ function solve_flex_dyn(inp_file;file_out = "output", savemat = false)
     end
     
 
+    t2 = time()
+    output_time(file_out,t2-t1,"totaltime")
+
+end
+
+function solve_flex_dyn2(inp_file;file_out = "output", savemat = false)
+
+    t1 = time()
+
+    forces = Float64[
+        1 0
+        0 0
+        1 0
+        0 1
+        0 0
+        0 1
+    ]
+
+    # Read mesh and generate 
+    mesh, material, problem, solver_var = read_msh(inp_file)
+    derive_data!(material, problem, solver_var)
+    generate_mesh!(mesh)
+
+    if savemat == false
+        output_vars_h5(file_out, mesh, problem, solver_var, material)
+    end
+    
+    calc_GH!(mesh, material, solver_var,-1.0)
+    if 0 in mesh.bc
+        remove_EE!(mesh, solver_var)
+    end
+    if savemat
+        output_vars_h5(file_out, mesh, problem, solver_var, material)
+    end
+
+    for frequency in problem.frequencies
+        println("Rodando para frequencia: ", frequency)
+        calc_GH!(mesh, material, solver_var, frequency)
+
+        N = zeros(ComplexF64,6,6)
+        @showprogress 1 "Calculating flexibilities..." for i in 1:2
+            mesh.forces = zeros(6,1)
+            mesh.forces[:,1] = forces[:,i]
+
+            mesh, solver_var, C = JuBEM.applyBC(mesh, solver_var,solver_var.zH,solver_var.zG)
+            solver_var.zvetsol = solver_var.ma \ mesh.zbcvalue
+            zu,zt,urb = JuBEM.returnut(mesh,solver_var.zvetsol, C)
+        
+            if i == 1
+                N[1,1] = urb[3]
+                N[2,2] = urb[1]
+                N[3,3] = urb[1]
+                N[6,2] = urb[5]
+                N[5,3] = -urb[5]
+            else
+                N[4,4] = urb[6]
+                N[5,5] = urb[4]
+                N[6,6] = urb[4]
+                N[3,5] = urb[2]
+                N[2,6] = -urb[2]
+            end
+
+        end
+
+        output_freqflex_h5(file_out, frequency, N)
+    end
+    
     t2 = time()
     output_time(file_out,t2-t1,"totaltime")
 

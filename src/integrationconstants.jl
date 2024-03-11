@@ -19,7 +19,6 @@ function calc_N_nonsing(csis_cont, csis_descont, rules)
     return N, dNc, dNe, Nd
 end
 
-
 function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
 
     # Cálculos para elementos singulares
@@ -66,7 +65,6 @@ function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
 
 end
 
-
 function calc_integration_rules!(rules)
     
     pw = gausslegendre.(rules.npgs)
@@ -84,7 +82,6 @@ function calc_integration_rules!(rules)
 
     return rules
 end
-
 
 function calc_nonsing_consts(mesh)
 
@@ -129,7 +126,6 @@ function calc_nJgp(N, dNc, dNe, gp, field_points)
     return normal, J, gauss_points
 end
 
-
 function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points)
 
     gp_local_near, weights_near = pontos_pesos_local_telles(csis, omegas, c[1:2],d)
@@ -146,7 +142,6 @@ function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points
 
     return gauss_points_near, Nd_near, J_near, normal_near, weights_near
 end
-
 
 function calc_points_sing(Nc_sing,dNc_sing, dNe_sing,Nd_sing, field_points, Jb_sing, nnel, n, omega_sing)
     
