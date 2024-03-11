@@ -4,11 +4,11 @@ $Material
 $EndMaterial
 $Frequencies
 1
-0.001 5.0 2
+0.001 5.0 3
 $EndFrequencies
 $MeshType
 8
-0.5
+0.3
 1
 $EndMeshType
 $Forces
