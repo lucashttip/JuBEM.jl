@@ -8,7 +8,7 @@ using ProgressMeter
 import Base.:(==)
 
 include("typedefinitions.jl")
-export material_table_type, mesh_type, problem_type, solver_var_type, cmplx_consts
+export Material, Mesh, Problem, Svar, cmplx_consts
 
 include("input.jl")
 export read_msh

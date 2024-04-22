@@ -1,4 +1,4 @@
-function derive_data!(material::Vector{material_table_type}, problem::problem_type, solver_var::solver_var_type)
+function derive_data!(material::Vector{Material}, problem::Problem, solver_var::Svar)
 
       
         

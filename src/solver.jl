@@ -1,6 +1,6 @@
 
 # Interface to choose GH calculation type
-function calc_GH!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type,frequency=-1.0)
+function calc_GH!(mesh::Mesh, material::Vector{Material}, solver_var::Svar,frequency=-1.0)
 
     if frequency >= 0.0
         calc_GH_dynamic!(mesh, material, solver_var, frequency)

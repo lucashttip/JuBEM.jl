@@ -1,4 +1,4 @@
-function generate_mesh!(mesh::mesh_type)
+function generate_mesh!(mesh::Mesh)
 
     tipo = mesh.eltype
     offset = mesh.offset

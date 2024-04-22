@@ -1,4 +1,4 @@
-function calc_GH_dynamic!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type, frequency::Float64)
+function calc_GH_dynamic!(mesh::Mesh, material::Vector{Material}, solver_var::Svar, frequency::Float64)
 
 
     # DEFINING PARAMETERS
@@ -85,7 +85,7 @@ end
 
 
 
-function calc_GH_dynamic_gpu!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type, frequency::Float64)
+function calc_GH_dynamic_gpu!(mesh::Mesh, material::Vector{Material}, solver_var::Svar, frequency::Float64)
 
 
     # DEFINING PARAMETERS

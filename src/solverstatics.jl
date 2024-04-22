@@ -1,5 +1,5 @@
 # Working:
-function calc_GH_static!(mesh::mesh_type, material::Vector{material_table_type}, solver_var::solver_var_type)
+function calc_GH_static!(mesh::Mesh, material::Vector{Material}, solver_var::Svar)
     
     # DEFINING PARAMETERS
     # mesh/material/other constants definition

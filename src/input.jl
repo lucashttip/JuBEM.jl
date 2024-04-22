@@ -2,14 +2,14 @@
 # Inspirado no pacote MeshIO.jl: https://github.com/JuliaIO/MeshIO.jl/blob/master/src/io/msh.jl
 @enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock
 
-function read_msh(inp_file)
+function read_msh_legacy(inp_file)
     
     io = open(inp_file,"r")
 
-    material = material_table_type[]
-    mesh = mesh_type()
-    problem = problem_type()
-    solver_var = solver_var_type()
+    material = Material[]
+    mesh = Mesh()
+    problem = Problem()
+    solver_var = Svar()
 
     vars=[]
 
@@ -41,7 +41,41 @@ function read_msh(inp_file)
         end
     end
 
+    close(io)
+
     return mesh,material,problem,solver_var
+end
+
+function read_msh(msh_file)
+
+    io = open(msh_file,"r")
+
+    mesh = Mesh()
+
+    s_entities=[]
+
+    while !eof(io)
+        BlockType = parse_blocktype!(io)
+        if BlockType == MSHEntitiesBlock
+            s_entities = parse_entities(io)
+        elseif BlockType == MSHNodesBlock
+            parse_nodes!(io, mesh)
+        elseif BlockType == MSHElementsBlock
+            parse_elements!(io, mesh, s_entities)
+        else
+            skip_block!(io)
+        end
+    end
+    
+    close(io)
+
+    return mesh
+
+
+end
+
+function read_problem(prob_file)
+
 end
 
 function parse_blocktype!(io)
@@ -73,7 +107,7 @@ function parse_materials!(io, material)
     nmat = parse(Int,readline(io))
     for i in 1:nmat
         Ge, Nu, Dam, Rho = parse.(Float64, split(readline(io)))
-        push!(material,material_table_type(Ge,Nu,Dam,Rho))
+        push!(material,Material(Ge,Nu,Dam,Rho))
     end
     endblock = readline(io)
     if endblock != "\$EndMaterial"
@@ -209,26 +243,27 @@ function parse_nodes!(io,mesh)
     return mesh
 end
 
-function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
+function parse_elements!(io, mesh, s_entities)
     num_elements = parse.(Int, split(readline(io)))
     
     num_entity_blocks, num_elements, min_element_tag, max_element_tag = num_elements
     mesh.nelem = num_elements
-
-    if mesh.eltype < 2
-        npel = 4
-    else
-        if mesh.eltype == 2
-            npel = 9
-        else
-            error("eltype not supported")
-        end
-    end
     
+    pos = position(io)
+
+    dim, tag, element_type, elements_in_block = parse.(Int, split(readline(io)))
+
+    seek(io,pos)
+
+    if element_type == 3
+        npel = 4
+    elseif element_type == 10
+        npel = 9
+    else
+        error("Element type not supported by JuBEM")
+    end
+
     mesh.IEN_geo = zeros(Int32, npel, num_elements)
-    mesh.bc = zeros(Int16,num_elements,3)
-    mesh.bcvalue = zeros(Float64,num_elements,3)
-    mesh.material = zeros(Int16,num_elements)
 
     for index_entity in 1:num_entity_blocks
 
@@ -241,14 +276,11 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
             for i in 1:elements_in_block
                 e, n... = parse.(Int, split(readline(io)))
                 mesh.IEN_geo[:,e] = n
-                mesh.bc[e,:] = bc[ptag,2:end]
-                mesh.bcvalue[e,:] = bcvalue[ptag,:]
-                mesh.material[e] = mat[ptag,2]
+                mesh.tag[e,:] = bc[ptag,2:end]
             end
         else
             for i in 1:elements_in_block
                 readline(io)
-                
             end
         end
     end
