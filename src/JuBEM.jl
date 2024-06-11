@@ -51,8 +51,8 @@ include("rbmotion.jl")
 include("posprocessor.jl")
 export calc_interior_static, calc_interior_static_const
 
-include("plotting.jl")
-export view_mesh, animate_res_freq
+# include("plotting.jl")
+# export view_mesh, animate_res_freq
 
 include("writevtk.jl")
 export writevtk
