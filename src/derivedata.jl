@@ -1,4 +1,4 @@
-function derive_data!(material::Vector{Material}, problem::Problem, solver_var::Svar)
+function derive_data!(material::Vector{Material}, problem::Problem)
 
       
         
@@ -10,14 +10,16 @@ function derive_data!(material::Vector{Material}, problem::Problem, solver_var::
         end
 
         # ! Calcula os pontos de gauss
-        solver_var.csi, solver_var.omega = gausslegendre(solver_var.nGP)
+        assembly = Assembly()
+        assembly.nGP = 8
+        assembly.csi, assembly.omega = gausslegendre(assembly.nGP)
  
 
         if !isempty(problem.nFr)
             calc_frequencies!(problem)
         end
         
-        return material, problem, solver_var
+        return material, problem, assembly
 
 end
 

@@ -1,20 +1,11 @@
-$Material
-1
-5.000000E+00 0.0 0.01 1.0
-$EndMaterial
-$MeshType
-8
-0.4
-1
-$EndMeshType
 $MeshFormat
 4.1 0 8
 $EndMeshFormat
 $PhysicalNames
 3
-2 1 "u 0.0 u 0.0 u 0.0 1"
-2 2 "t 0.0 t 0.0 t 0.0 1"
-2 3 "t 1.0 t 0.0 t 0.0 1"
+2 1 "Face on x=0"
+2 2 "4 faces parallel to x"
+2 3 "Face on x=1"
 $EndPhysicalNames
 $Entities
 8 12 6 0

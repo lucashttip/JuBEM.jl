@@ -110,6 +110,7 @@ It's a mutable struct.
  
 """
 mutable struct Problem <: JuBEMtypes
+    name :: String
     bctype :: Array{Int16,2}
     bcvalue :: Array{Float64,2}
     forces :: Array{Float64,2}
@@ -117,7 +118,7 @@ mutable struct Problem <: JuBEMtypes
     nFr :: Array{Int32,1}
     fr_range :: Array{Float64,1}
     frequencies :: Array{Float64,1}
-    Problem() = new(Array{Int16,2}(undef,0,0),
+    Problem() = new("",Array{Int16,2}(undef,0,0),
     Array{Float64,2}(undef,0,0),
     Array{Float64,2}(undef,0,0),
     Array{Int16,2}(undef,0,0),
@@ -126,9 +127,9 @@ end
 
 
 """
-    Svar
+    Assembly
 Type that holds the information of the solver (gauss points and matrices).
-Can be created empty by calling `Svar()`.
+Can be created empty by calling `Assembly()`.
 It's a mutable struct.
 
 ## Fields
@@ -144,7 +145,7 @@ It's a mutable struct.
   - `zvetsol`
  
 """
-mutable struct Svar <: JuBEMtypes
+mutable struct Assembly <: JuBEMtypes
     nGP :: Int16
     csi :: Array{Float64,1}
     omega :: Array{Float64,1}
@@ -154,14 +155,32 @@ mutable struct Svar <: JuBEMtypes
     zG :: Array{ComplexF64,2}
     ma
     zvetsol
-    Svar() = new(0,[],[],Array{Float64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{Float64,1}(undef,0))
+    Assembly() = new(0,[],[],Array{Float64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{Float64,1}(undef,0))
 end
 
+"""
+    Solution{T} <: JuBEMtypes
+Type that holds the the solution of the simulation.
+Can be created empty by calling `Assembly()`.
+It's a mutable struct.
+
+## Fields
+
+  - `u` :: Array{T,2}
+  - `t` :: Array{T,2}
+  - `urb` :: Array{T,2}
+
+"""
+mutable struct Solution{T} <: JuBEMtypes
+    u :: Array{T,2}
+    t :: Array{T,2}
+    urb :: Array{T,2}
+end
 
 """
     cmplx_consts(material :: Material, fr :: Float64)
 Type that holds complex constants for the dynamics fundamental solution.
-Can be created empty by calling `Svar()`.
+Can be created empty by calling `Assembly()`.
 It's a mutable struct.
 
 

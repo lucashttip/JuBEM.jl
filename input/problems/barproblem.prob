@@ -1,19 +1,14 @@
+$ProblemName
+Barra engastada na extremidade 1, sem trações superficiais nas faces 2 e tracionada em x na face 3
+$EndProblemName
 $Material
 1
-1 4.000000E+00 0.25 0.01 1.0
+5.000000E+00 0.0 0.01 1.0
 $EndMaterial
-$Frequencies
-1
-0.005 6.0 30
-$EndFrequencies
 $MeshType
 1
 0.4
 $EndMeshType
-$Forces
-1
-1 0 1 0 0 0
-$EndForces
 $BoundaryConditions
 3
 1 "u 0.0 u 0.0 u 0.0"

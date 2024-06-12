@@ -5,7 +5,7 @@ function readvars_out(filename)
     material = Material[]
     mesh = Mesh()
     problem = Problem()
-    solver_var = Svar()
+    solver_var = Assembly()
 
     groupnames = keys(fid)
 

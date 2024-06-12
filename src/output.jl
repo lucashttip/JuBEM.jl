@@ -1,4 +1,4 @@
-function output_vars_h5(filename, mesh::Mesh, problem::Problem, solver_var::Svar, materials::Array{Material,1})
+function output_vars_h5(filename, mesh::Mesh, problem::Problem, solver_var::Assembly, materials::Array{Material,1})
     filename = string(filename,".h5")
 
     vars = [mesh, problem, solver_var]

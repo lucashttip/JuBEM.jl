@@ -1,7 +1,11 @@
 # incomplete
 # Inspirado no pacote MeshIO.jl: https://github.com/JuliaIO/MeshIO.jl/blob/master/src/io/msh.jl
-@enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock MSHBoundaryConditionsBlock MSHTagInformationBlock
+@enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock MSHBoundaryConditionsBlock MSHTagInformationBlock MSHProblemNameBlock
 
+
+"""
+mesh = read_msh(msh_file)
+"""
 function read_msh(msh_file)
 
     io = open(msh_file,"r")
@@ -32,6 +36,9 @@ function read_msh(msh_file)
 
 end
 
+"""
+problem,materials = read_problem(prob_file,mesh)
+"""
 function read_problem(prob_file,mesh)
     
     io = open(prob_file,"r")
@@ -53,6 +60,8 @@ function read_problem(prob_file,mesh)
             parse_BC!(io, problem)
         elseif BlockType == MSHTagInformationBlock
             parse_taginfo!(io, problem)
+        elseif BlockType == MSHProblemNameBlock
+            parse_problemname!(io, problem)
         else
             skip_block!(io)
         end
@@ -87,9 +96,18 @@ function parse_blocktype!(io)
         return MSHBoundaryConditionsBlock
     elseif header == "\$TagInformation"
         return MSHTagInformationBlock
+    elseif header == "\$ProblemName"
+        return MSHProblemNameBlock
     else
         return MSHUnknownBlock
     end
+end
+
+function parse_problemname!(io,problem)
+
+    probname = readline(io)
+    problem.name = probname
+    return problem
 end
 
 function parse_materials!(io, materials)

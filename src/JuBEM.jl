@@ -8,10 +8,10 @@ using ProgressMeter
 import Base.:(==)
 
 include("typedefinitions.jl")
-export Material, Mesh, Problem, Svar, cmplx_consts
+export Material, Mesh, Problem, Assembly, cmplx_consts
 
 include("input.jl")
-export read_msh
+export read_msh, read_problem
 
 include("shapefunctions.jl")
 export calc_N_gen
