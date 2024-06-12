@@ -9,7 +9,7 @@ mesh = read_msh(mesh_file)
 problem, materials = read_problem(problem_file,mesh)
 
 generate_mesh!(mesh)
-assembly = derive_data!(mesh,problem,materials)
+assembly = derive_data!(materials,problem)
 
 # Assembly = statics_assembly(mesh,problem,materials,assembly)
 

@@ -19,7 +19,7 @@ function derive_data!(material::Vector{Material}, problem::Problem)
             calc_frequencies!(problem)
         end
         
-        return material, problem, assembly
+        return assembly
 
 end
 

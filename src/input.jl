@@ -107,6 +107,10 @@ function parse_problemname!(io,problem)
 
     probname = readline(io)
     problem.name = probname
+    endblock = readline(io)
+    if endblock != "\$EndProblemName"
+        error("expected end block tag, got $endblock")
+    end
     return problem
 end
 
