@@ -17,14 +17,13 @@ include("shapefunctions.jl")
 export calc_N_gen
 
 include("elementsubdivision.jl")
-
 include("telles.jl")
 
 include("derivedata.jl")
 export derive_data!
 
 include("generatemesh.jl")
-export generate_nodes_in_elem, generate_mesh!, generate_points_in_elem
+export generate_mesh!
 
 include("geometry.jl")
 

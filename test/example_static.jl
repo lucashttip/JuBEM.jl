@@ -1,6 +1,6 @@
 using JuBEM
 
-mesh_file = "./input/meshes/bar_1_10.msh"
+mesh_file = "./input/meshes/cube.msh"
 problem_file = "./input/problems/barproblem.prob"
 output_file = "test_out.h5"
 ##

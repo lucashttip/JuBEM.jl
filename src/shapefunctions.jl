@@ -1,5 +1,5 @@
 """
-    csis2d, omegas2d = calc_csis2d(csis1d,omegas1d)
+    csis2d, (omegas2d) = calc_csis2d(csis1d,(omegas1d))
 
 This function takes a set of gaussian quadrature points from -1 to 1 (csis1d) and their weights(omegas1d) and maps them to two dimensions returning a matrix os the positions and a vector of the new weights.
 the returned points are csis2d = [ξi, ηj], and the returned weights are omegas2d = [omegai*omegaj]
@@ -25,6 +25,19 @@ function calc_csis2d(csis1d,omegas1d)
 
     return csis2d, omegas2d
 end
+
+function calc_csis2d(csis1d)
+    nGP = length(csis1d)
+    csis2d = zeros(nGP*nGP,2)
+    for i in 1:nGP
+        for j in 1:nGP
+            csis2d[nGP*(i-1)+j,:] = [csis1d[i],csis1d[j]]
+        end
+    end
+
+    return csis2d
+end
+
 
 function map_k(nnel)
     if nnel == 1
