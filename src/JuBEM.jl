@@ -14,8 +14,7 @@ include("input.jl")
 export read_msh
 
 include("shapefunctions.jl")
-export calc_N_matrix, calc_N_gen
-export calc_csis_grid
+export calc_N_gen
 
 include("elementsubdivision.jl")
 

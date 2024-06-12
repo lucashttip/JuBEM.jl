@@ -34,7 +34,7 @@ function generate_desc_mesh!(mesh)
     nnel = (eltype+1)^2
     nnodes = nel*nnel
 
-    k = calc_k(nnel)
+    k = map_k(nnel)
 
     csis_vec_descont = calc_csis_grid(csis_descont)
 
