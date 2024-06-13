@@ -87,7 +87,7 @@ function extrapolateres(mesh, u, t)
 
     grid = calc_csis_grid(csis_cont)
 
-    N = calc_N_matrix(csis_descont,grid)
+    N = calc_N_gen(csis_descont,grid)
 
     idx = [1,4,2,3]
 

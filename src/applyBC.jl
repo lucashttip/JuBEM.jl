@@ -214,12 +214,12 @@ function calc_utpoints(mesh,u,t)
         csi_points = range(-1,1,length = mesh.eltype+1)
         csi_nodes = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
         csi_vec = calc_csis_grid(csi_points)
-        N = calc_N_matrix(csi_nodes,csi_vec)
+        N = calc_N_gen(csi_nodes,csi_vec)
     else
         csi_points = [-1.0,1.0]
         csi_nodes = 0.0
         csi_vec = calc_csis_grid(csi_points)
-        N = calc_N_matrix(csi_nodes,csi_vec)
+        N = calc_N_gen(csi_nodes,csi_vec)
     end
 
     up = zeros(typeof(u[1]),mesh.npoints,3)

@@ -1,9 +1,9 @@
 
 function ∇d!(G,csi, eta; points, source, csis_cont)
     
-    N = calc_N_matrix(csis_cont, [csi eta])
-    Ncsi = calc_dNdcsi_matrix(csis_cont, [csi eta])
-    Neta = calc_dNdeta_matrix(csis_cont, [csi eta])
+    N = calc_N_gen(csis_cont, [csi eta])
+    Ncsi = calc_N_gen(csis_cont, [csi eta];dg=:dNdc)
+    Neta = calc_N_gen(csis_cont, [csi eta];dg=:dNde)
     p = vec(N*points)    
     d1 = sqrt(sum((p - source).^2))
 
@@ -17,7 +17,7 @@ end
 
 function d(csi, eta; points, source, csis_cont)
     
-    N = calc_N_matrix(csis_cont, [csi eta])
+    N = calc_N_gen(csis_cont, [csi eta])
     p = vec(N*points)    
     d = sqrt(sum((p - source).^2))
 
@@ -30,9 +30,10 @@ function fg!(F,G,x; points, source, csis_cont)
     csi = x[1]
     eta = x[2]
 
-    N = JuBEM.calc_N_matrix(csis_cont, [csi eta])
-    Ncsi = calc_dNdcsi_matrix(csis_cont, [csi eta])
-    Neta = calc_dNdeta_matrix(csis_cont, [csi eta])
+    N = JuBEM.calc_N_gen(csis_cont, [csi eta])
+    Ncsi = calc_N_gen(csis_cont, [csi eta];dg=:dNdc)
+    Neta = calc_N_gen(csis_cont, [csi eta];dg=:dNde)
+
     p = vec(N*points)    
     d = norm(p - source)
 
@@ -53,9 +54,9 @@ end
 
 function d∇d∇2d(csi, eta, points, source, csis_cont)
 
-    N = calc_N_matrix(csis_cont, [csi eta])
-    Ncsi = calc_dNdcsi_matrix(csis_cont, [csi eta])
-    Neta = calc_dNdeta_matrix(csis_cont, [csi eta])
+    N = calc_N_gen(csis_cont, [csi eta])
+    Ncsi = calc_N_gen(csis_cont, [csi eta];dg=:dNdc)
+    Neta = calc_N_gen(csis_cont, [csi eta];dg=:dNde)
     Ncsi2 = calc_N_gen(csis_cont, [csi eta];dg = :d2Ndc2)
     Neta2 = calc_N_gen(csis_cont, [eta csi];dg = :d2Ndc2)
     Ncsieta = calc_N_gen(csis_cont, [csi eta];dg = :d2Ndce)

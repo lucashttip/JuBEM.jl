@@ -42,7 +42,7 @@ function view_res(mesh,u)
     csi_descont = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
 
     csis = calc_csis_grid(csi_cont)
-    N = calc_N_matrix(csi_descont,csis)
+    N = calc_N_gen(csi_descont,csis)
     
 
     for e in 1:mesh.nelem

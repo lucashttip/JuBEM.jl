@@ -29,10 +29,11 @@ mutable struct Material <: JuBEMtypes
     Nu :: Float64
     Dam :: Float64
     Rho :: Float64
+    C_stat :: Vector{Float64}
     zGe :: ComplexF64
     zSwv :: ComplexF64
     zPwv :: ComplexF64
-    Material(Ge,Nu,Dam,Rho) = new(Ge,Nu,Dam,Rho, 0.0 + 0.0im,0.0 + 0.0im,0.0 + 0.0im)
+    Material(Ge,Nu,Dam,Rho) = new(Ge,Nu,Dam,Rho, Float64[], 0.0 + 0.0im,0.0 + 0.0im,0.0 + 0.0im)
 end
 
 """
@@ -218,19 +219,40 @@ mutable struct cmplx_consts <: JuBEMtypes
 end
 
 mutable struct gauss_points_type <: JuBEMtypes
-    csi :: Array{Float64,2}
-    omega :: Array{Float64,1}
+    csis :: Array{Float64,2}
+    omegas :: Array{Float64,1}
 end
 
-mutable struct integration_rules_type <: JuBEMtypes
+"""
+    Rules()
 
+## Fields
+- `csis_points` :: Vector{Float64}
+- `csis_nodes` :: Vector{Float64}
+- `npgs` :: Array{Int64,1}
+- `dists` :: Array{Float64,1}
+- `gp` :: Array{gauss_points_type,1}
+- `npg_near` :: Int64
+- `near_strat` :: Symbol
+- `N_aux` :: Array{Float64,2}
+- `gp_near` :: gauss_points_type
+- `npg_sing` :: Int64
+- `csis_sing` :: Array{gauss_points_type,1}
+"""
+mutable struct Rules <: JuBEMtypes
+
+    csis_points :: Vector{Float64}
+    csis_nodes :: Vector{Float64}
     npgs :: Array{Int64,1}
     dists :: Array{Float64,1}
     gp :: Array{gauss_points_type,1}
     npg_near :: Int64
     npg_sing :: Int64
+    csis_sing :: Array{gauss_points_type,1}
+    near_strat :: Symbol
+    N_aux :: Array{Float64,2}
     gp_near :: gauss_points_type
-    integration_rules_type(npgs::Array{Int64,1},dists::Array{Float64,1}, npg_near::Int64, npg_sing::Int64) = new(npgs,dists,gauss_points_type[], npg_near,npg_sing)
+    Rules(csis_points:: Vector{Float64}, csis_nodes:: Vector{Float64}, npgs::Array{Int64,1},dists::Array{Float64,1}, npg_near::Int64, npg_sing::Int64,near_strat::Symbol, N_aux :: Array{Float64,2}) = new(csis_points,csis_nodes,npgs,dists,gauss_points_type[], npg_near,npg_sing,gauss_points_type[],near_strat,N_aux)
 end
 
 

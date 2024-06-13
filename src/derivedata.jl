@@ -7,6 +7,13 @@ function derive_data!(material::Vector{Material}, problem::Problem)
             material[i].zGe = complex(material[i].Ge, 2.0*material[i].Ge*material[i].Dam)
             material[i].zSwv = sqrt(material[i].zGe/material[i].Rho)
             material[i].zPwv = material[i].zSwv*sqrt((2.0-2.0*material[i].Nu)/(1.0-2.0*material[i].Nu))
+            
+            C_stat = zeros(4)
+            C_stat[1]=1.0/(16.0*pi*material[i].Ge*(1.0-material[i].Nu))
+            C_stat[2]=3.0-(4.0*material[i].Nu)
+            C_stat[3]=-1.0/(8.0*pi*(1.0-material[i].Nu))
+            C_stat[4]=1.0-(2.0*material[i].Nu)
+            material[i].C_stat = C_stat
         end
 
         # ! Calcula os pontos de gauss

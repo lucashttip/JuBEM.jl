@@ -11,11 +11,11 @@ function calc_CD_discont(mesh, solver_var, rbcenter, rbidx)
     else
         csis_cont = range(-1,1,length = mesh.eltype+1)
         csis_descont = range(-1+mesh.offset,1 - mesh.offset,length=mesh.eltype+1)
-        Nd = calc_N_matrix(csis_descont,csi_grid)
+        Nd = calc_N_gen(csis_descont,csi_grid)
     end
-    Nc = calc_N_matrix(csis_cont,csi_grid)
-    dNcdcsi = calc_dNdcsi_matrix(csis_cont, csi_grid)
-    dNcdeta = calc_dNdeta_matrix(csis_cont, csi_grid)
+    Nc = calc_N_gen(csis_cont,csi_grid)
+    dNcdcsi = calc_N_gen(csis_cont, csi_grid;dg=:dNdc)
+    dNcdeta = calc_N_gen(csis_cont, csi_grid;dg=:dNde)
 
     nrbelem = length(rbelem)
 

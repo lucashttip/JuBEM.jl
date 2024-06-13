@@ -2,7 +2,6 @@ function calc_n_J_matrix(dNdcsi, dNdeta, points)
 
     l = size(dNdcsi,1)
 
-
     normal = zeros(l,3)
     J = zeros(l)
 
@@ -56,7 +55,7 @@ function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points
     v = cross(dpdcsi', dpdeta')
-    J = norm(v,2)
+    J = norm(v)
     n = v./J
 
     return n, J
@@ -102,29 +101,36 @@ function calc_static_constants(material)
 
 end
 
-function calc_dist(source, points,dists,csis_cont)
+"""
+    r, c, d = calc_dist(source, points, rules)
+    
+    Computes the minimum distance d from the source point to the elemnent defined by points. r is the index of the rule to be used and c is the local coordinates of the closes point 
+"""
+function calc_dist(source, points, rules)
 
     dist = Inf
 
-    for i in eachindex(points[:,1])
+    for i in axes(points,1)
         d = norm((source - points[i,:]))
         if d < dist
             dist = d
         end
     end
 
-    l = [norm(points[2,:] - points[1,:]),norm(points[3,:] - points[2,:])]
+    aux_points = rules.N_aux*points
+
+    l = [norm(aux_points[2,:] - aux_points[4,:]),norm(aux_points[3,:] - aux_points[1,:])]
 
     d = dist./l
     c = []
-    if any(d .< 1.0)
-        c,dist = findmind_optim(points,source,csis_cont)              # Apenas optim
+    if any(d .< 2.0)
+        c,dist = findmind_optim(points,source,rules.csis_points)              # Apenas optim
         d = dist./l
     end
     
     r = 0
-    for i in eachindex(dists)
-        if all(d .> dists[i])
+    for i in eachindex(rules.dists)
+        if all(d .> rules.dists[i])
             r = i
             break
         end

@@ -6,10 +6,10 @@ function calc_N_nonsing(csis_cont, csis_descont, rules)
     Nd = []
 
     for i in eachindex(rules.gp)
-        N_t = calc_N_matrix(csis_cont,rules.gp[i].csi)
-        dNc_t = calc_dNdcsi_matrix(csis_cont,rules.gp[i].csi)
-        dNe_t = calc_dNdeta_matrix(csis_cont,rules.gp[i].csi)
-        Nd_t = calc_N_matrix(csis_descont,rules.gp[i].csi)
+        N_t = calc_N_gen(csis_cont,rules.gp[i].csi)
+        dNc_t = calc_N_gen(csis_cont,rules.gp[i].csi;dg=:dNdc)
+        dNe_t = calc_N_gen(csis_cont,rules.gp[i].csi;dg=:dNde)
+        Nd_t = calc_N_gen(csis_descont,rules.gp[i].csi)
         push!(N,N_t)
         push!(dNc,dNc_t)
         push!(dNe,dNe_t)
@@ -19,16 +19,16 @@ function calc_N_nonsing(csis_cont, csis_descont, rules)
     return N, dNc, dNe, Nd
 end
 
-function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
+function calc_N_sing(mesh, csis_cont, csis_descont,npg_sing)
 
     # Cálculos para elementos singulares
     csi,omega = gausslegendre(npg_sing)
     csis = calc_csis_grid(csi)
     omegas = calc_omegas(omega)
     csis_cont_lin = range(-1,1,length = 2)
-    N_lin = calc_N_matrix(csis_cont_lin,csis)
-    dNc_lin = calc_dNdcsi_matrix(csis_cont_lin,csis)
-    dNe_lin = calc_dNdeta_matrix(csis_cont_lin,csis)
+    N_lin = calc_N_gen(csis_cont_lin,csis)
+    dNc_lin = calc_N_gen(csis_cont_lin,csis;dg=:dNdc)
+    dNe_lin = calc_N_gen(csis_cont_lin,csis;dg=:dNde)
 
     eltype_cont = mesh.eltype
     if mesh.eltype == 0
@@ -53,10 +53,10 @@ function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
     Nd_sing = zeros(npg_sing,nnel,nperm)
 
     for i in 1:nperm
-        N_sing[:,:,i] = calc_N_matrix(csis_cont,csi_sing[:,:,i])
-        dNc_sing[:,:,i] = calc_dNdcsi_matrix(csis_cont,csi_sing[:,:,i])
-        dNe_sing[:,:,i] = calc_dNdeta_matrix(csis_cont,csi_sing[:,:,i])
-        Nd_sing[:,:,i] = calc_N_matrix(csis_descont,csi_sing[:,:,i])
+        N_sing[:,:,i] = calc_N_gen(csis_cont,csi_sing[:,:,i])
+        dNc_sing[:,:,i] = calc_N_gen(csis_cont,csi_sing[:,:,i];dg=:dNdc)
+        dNe_sing[:,:,i] = calc_N_gen(csis_cont,csi_sing[:,:,i];dg=:dNde)
+        Nd_sing[:,:,i] = calc_N_gen(csis_descont,csi_sing[:,:,i])
     end
     nregs = Int(length(Jb_sing)/length(omegas))
     omega_sing = repeat(omegas,nregs)
@@ -65,52 +65,52 @@ function calc_N_sing(mesh, solver_var, csis_cont, csis_descont,npg_sing)
 
 end
 
-function calc_integration_rules!(rules)
+# function calc_integration_rules!(rules)
     
-    pw = gausslegendre.(rules.npgs)
+#     pw = gausslegendre.(rules.npgs)
 
-    for i in eachindex(rules.npgs)
-        csis = calc_csis_grid(pw[i][1])
-        omegas = calc_omegas(pw[i][2])
-        push!(rules.gp,gauss_points_type(csis,omegas))
-    end
+#     for i in eachindex(rules.npgs)
+#         csis = calc_csis_grid(pw[i][1])
+#         omegas = calc_omegas(pw[i][2])
+#         push!(rules.gp,gauss_points_type(csis,omegas))
+#     end
 
-    pnear = gausslegendre(rules.npg_near)
-    csis = calc_csis_grid(pnear[1])
-    omegas = calc_omegas(pnear[2])
-    rules.gp_near = gauss_points_type(csis,omegas)
+#     pnear = gausslegendre(rules.npg_near)
+#     csis = calc_csis_grid(pnear[1])
+#     omegas = calc_omegas(pnear[2])
+#     rules.gp_near = gauss_points_type(csis,omegas)
 
-    return rules
-end
+#     return rules
+# end
 
-function calc_nonsing_consts(mesh)
+# function calc_nonsing_consts(mesh)
 
-    npgs = Int[4,5,6,8]
-    dists = [4,2,0.5,0.3]
-    npg_near = 12
-    npg_sing = 5
-    # npgs = Int[4,4,4,8]
-    # dists = [4,2,0.5,0.2]
-    # npg_near = 12
+#     npgs = Int[4,5,6,8]
+#     dists = [4,2,0.5,0.3]
+#     npg_near = 12
+#     npg_sing = 5
+#     # npgs = Int[4,4,4,8]
+#     # dists = [4,2,0.5,0.2]
+#     # npg_near = 12
 
-    rules = integration_rules_type(npgs,dists,npg_near,npg_sing)
-    calc_integration_rules!(rules)
+#     rules = Rules(npgs,dists,npg_near,npg_sing)
+#     calc_integration_rules!(rules)
 
 
 
-    eltype_cont = mesh.eltype
-    offset = mesh.offset
-    if mesh.eltype == 0
-        eltype_cont = 1
-        offset = 1.0
-    end
+#     eltype_cont = mesh.eltype
+#     offset = mesh.offset
+#     if mesh.eltype == 0
+#         eltype_cont = 1
+#         offset = 1.0
+#     end
 
-    csis_cont = range(-1,1,length = eltype_cont+1)
-    csis_descont = range(-1+offset,1 - offset,length=mesh.eltype+1)
+#     csis_cont = range(-1,1,length = eltype_cont+1)
+#     csis_descont = range(-1+offset,1 - offset,length=mesh.eltype+1)
 
-    return csis_cont, csis_descont, rules
+#     return csis_cont, csis_descont, rules
 
-end
+# end
 
 function calc_nJgp(N, dNc, dNe, gp, field_points)
     normal = []
@@ -132,15 +132,16 @@ function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points
     # gp_local_near, weights_near = points_weights_local_near_combined(csis, omegas, c,minimum(d))
 
     # gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc_lin, dNcdcsi_lin, dNcdeta_lin, omegas)
-    N_near = calc_N_matrix(csis_cont,gp_local_near)
-    dNc_near = calc_dNdcsi_matrix(csis_cont,gp_local_near)
-    dNe_near = calc_dNdeta_matrix(csis_cont,gp_local_near)
-    Nd_near = calc_N_matrix(csis_descont,gp_local_near)
+    N_near = calc_N_gen(csis_cont,gp_local_near)
+    dNc_near = calc_N_gen(csis_cont,gp_local_near;dg=:dNdc)
+    dNe_near = calc_N_gen(csis_cont,gp_local_near;dg=:dNde)
+    Nd_near = calc_N_gen(csis_descont,gp_local_near)
     gauss_points_near = N_near*field_points
     normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
 
+    weights_near = J_near.*weights_near
 
-    return gauss_points_near, Nd_near, J_near, normal_near, weights_near
+    return gauss_points_near, Nd_near, normal_near, weights_near
 end
 
 function calc_points_sing(Nc_sing,dNc_sing, dNe_sing,Nd_sing, field_points, Jb_sing, nnel, n, omega_sing)

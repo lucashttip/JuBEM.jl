@@ -30,11 +30,14 @@ include("geometry.jl")
 include("fundamentalsolutions.jl")
 export calc_funsol_static, calc_funsol_dynamic
 
+include("integration.jl")
 include("integrationdynamics.jl")
 include("integrationstatics.jl")
+include("integrationrules.jl")
 include("integrationconstants.jl")
 
 include("solverstatics.jl")
+include("staticassembly.jl")
 include("solverdynamics.jl")
 
 include("solver.jl")

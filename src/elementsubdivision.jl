@@ -10,14 +10,16 @@ function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
     nsubelem = size(IEN,2)
     npg = size(Nc,1)
-    nnel = (eltype+1)^2
     csi_sing = zeros(nsubelem*npg,2,n)
     Jb_sing = zeros(nsubelem*npg,n)
 
-    for j in 1:n       
-        for i in 1:nsubelem
-            csi_sing[npg*(i-1)+1:npg*i,:,j] = generate_points_in_elem(Nc,c[j][IEN[:,i],:])
-            _, Jb_sing[npg*(i-1)+1:npg*i,j] = calc_n_J_matrix(dNcdcsi, dNcdeta, [c[j][IEN[:,i],:] zeros(4)])
+    for i in 1:n       
+        for se in 1:nsubelem
+            points_subelem = c[i][IEN[:,se],:]
+            idxs_subelem = npg*(se-1)+1:npg*se
+
+            csi_sing[idxs_subelem,:,i] = Nc*points_subelem
+            _, Jb_sing[idxs_subelem,i] = calc_n_J_matrix(dNcdcsi, dNcdeta, [points_subelem zeros(4)])
         end
     end
 
@@ -378,7 +380,7 @@ function calc_points_weights()
 
     for i in eachindex(npg)
         csi = calc_csis_grid(pw[i][1])
-        Nc = calc_N_matrix([-1,1],csi)
+        Nc = calc_N_gen([-1,1],csi)
         csis = csis_quasi_sing(Nc,subelem[i][1],subelem[i][2])
         fact = subelem[i][1]*subelem[i][2]
         omegas = repeat(calc_omegas(pw[i][2])./fact,fact)

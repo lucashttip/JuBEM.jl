@@ -113,9 +113,9 @@ function points_weights_local_near_combined(csis, omegas, source,d)
     pontos = zeros(nc,2)
     pesos = zeros(nc)
 
-    N = calc_N_matrix(csis_lin,pontos_telles)
-    dNc = calc_dNdcsi_matrix(csis_lin,pontos_telles)
-    dNe = calc_dNdeta_matrix(csis_lin,pontos_telles)
+    N = calc_N_gen(csis_lin,pontos_telles)
+    dNc = calc_N_gen(csis_lin,pontos_telles;dg=:dNdc)
+    dNe = calc_N_gen(csis_lin,pontos_telles;dg=:dNde)
 
 
     for t in 1:nt
