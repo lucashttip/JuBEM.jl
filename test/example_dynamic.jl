@@ -33,4 +33,4 @@ problem, materials = read_problem(problem_file,mesh)
 generate_mesh!(mesh)
 derive_data!(mesh,problem,materials)
 
-solve(mesh,problem,materials)
+solve(mesh,problem,material)

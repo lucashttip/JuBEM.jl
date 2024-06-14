@@ -3,10 +3,10 @@ Barra engastada na extremidade 1, sem trações superficiais nas faces 2 e traci
 $EndProblemName
 $Material
 1
-5.000000E+00 0.0 0.01 1.0
+1.000000E+01 0.0 0.01 1.0
 $EndMaterial
 $MeshType
-1
+2
 0.4
 $EndMeshType
 $BoundaryConditions
@@ -18,6 +18,6 @@ $EndBoundaryConditions
 $TagInformation
 3
 1 1 1
-2 1 2
-3 1 3
+2 2 1
+3 3 1
 $EndTagInformation

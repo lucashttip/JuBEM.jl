@@ -16,9 +16,9 @@ function calc_integration_rules!(rules::Rules,mesh::Mesh)
     psing = gausslegendre(rules.npg_sing)
     csis, omegas = calc_csis2d(psing[1],psing[2])
 
-    N_lin = calc_N_gen(rules.csis_points,csis)
-    dNc_lin = calc_N_gen(rules.csis_points,csis;dg=:dNdc)
-    dNe_lin = calc_N_gen(rules.csis_points,csis;dg=:dNde)
+    N_lin = calc_N_gen([-1,1],csis)
+    dNc_lin = calc_N_gen([-1,1],csis;dg=:dNdc)
+    dNe_lin = calc_N_gen([-1,1],csis;dg=:dNde)
 
     if mesh.eltype == 2
         nperm = 3
@@ -44,9 +44,9 @@ end
 function define_rules(mesh::Mesh)
 
     npgs = Int[4,5,6,8]
-    dists = [4,2,0.5,0.3]
+    dists = [4,2,0.5,0.2]
     npg_near = 12
-    npg_sing = 5
+    npg_sing = 8
     near_strat = :telles
 
     eltype_cont = mesh.eltype

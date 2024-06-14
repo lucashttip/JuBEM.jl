@@ -151,6 +151,96 @@ function applyBC(mesh, solver_var,H,G)
     return mesh,solver_var, C
 end
 
+function applyBC_simple(mesh::Mesh,problem::Problem,assembly::Assembly,H,G)
+
+    nnel = size(mesh.IEN,1)
+
+    nDofs = size(assembly.H,1)
+
+    LHS = zeros(eltype(assembly.H),nDofs,nDofs)
+    RHS = zeros(eltype(assembly.H),nDofs)
+
+    RHS_mat = zeros(eltype(assembly.H),nDofs,nDofs)
+    RHS_vec = zeros(eltype(assembly.H),nDofs)
+    
+
+    for e in 1:mesh.nelem
+
+        Dofs = mesh.LM[:,e]
+
+        tag = mesh.tag[e]
+        bctag = problem.taginfo[tag,2]
+        bctypes = problem.bctype[bctag,2:end]
+        bcvalues = problem.bcvalue[bctag,:]
+
+        LHS_aux = zeros(nDofs,3*nnel)
+        RHS_aux = zeros(nDofs,3*nnel)
+
+        for i in 1:3
+            if bctypes[i] == 1
+                LHS_aux[:,i:3:3*nnel] = -assembly.G[:,Dofs[i:3:3*nnel]]
+                RHS_aux[:,i:3:3*nnel] = -assembly.H[:,Dofs[i:3:3*nnel]]
+                RHS_vec[Dofs[i:3:3*nnel]] .= bcvalues[i]
+
+            elseif bctypes[i] == 2
+                LHS_aux[:,i:3:3*nnel] = assembly.H[:,Dofs[i:3:3*nnel]]
+                RHS_aux[:,i:3:3*nnel] = assembly.G[:,Dofs[i:3:3*nnel]]
+                RHS_vec[Dofs[i:3:3*nnel]] .= bcvalues[i]
+            else
+                error("not supported by this func")
+            end
+        end
+
+        LHS[:,Dofs] = LHS_aux
+        RHS_mat[:,Dofs] = RHS_aux
+    end
+
+    RHS = RHS_mat*RHS_vec
+
+    return LHS, RHS
+end
+
+function returnut_simple(x,mesh::Mesh,problem::Problem)
+    
+    nnel = size(mesh.IEN,1)
+    
+    u = zeros(mesh.nnodes,3)
+    t = zeros(mesh.nnodes,3)
+
+    
+    for e in 1:mesh.nelem
+        Dofs = mesh.LM[:,e]
+
+        tag = mesh.tag[e]
+        bctag = problem.taginfo[tag,2]
+        bctypes = problem.bctype[bctag,2:end]
+        bcvalues = problem.bcvalue[bctag,:]
+
+        u_aux = zeros(nnel,3)
+        t_aux = zeros(nnel,3)
+
+        
+        for i in 1:3
+            if bctypes[i] == 1
+                u_aux[:,i] .= bcvalues[i]
+                t_aux[:,i] = x[Dofs[i:3:3*nnel]]
+
+            elseif bctypes[i] == 2
+                u_aux[:,i] = x[Dofs[i:3:3*nnel]]
+                t_aux[:,i] .= bcvalues[i]
+            else
+                error("not supported by this func")
+            end
+        end
+
+        u[mesh.IEN[:,e],:] = u_aux
+        t[mesh.IEN[:,e],:] = t_aux
+    end
+
+
+    return u, t
+end
+
 function returnut(mesh,x, C=[])
     nnel = Int((mesh.eltype+1)^2.0)
     u = zeros(typeof(x[1]),3*mesh.nnodes)

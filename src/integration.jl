@@ -55,7 +55,7 @@ function calc_nJp_sing(rules,points,idx_cont, np)
 
 end
 
-function integrate_nonsing(source, points, rules, material)
+function integrate_nonsing(source, points, rules, material,integ_data)
     r, c, d = calc_dist(source, points, rules)
 
     if r > 0
@@ -83,7 +83,11 @@ function integrate_nonsing(source, points, rules, material)
         end
     end
 
-    return HELEM, GELEM
+    aux = Dict([("d", d), ("r", r),("npg",size(Nd,1)),("idxs",())])
+
+    push!(integ_data,aux)
+
+    return HELEM, GELEM, integ_data
 
 end
 
@@ -97,7 +101,7 @@ function integrate_nonsing2(source, points, rules, material)
         Nd = calc_N_gen(rules.csis_nodes,rules.gp[r].csis)
     else
         # NEAR INTEGRATION
-        integ_points, Nd, J, normals, weights = calc_nearpoints(rules.gp_near.csis, rules.gp_near.omegas,c, d, rules.csis_points, rules.csis_nodes, points)
+        integ_points, Nd, normals, weights = calc_nearpoints(rules.gp_near.csis, rules.gp_near.omegas,c, d, rules.csis_points, rules.csis_nodes, points)
     end
 
     nGP = length(weights)
@@ -124,11 +128,12 @@ function integrate_sing(source, points, rules::Rules, material, idx)
 
 
     nnel = Int(length(rules.csis_nodes)^2)
+
     idx_cont, idx_descont, np = calc_idx_permutation2(nnel,idx)
 
     integ_points, normals, weights = calc_nJp_sing(rules,points,idx_cont, np)
 
-    Nd = calc_N_gen(rules.csis_points,rules.csis_sing[np].csis)[:,idx_descont]
+    Nd = calc_N_gen(rules.csis_nodes,rules.csis_sing[np].csis)[:,idx_descont]
 
     nnel = size(Nd,2)
     HELEM = zeros(3,3*nnel)
@@ -139,8 +144,9 @@ function integrate_sing(source, points, rules::Rules, material, idx)
     for k in axes(Nd,2)
         for i in 1:3
             for j in 1:3
-                HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*Nd[:,k].*weights)
-                GELEM[i,3*(k-1)+j] = sum(u[i,j,:].*Nd[:,k].*weights)
+                pesos = Nd[:,k].*weights
+                HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*pesos)
+                GELEM[i,3*(k-1)+j] = sum(u[i,j,:].*pesos)
             end
         end
     end

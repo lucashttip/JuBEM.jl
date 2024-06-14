@@ -94,6 +94,10 @@ function statics_assembly_tests!(mesh::Mesh, materials::Vector{Material}, assemb
     assembly.H = zeros(max_DOF,max_DOF)
     assembly.G = zeros(max_DOF,max_DOF)
 
+
+    # variable to hold information about integration and indices
+    integ_data = Dict[]
+
     # Loop over elements
 
     p = Progress(nelem,1, "Computing static G and H...", 50)
@@ -113,13 +117,15 @@ function statics_assembly_tests!(mesh::Mesh, materials::Vector{Material}, assemb
             # Non-singular integration
             if s ∉ nodesidx
                 # Integrate
-                GELEM, HELEM = integrate_nonsing(source, points, rules, materials[1])
+                HELEM, GELEM, integ_data = integrate_nonsing(source, points, rules, materials[1],integ_data)
+                # @infiltrate
+                integ_data[end]["idxs"] = (mesh.ID[:,s],mesh.LM[:,e])
             else
             # Singular integration
                 # Local index of source node on the element
                 idx = findfirst(nodesidx.==s)
                 # Integrate
-                GELEM, HELEM = integrate_sing(source, points, rules, materials[1], idx)
+                HELEM, GELEM = integrate_sing(source, points, rules, materials[1], idx)
             end
 
             #Assembly on matrix
@@ -139,6 +145,6 @@ function statics_assembly_tests!(mesh::Mesh, materials::Vector{Material}, assemb
     end
     integrate_rigid_body!(assembly.H,mesh)
 
-    return assembly
+    return integ_data
 
 end
