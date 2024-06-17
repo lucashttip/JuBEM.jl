@@ -6,7 +6,7 @@ $Material
 1.000000E+01 0.0 0.01 1.0
 $EndMaterial
 $MeshType
-2
+1
 0.4
 $EndMeshType
 $BoundaryConditions

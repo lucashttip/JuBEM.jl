@@ -7,10 +7,12 @@ To-dos:
 [ ] Update/Clean functions
     [x] Update generate_mesh! and derive_data!
     [x] Create statics_assembly from solver_statics
-    [ ] Verify statics_assembly
-    [ ] Create new apply BC
-    [ ] Solver problems and verify statics
+    [x] Verify statics_assembly
+    [x] Create new apply BC_simple
+    [x] Solver problems and verify statics
+    [ ] Update output functions
     [ ] Create dynamics_assembly
+    [ ] Verify apply BC
 [ ] Improve API for running code/make it more sparse
 [ ] Clean running code
 [ ] Improve integration strategies (including vector)

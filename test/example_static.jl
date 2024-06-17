@@ -1,7 +1,7 @@
 using JuBEM
 
 mesh_file = "./input/meshes/bar_1_10.msh"
-problem_file = "./input/problems/beam.prob"
+problem_file = "./input/problems/bar.prob"
 output_file = "test_out.h5"
 ##
 
