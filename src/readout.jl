@@ -34,7 +34,6 @@ function readvars_out(filename)
 end
 
 function getnoderes_out(filename,node)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)

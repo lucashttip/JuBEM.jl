@@ -68,8 +68,9 @@ function calc_funsol_static_vec(source_node,field_points, normals, C_stat)
 
 end
 
-function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
+function calc_funsol_dynamic(source_node,field_node, normal, zconsts)
     
+    delta = I(3)
     zu = zeros(ComplexF64,3,3)
     zt = zeros(ComplexF64,3,3)    
     

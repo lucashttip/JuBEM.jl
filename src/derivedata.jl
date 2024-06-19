@@ -16,18 +16,11 @@ function derive_data!(material::Vector{Material}, problem::Problem)
             material[i].C_stat = C_stat
         end
 
-        # ! Calcula os pontos de gauss
-        assembly = Assembly()
-        assembly.nGP = 8
-        assembly.csi, assembly.omega = gausslegendre(assembly.nGP)
- 
 
         if !isempty(problem.nFr)
             calc_frequencies!(problem)
         end
         
-        return assembly
-
 end
 
 function calc_frequencies!(problem)

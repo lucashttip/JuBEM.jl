@@ -1,4 +1,4 @@
-function remove_EE!(mesh,solver_var)
+function remove_EE!(mesh::Mesh,assembly::Assembly)
 
     nonee = findall(x->x != 0 , mesh.bc[:,1])
     
@@ -16,8 +16,8 @@ function remove_EE!(mesh,solver_var)
     mesh.nodes = mesh.nodes[unique(sort(mesh.IEN[:])),:]
 
     # Remover as colunas de G e de H
-    solver_var.G = solver_var.G[mesh.LM[:],mesh.LM[:]]
-    solver_var.H = solver_var.H[mesh.LM[:],mesh.LM[:]]
+    assembly::Assembly.G = assembly::Assembly.G[mesh.LM[:],mesh.LM[:]]
+    assembly::Assembly.H = assembly::Assembly.H[mesh.LM[:],mesh.LM[:]]
 
 
     return mesh, solver_var

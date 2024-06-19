@@ -147,16 +147,11 @@ It's a mutable struct.
  
 """
 mutable struct Assembly <: JuBEMtypes
-    nGP :: Int16
-    csi :: Array{Float64,1}
-    omega :: Array{Float64,1}
     H :: Array{Float64,2}
     G :: Array{Float64,2}
     zH :: Array{ComplexF64,2}
     zG :: Array{ComplexF64,2}
-    ma
-    zvetsol
-    Assembly() = new(0,[],[],Array{Float64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{Float64,1}(undef,0))
+    Assembly() = new(Array{Float64,2}(undef,0,0),Array{Float64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0),Array{ComplexF64,2}(undef,0,0))
 end
 
 """
@@ -175,7 +170,9 @@ It's a mutable struct.
 mutable struct Solution{T} <: JuBEMtypes
     u :: Array{T,2}
     t :: Array{T,2}
-    urb :: Array{T,2}
+    urb :: Array{T,1}
+    time :: Float64
+    freq :: Float64
 end
 
 """

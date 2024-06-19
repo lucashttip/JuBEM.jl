@@ -1,119 +1,75 @@
-# using CairoMakie
-import GLMakie
-import GeometryBasics
-const mk = GLMakie
-const gb = GeometryBasics
-# const mk = CairoMakie
-# using Meshes
-# using MeshViz
+import PlotlyJS
 
-function view_mesh(mesh)
-    # fig = mk.Figure()
-    # ax = mk.Axis(fig[1, 1])
-    fig,ax,plt = mk.scatter(mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=80, color = :blue)
-    # mk.scatter!(ax,mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=70, color = :blue)
+function triangulate(mesh::Mesh)
+    triangles = zeros(Int64,2*mesh.nelem,3)
 
-    mk.scatter!(ax,mesh.nodes[:,2],mesh.nodes[:,3],mesh.nodes[:,4], markersize=80, color = :red,marker=:cross)
+    for e in axes(mesh.IEN,2)
+        triidx = [2*(e-1)+1,2*e]
 
-    for e in 1:mesh.nelem
-        p1, p2, p3, p4 = mesh.IEN_geo[1:4,e]
-        px = mesh.points[[p1,p2,p3,p4,p1],2]
-        py = mesh.points[[p1,p2,p3,p4,p1],3]
-        pz = mesh.points[[p1,p2,p3,p4,p1],4]
-
-        pxt = [mesh.points[[p1,p2,p3],2];mesh.points[[p3,p4,p1],2]]
-        pyt = [mesh.points[[p1,p2,p3],3];mesh.points[[p3,p4,p1],3]]
-        pzt = [mesh.points[[p1,p2,p3],4];mesh.points[[p3,p4,p1],4]]
-
-        xyz = reshape([pxt[:] pyt[:] pzt[:]]', :)
-        # mk.poly!(ax,gb.connect(xyz, gb.Point{3}), gb.connect(1:length(pxt), gb.TriangleFace), color = :white, strokecolor = :black, strokewidth = 0)
-        mk.lines!(ax,px,py,pz,color=:black)
+        ijk = [
+            1 2 4
+            2 3 4 
+            ]
+        triangles[triidx,:] = mesh.IEN[ijk,e].-1
     end
-    return fig
+    return triangles
 end
 
-function view_res(mesh,u)
-    fig,ax,plt = mk.scatter(mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=80, color = :blue)
-    # mk.scatter!(ax,mesh.points[:,2],mesh.points[:,3],mesh.points[:,4], markersize=70, color = :blue)
+function map_plocs(csis)
+    nnel = length(csis)^2
+    k = JuBEM.map_k(nnel)
+    plocs = zeros(nnel,2)
+    for i in eachindex(k)
+        plocs[i,:] = [csis[k[i][1]], csis[k[i][2]]]
+    end
+    return plocs
+end
 
-    mk.scatter!(ax,mesh.nodes[:,2],mesh.nodes[:,3],mesh.nodes[:,4], markersize=80, color = :red,marker=:cross)
-
-    csi_cont = range(-1,1,length = mesh.eltype+1)
-    csi_descont = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
-
-    csis = calc_csis_grid(csi_cont)
-    N = calc_N_gen(csi_descont,csis)
+function plot_disp(mesh::Mesh,sol::Solution,dim)
     
+    u = sol.u
 
-    for e in 1:mesh.nelem
-        p1, p2, p3, p4 = mesh.IEN_geo[1:4,e]
-        px = mesh.points[[p1,p2,p3,p4,p1],2]
-        py = mesh.points[[p1,p2,p3,p4,p1],3]
-        pz = mesh.points[[p1,p2,p3,p4,p1],4]
+    order = mesh.eltype
+    offset = mesh.offset
+    csis_points = range(-1,1,length=order+1) 
+    csis_nodes = range(-1+offset,1-offset,length=order+1) 
+    plocs = map_plocs(csis_points)
+    N = calc_N_gen(csis_nodes,plocs)
+    upoints = zeros(size(u))
+    xpoints = zeros(size(u))
 
-        pxt = [mesh.points[[p1,p2,p3],2];mesh.points[[p3,p4,p1],2]]
-        pyt = [mesh.points[[p1,p2,p3],3];mesh.points[[p3,p4,p1],3]]
-        pzt = [mesh.points[[p1,p2,p3],4];mesh.points[[p3,p4,p1],4]]
+    tri = triangulate(mesh)
 
-        xyz = reshape([pxt[:] pyt[:] pzt[:]]', :)
-        # mk.poly!(ax,gb.connect(xyz, gb.Point{3}), gb.connect(1:length(pxt), gb.TriangleFace), color = :white, strokecolor = :black, strokewidth = 0)
-        mk.lines!(ax,px,py,pz,color=:black)
-    end
-    return fig
-end
+    for e in axes(mesh.IEN,2)
+        pidx = mesh.IEN_geo[:,e]
+        nidx = mesh.IEN[:,e]
+        nodes = mesh.nodes[nidx,2:end]
 
-function animate_res_freq(mesh,u,freq;dir=0,frac = 0.5, filename = "anim.mp4",res = (800, 600),t = 0)
 
-    u1,_ = calc_utpoints(mesh,u,u).*frac
 
-    points = mesh.points[:,2:end] .+ real.(u1)
-    elem = mesh.IEN_geo'
-    conn = connect.([Tuple(elem[i,:]) for i in axes(elem,1)])
-    faces = [gb.QuadFace(elem[n,:]) for n in axes(elem,1)]
-    ps = [gb.Point3f0(points[n,:]) for n in axes(points,1)]
 
-    m = gb.normal_mesh(ps, faces)
+        unodes = sol.u[nidx,:]
+        upoints[nidx,:] = N*unodes
+        xpoints[nidx,:] = N*nodes
 
-    if dir == 0
-        c = [norm(real.(u1[n,:])) for n in axes(u1,1)]
-    else
-        c = real.(u1[:,dir])
     end
 
-    fig = mk.Figure(resolution = res)
-    ax = mk.Axis3(fig[1, 1],aspect=:data)
-    # fig,ax,plt = mk.mesh(m,color = c)
-    plt = mk.mesh!(ax,m,color = c)
-    plt2 = mk.wireframe!(ax, m, color=(:black, 0.5), linewidth=2, transparency=true)
+    t = PlotlyJS.mesh3d(x=xpoints[:,1],y=xpoints[:,2],z=xpoints[:,3],i=tri[:,1],j=tri[:,2],k=tri[:,3], intensity = upoints[:,dim],showlegend=true)
 
-    # animation settings
-    ti = 0
-    if t <= 0
-        tf = 2*pi/freq
-    else
-        tf = t
-    end
-    framerate = 30
-    nframes = Int(round(30*(tf-ti)))
-    time_iterator = range(ti, tf, length=nframes)
+    max_x = maximum(abs.(xpoints[:,1]))
+    max_y = maximum(abs.(xpoints[:,2]))
+    max_z = maximum(abs.(xpoints[:,3]))
 
-    mk.record(fig, filename, time_iterator; framerate = framerate) do time
-        change = exp(freq*time*im)
-        u2 = u1.*change
-        points = mesh.points[:,2:end] .+ real.(u2)
-        ps = [gb.Point3f0(points[n,:]) for n in axes(points,1)]
-        m = gb.normal_mesh(ps, faces)
+    max_dim = maximum([max_x,max_y,max_z])
 
-        if dir == 0
-            c = [norm(real(u2[n,:])) for n in axes(u2,1)]
-        else
-            c = real.(u2[:,dir])
-        end
+    asp_x = 1.5*max_x/max_dim
+    asp_y = 1.5*max_y/max_dim
+    asp_z = 1.5*max_z/max_dim
 
-        plt.input_args[1][] = m
-        plt.attributes.color[] = c
-        plt2.input_args[1][] = m
-    end
+    layout = PlotlyJS.Layout( 
+        coloraxis=PlotlyJS.attr(autocolorscale=true)    ,
+        scene_aspectratio=PlotlyJS.attr(x=asp_x, y=asp_y, z=asp_z),
+        margin=PlotlyJS.attr(autoexpand=true))
 
-
+    return PlotlyJS.plot(t, layout)
 end

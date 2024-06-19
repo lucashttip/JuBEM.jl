@@ -155,13 +155,13 @@ function applyBC_simple(mesh::Mesh,problem::Problem,assembly::Assembly,H,G)
 
     nnel = size(mesh.IEN,1)
 
-    nDofs = size(assembly.H,1)
+    nDofs = size(H,1)
 
-    LHS = zeros(eltype(assembly.H),nDofs,nDofs)
-    RHS = zeros(eltype(assembly.H),nDofs)
+    LHS = zeros(eltype(H),nDofs,nDofs)
+    RHS = zeros(eltype(H),nDofs)
 
-    RHS_mat = zeros(eltype(assembly.H),nDofs,nDofs)
-    RHS_vec = zeros(eltype(assembly.H),nDofs)
+    RHS_mat = zeros(eltype(H),nDofs,nDofs)
+    RHS_vec = zeros(eltype(H),nDofs)
     
 
     for e in 1:mesh.nelem
@@ -173,18 +173,18 @@ function applyBC_simple(mesh::Mesh,problem::Problem,assembly::Assembly,H,G)
         bctypes = problem.bctype[bctag,2:end]
         bcvalues = problem.bcvalue[bctag,:]
 
-        LHS_aux = zeros(nDofs,3*nnel)
-        RHS_aux = zeros(nDofs,3*nnel)
+        LHS_aux = zeros(eltype(H),nDofs,3*nnel)
+        RHS_aux = zeros(eltype(H),nDofs,3*nnel)
 
         for i in 1:3
             if bctypes[i] == 1
-                LHS_aux[:,i:3:3*nnel] = -assembly.G[:,Dofs[i:3:3*nnel]]
-                RHS_aux[:,i:3:3*nnel] = -assembly.H[:,Dofs[i:3:3*nnel]]
+                LHS_aux[:,i:3:3*nnel] = -G[:,Dofs[i:3:3*nnel]]
+                RHS_aux[:,i:3:3*nnel] = -H[:,Dofs[i:3:3*nnel]]
                 RHS_vec[Dofs[i:3:3*nnel]] .= bcvalues[i]
 
             elseif bctypes[i] == 2
-                LHS_aux[:,i:3:3*nnel] = assembly.H[:,Dofs[i:3:3*nnel]]
-                RHS_aux[:,i:3:3*nnel] = assembly.G[:,Dofs[i:3:3*nnel]]
+                LHS_aux[:,i:3:3*nnel] = H[:,Dofs[i:3:3*nnel]]
+                RHS_aux[:,i:3:3*nnel] = G[:,Dofs[i:3:3*nnel]]
                 RHS_vec[Dofs[i:3:3*nnel]] .= bcvalues[i]
             else
                 error("not supported by this func")
@@ -204,8 +204,8 @@ function returnut_simple(x,mesh::Mesh,problem::Problem)
     
     nnel = size(mesh.IEN,1)
     
-    u = zeros(mesh.nnodes,3)
-    t = zeros(mesh.nnodes,3)
+    u = zeros(eltype(x),mesh.nnodes,3)
+    t = zeros(eltype(x),mesh.nnodes,3)
 
     
     for e in 1:mesh.nelem
@@ -216,8 +216,8 @@ function returnut_simple(x,mesh::Mesh,problem::Problem)
         bctypes = problem.bctype[bctag,2:end]
         bcvalues = problem.bcvalue[bctag,:]
 
-        u_aux = zeros(nnel,3)
-        t_aux = zeros(nnel,3)
+        u_aux = zeros(eltype(x),nnel,3)
+        t_aux = zeros(eltype(x),nnel,3)
 
         
         for i in 1:3

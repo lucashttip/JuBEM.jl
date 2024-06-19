@@ -10,9 +10,11 @@ To-dos:
     [x] Verify statics_assembly
     [x] Create new apply BC_simple
     [x] Solver problems and verify statics
-    [ ] Update output functions
-    [ ] Create dynamics_assembly
-    [ ] Verify apply BC
+    [x] Update output functions
+    [x] Create new plotting function (lighter)
+    [x] Create dynamics_assembly
+    [ ] Update remove_ee
+    [ ] Verify apply BC rb
 [ ] Improve API for running code/make it more sparse
 [ ] Clean running code
 [ ] Improve integration strategies (including vector)
