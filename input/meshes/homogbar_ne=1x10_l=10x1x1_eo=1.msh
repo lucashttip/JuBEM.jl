@@ -4,7 +4,7 @@ $EndMeshFormat
 $PhysicalNames
 3
 2 1 "Face on x=0"
-2 2 "4 faces parallel to x"
+2 2 "Faces parallel to x"
 2 3 "Face on x=1"
 $EndPhysicalNames
 $Entities
