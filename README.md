@@ -3,8 +3,8 @@
 To-dos:
 [x] Update/Improve Type definitions
 [x] Update input to be separate files for mesh and problem
-[x] Update shape functions
 [ ] Update/Clean functions
+    [x] Update shape functions
     [x] Update generate_mesh! and derive_data!
     [x] Create statics_assembly from solver_statics
     [x] Verify statics_assembly
@@ -14,11 +14,12 @@ To-dos:
     [x] Create new plotting function (lighter)
     [x] Create dynamics_assembly
     [ ] Update remove_ee
+    [ ] Update apply BC rb
     [ ] Verify apply BC rb
-[ ] Improve API for running code/make it more sparse
-[ ] Clean running code
-[ ] Improve integration strategies (including vector)
-[ ] Make it more readable
+[ ] Add multiregions
+[ ] Improve API for running code/make it more concise
+[ ] Add documentations
 [ ] Eventually improve package to contain CI, Docs and Codecov
 [ ] Improve distance calculation
+[ ] Improve integrations
 [ ] Revisit and report element subdivision
