@@ -53,3 +53,11 @@ idx_bcNs tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz
 - `rb`: Corpo rígido (Neste caso os valores são a posição do centróide)
 - `ee`: Enclosing Element (valores não tem importancia, mas devem ser passados, podem ser 0)
 - `i`: Interface (valores devem ser 1 e -1 para cada lado da interface)
+
+No programa JuBEM, cada uma destas será atribuída um valor numérico na variável `problem.bctype`, a relação dos valores é a seguinte:
+
+- `u`: 1
+- `t`: 2
+- `rb`: 2+(idxrb)
+- `ee`: 0
+- `i`: -1

@@ -42,7 +42,7 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
     G[LM_new[:,elemidxnonee][:],LM_new[:,elemidxnonee][:]] = assembly.G[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]
     H[LM_new[:,elemidxnonee][:],LM_new[:,elemidxnonee][:]] = assembly.H[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]
 
-    println(size(assembly.G[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]))
+    # println(size(assembly.G[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]))
 
     assembly.G = G
     assembly.H = H

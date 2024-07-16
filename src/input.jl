@@ -304,6 +304,8 @@ function parse_BC!(io,problem)
                 rbidx2 = rbidx+1
             elseif data[2*j] == "ee"
                 bc[i,j+1] = 0
+            elseif data[2*j] == "i"
+                bc[i,j+1] = -1
             end
         end
 
