@@ -81,7 +81,8 @@ end
 """
     N = calc_N_gen(nodal_csis,csis_grid;dg = :N)
 
-    Returns a matrix. Possible values for dg are :N, :dNdc, :dNde, :d2Ndc2 and :d2Ndce
+    Returns a matrix. 
+    Possible values for dg are :N, :dNdc, :dNde, :d2Ndc2 and :d2Ndce
 """
 function calc_N_gen(nodal_csis,csis_grid;dg = :N)
 

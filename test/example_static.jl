@@ -1,10 +1,10 @@
 using Revise
 using JuBEM
 
-# mesh_file = "./input/meshes/bar_1_10.msh"
-mesh_file = "./input/meshes/soilEE_109.msh"
-# problem_file = "./input/problems/bar_static.prob"
-problem_file = "./input/problems/soilrb_EE_static.prob"
+mesh_file = "./input/meshes/homogbar_ne=1x10_l=10x1x1_eo=1.msh"
+# mesh_file = "./input/meshes/soilEE_109.msh"
+problem_file = "./input/problems/bar_static.prob"
+# problem_file = "./input/problems/soilrb_EE_static.prob"
 
 output_file = "test_static.h5"
 ##
@@ -23,7 +23,7 @@ assembly = JuBEM.statics_assembly(mesh,materials)
 
 JuBEM.remove_EE!(mesh,assembly,problem)
 
-LHS, RHS = JuBEM.applyBC_simple(mesh::Mesh,problem::Problem,assembly::Assembly,assembly.H,assembly.G)
+LHS, RHS = JuBEM.applyBC_simple(mesh,problem,assembly.H,assembly.G)
 
 x = LHS\RHS
 
@@ -43,4 +43,4 @@ e = findall(mesh.tag.==3)
 idx = vec(mesh.IEN[:,e])
 ul = u[idx,:]
 
-plot_disp(mesh,sol,3)
+plot_disp(mesh,sol,1)

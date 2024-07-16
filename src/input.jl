@@ -291,7 +291,7 @@ function parse_BC!(io,problem)
     rbidx2 = 3
 
     for i in 1:nbc
-        data = split(replace(readline(io), "\"" =>""))
+        data = split(readline(io))
         bc[i,1] = parse(Float64, data[1])
         bcvalue[i,:] = parse.(Float64,data[[3,5,7]])
         for j in 1:3
@@ -327,7 +327,7 @@ end
 function parse_taginfo!(io,problem)
     ntags = parse(Int64, readline(io))
 
-    problem.taginfo = zeros(Int16,ntags,3)
+    problem.taginfo = zeros(Int16,ntags,4)
 
     for i in 1:ntags
         data = split(readline(io))

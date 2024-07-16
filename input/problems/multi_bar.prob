@@ -11,11 +11,11 @@ $MeshType
 $EndMeshType
 $BoundaryConditions
 3
-1 "u 0.0 u 0.0 u 0.0"
-2 "t 0.0 t 0.0 t 0.0"
-3 "t 1.0 t 0.0 t 0.0"
-4 "i 1 i 1 i 1"
-5 "i -1 i -1 i -1"
+1 u 0.0 u 0.0 u 0.0
+2 t 0.0 t 0.0 t 0.0
+3 t 1.0 t 0.0 t 0.0
+4 i 1 i 1 i 1
+5 i -1 i -1 i -1
 $EndBoundaryConditions
 $TagInformation
 3
