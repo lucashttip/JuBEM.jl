@@ -2,10 +2,7 @@ function applyBC(mesh::Mesh, assembly::Assembly,problem::Problem,H,G)
 
     nnel = (mesh.eltype+1)^2
 
-    bcvalue = reshape(mesh.bcvalue',length(mesh.bcvalue))
-
-
-
+    
     LM = zeros(Int64,nnel,size(mesh.LM,2),3)
     for i in 1:3
         LM[:,:,i] = mesh.LM[i:3:end,:]
@@ -154,7 +151,7 @@ function applyBC(mesh::Mesh, assembly::Assembly,problem::Problem,H,G)
     return mesh,assembly, C
 end
 
-function returnut(mesh,x, C=[])
+function returnut(mesh::Mesh,x, C=[])
     nnel = Int((mesh.eltype+1)^2.0)
     u = zeros(typeof(x[1]),3*mesh.nnodes)
     t = zeros(typeof(x[1]),3*mesh.nnodes)
@@ -212,7 +209,7 @@ function returnut(mesh,x, C=[])
     return u, t, urb
 end
 
-function calc_utpoints(mesh,u,t)
+function calc_utpoints(mesh::Mesh,u,t)
     if mesh.eltype>0
         csi_points = range(-1,1,length = mesh.eltype+1)
         csi_nodes = range(-1+mesh.offset,1-mesh.offset,length = mesh.eltype+1)
