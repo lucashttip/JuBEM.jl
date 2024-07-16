@@ -40,10 +40,10 @@ O bloco BoundaryConditions contém as seguintes informações:
 
 ```
 Nbc
-idx_bc1 "tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz"
-idx_bc2 "tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz"
+idx_bc1 tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz
+idx_bc2 tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz
 ...
-idx_bcNs "tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz"
+idx_bcNs tipo_bcx valor_bcx tipo_bcy valor_bcy tipo_bcz valor_bcz
 ```
 
 `Nbc` é o número de condições de contorno, `idx_bci` é o índice da condição de contorno e em seguida é passada uma string que contém o tipo de condição de contorno em cada direção e seu valor. Condições de contorno suportadas são:
