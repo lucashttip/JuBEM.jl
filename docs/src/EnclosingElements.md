@@ -5,4 +5,3 @@ No programa JuBEM, Enclosing Elements são utilizados para calcular as integraç
 Após a integração, porém, deve haver uma tratamento para remover os termos de Enclosing Elements do problema, uma vez que não devem ser considerados (se fossem considerados, o domínio não seria infinito). Para isso, foi implementada a função `remove_EE!()`. A seguir esta função será explicada, junto da forma correta de tratar os dados que saem dela.
 
 ## Função `remove_EE!()`
-
