@@ -1,4 +1,18 @@
-# JuBEM
+# JuBEM.jl
+
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://lucashttip.github.io/JuBEM.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://lucashttip.github.io/JuBEM.jl/dev/)
+
+
+JuBEM.jl is a Boundary Element Method package written in Julia. It currently supports 3D elastostatics and elastodynamics problems with quadrilateral linear discontinuous elements.
+Infinite domains are supported.
+
+Rigid-body boundary condition is also supported.
+
+JuBEM has been implemented with the purpose of solving Soil-Structure Interaction Problems.
+
+Supported meshes are generated with [Gmsh](https://gmsh.info/) and created using the [JuBEMeshes.jl](https://github.com/lucashttip/JuBEMeshes.jl) package.
+
 
 To-dos:
 
