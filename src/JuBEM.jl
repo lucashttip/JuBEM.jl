@@ -68,6 +68,5 @@ include("readout.jl")
 export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out,getflex_out
 
 include("findmind.jl")
-include("distfuncs.jl")
 
 end

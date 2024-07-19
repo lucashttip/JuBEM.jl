@@ -13,7 +13,6 @@ JuBEM has been implemented with the purpose of solving Soil-Structure Interactio
 
 Supported meshes are generated with [Gmsh](https://gmsh.info/) and created using the [JuBEMeshes.jl](https://github.com/lucashttip/JuBEMeshes.jl) package.
 
-
 To-dos:
 
 - [x] Update/Improve Type definitions
@@ -31,6 +30,9 @@ To-dos:
     - [x] Update remove_ee
     - [ ] Update apply BC rb
     - [ ] Verify apply BC rb
+    - [ ] Juntar integratiorules e integrationconstants
+    - [ ] Remover integrationstatics e integrationdynamics?  
+    - [ ] Rethink/Remove solver, solverstatics, solverdynamics
 - [ ] Add multiregions
 - [ ] Improve API for running code/make it more concise
 - [ ] Add documentations

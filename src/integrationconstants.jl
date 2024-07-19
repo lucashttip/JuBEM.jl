@@ -65,53 +65,6 @@ function calc_N_sing(mesh, csis_cont, csis_descont,npg_sing)
 
 end
 
-# function calc_integration_rules!(rules)
-    
-#     pw = gausslegendre.(rules.npgs)
-
-#     for i in eachindex(rules.npgs)
-#         csis = calc_csis_grid(pw[i][1])
-#         omegas = calc_omegas(pw[i][2])
-#         push!(rules.gp,gauss_points_type(csis,omegas))
-#     end
-
-#     pnear = gausslegendre(rules.npg_near)
-#     csis = calc_csis_grid(pnear[1])
-#     omegas = calc_omegas(pnear[2])
-#     rules.gp_near = gauss_points_type(csis,omegas)
-
-#     return rules
-# end
-
-# function calc_nonsing_consts(mesh)
-
-#     npgs = Int[4,5,6,8]
-#     dists = [4,2,0.5,0.3]
-#     npg_near = 12
-#     npg_sing = 5
-#     # npgs = Int[4,4,4,8]
-#     # dists = [4,2,0.5,0.2]
-#     # npg_near = 12
-
-#     rules = Rules(npgs,dists,npg_near,npg_sing)
-#     calc_integration_rules!(rules)
-
-
-
-#     eltype_cont = mesh.eltype
-#     offset = mesh.offset
-#     if mesh.eltype == 0
-#         eltype_cont = 1
-#         offset = 1.0
-#     end
-
-#     csis_cont = range(-1,1,length = eltype_cont+1)
-#     csis_descont = range(-1+offset,1 - offset,length=mesh.eltype+1)
-
-#     return csis_cont, csis_descont, rules
-
-# end
-
 function calc_nJgp(N, dNc, dNe, gp, field_points)
     normal = []
     J = []

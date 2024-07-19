@@ -1,3 +1,20 @@
+"""
+    applyBC(mesh::Mesh, assembly::Assembly,problem::Problem,H,G)
+
+Applies boundary conditions defined in problem to the matrices H and G, returning the matrix LHS and the vector RHS. The problem is then described as
+
+```math
+[LHS]x = [RHS]
+```
+
+# Arguments
+- `n::Integer`: .
+- `mesh::Mesh`: .
+- `assembly::Assembly`: .
+- `problem::Problem`: .
+- `H::Any`: Must be a matrix.
+- `G::Any`: Must be a matrix.
+"""
 function applyBC(mesh::Mesh, assembly::Assembly,problem::Problem,H,G)
 
     nnel = (mesh.eltype+1)^2
@@ -148,7 +165,7 @@ function applyBC(mesh::Mesh, assembly::Assembly,problem::Problem,H,G)
     # mb[:,nnel*nu+1:end] = G[:,LM[:,it][:]]
     mesh.zbcvalue = mb*y
 
-    return mesh,assembly, C
+    return LHS,RHS
 end
 
 function returnut(mesh::Mesh,x, C=[])
