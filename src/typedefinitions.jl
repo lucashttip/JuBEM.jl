@@ -170,7 +170,7 @@ It's a mutable struct.
 mutable struct Solution{T} <: JuBEMtypes
     u :: Array{T,2}
     t :: Array{T,2}
-    urb :: Array{T,1}
+    urb :: Array{T,2}
     time :: Float64
     freq :: Float64
 end

@@ -46,7 +46,7 @@ include("solver.jl")
 export calc_GH!, solvestatic, solvedynamic, solve, solve_flex_dyn
 
 include("applyBC.jl")
-export applyBC!, calc_utpoints
+export applyBC_rb, applyBC_simple, returnut_rb, returnut_simple
 
 include("EE.jl")
 # include("rbmotion.jl")
@@ -55,8 +55,7 @@ include("posprocessor.jl")
 export calc_interior_static, calc_interior_static_const
 
 include("plotting.jl")
-export plot_disp
-# export view_mesh, animate_res_freq
+export plot_disp, plot_meshtags
 
 include("writevtk.jl")
 export writevtk

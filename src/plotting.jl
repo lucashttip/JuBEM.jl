@@ -73,3 +73,68 @@ function plot_disp(mesh::Mesh,sol::Solution,dim)
 
     return PlotlyJS.plot(t, layout)
 end
+
+
+function triangulate_geo(mesh::Mesh)
+    triangles = zeros(Int64,2*mesh.nelem,3)
+
+    for e in axes(mesh.IEN_geo,2)
+        triidx = [2*(e-1)+1,2*e]
+
+        ijk = [
+            1 2 4
+            2 3 4 
+            ]
+        triangles[triidx,:] = mesh.IEN_geo[ijk,e].-1
+    end
+    return triangles
+end
+
+function plot_meshtags(mesh::Mesh)
+
+    tri = triangulate_geo(mesh)
+
+    xpoints = mesh.points[:,2:end]
+    cpoints = zeros(size(mesh.points,1))
+
+    for e in axes(mesh.IEN_geo,2)
+
+        pidx = mesh.IEN_geo[:,e]
+
+        cpoints[pidx] .= mesh.tag[e]
+
+    end
+
+    colors = [
+    	"rgb(255, 0, 0)",
+    	"rgb(0, 255, 0)",
+    	"rgb(0, 0, 255)",
+    	"rgb(200, 200, 50)",
+    	"rgb(230, 200, 10)",
+    	"rgb(255, 140, 0)"
+    ]
+    facecolor = repeat(colors[mesh.tag], inner=[2])
+
+    t = PlotlyJS.mesh3d(x=xpoints[:,1],y=xpoints[:,2],z=xpoints[:,3],i=tri[:,1],j=tri[:,2],k=tri[:,3], facecolor = facecolor,showlegend=true,colorscale=[
+        [0, "rgb(255, 0, 255)"],
+        [0.5, "rgb(0, 255, 0)"],
+        [1, "rgb(0, 0, 255)"]
+    ])
+
+    # t = PlotlyJS.mesh3d(x=xpoints[:,1],y=xpoints[:,2],z=xpoints[:,3],i=tri[:,1],j=tri[:,2],k=tri[:,3], intensity = cpoints,showlegend=true,colorscale=[
+    #     [0, "rgb(255, 0, 255)"],
+    #     [0.5, "rgb(0, 255, 0)"],
+    #     [1, "rgb(0, 0, 255)"]
+    # ])
+
+    # @infiltrate
+    
+    # layout = PlotlyJS.Layout( 
+    #     coloraxis=PlotlyJS.attr(autocolorscale=true)    ,
+    #     scene_aspectratio=PlotlyJS.attr(x=asp_x, y=asp_y, z=asp_z),
+    #     margin=PlotlyJS.attr(autoexpand=true))
+
+    # return PlotlyJS.plot(t, layout)
+    return PlotlyJS.plot(t)
+
+end

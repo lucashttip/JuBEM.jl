@@ -91,8 +91,8 @@ function dynamics_assembly!(mesh,problem,materials,assembly,freq)
 
     p = Progress(nelem,1, "Computing static G and H...", 50)
 
-    # Threads.@threads for e in 1:nelem
-    for e in 1:mesh.nelem
+    Threads.@threads for e in 1:nelem
+    # for e in 1:mesh.nelem
 
         nodesidx = mesh.IEN[:,e]
         points = mesh.points[mesh.IEN_geo[:,e],2:end]

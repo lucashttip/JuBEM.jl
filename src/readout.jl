@@ -58,7 +58,6 @@ function getnoderes_out(filename,node)
 end
 
 function geturb_out(filename,dim)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)
@@ -81,7 +80,6 @@ function geturb_out(filename,dim)
 end
 
 function getflex_out(filename)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)
