@@ -1,3 +1,5 @@
+# Requer limpeza e melhorias
+
 using Optim
 
 function ∇d!(G,csi, eta; points, source, csis_cont)

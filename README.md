@@ -28,11 +28,11 @@ To-dos:
     - [x] Create new plotting function (lighter)
     - [x] Create dynamics_assembly
     - [x] Update remove_ee
-    - [ ] Update apply BC rb
-    - [ ] Verify apply BC rb
-    - [ ] Juntar integratiorules e integrationconstants
-    - [ ] Remover integrationstatics e integrationdynamics?  
-    - [ ] Rethink/Remove solver, solverstatics, solverdynamics
+    - [x] Update apply BC rb
+    - [x] Verify apply BC rb
+    - [x] Juntar integratiorules e integrationconstants
+    - [x] Remover integrationstatics e integrationdynamics?  
+    - [x] Rethink/Remove solver, solverstatics, solverdynamics
 - [ ] Add multiregions
 - [ ] Improve API for running code/make it more concise
 - [ ] Add documentations

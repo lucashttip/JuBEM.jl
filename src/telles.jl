@@ -98,6 +98,7 @@ function telles1(csis, omegas, d)
     return pontos_gauss, pesos
 end
 
+# TODO: Função interessante para realizar experimentos
 function points_weights_local_near_combined(csis, omegas, source,d)
 
     pontos_telles, pesos_telles = telles1(csis,omegas,d)

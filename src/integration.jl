@@ -57,6 +57,24 @@ function calc_nJp_sing(rules,points,idx_cont, np)
 
 end
 
+function calc_nearpoints(csis, omegas,c, d, csis_cont, csis_descont,field_points)
+
+    gp_local_near, weights_near = pontos_pesos_local_telles(csis, omegas, c[1:2],d)
+    # gp_local_near, weights_near = points_weights_local_near_combined(csis, omegas, c,minimum(d))
+
+    # gp_local_near, weights_near = pontos_pesos_local_subelem(c[1], c[2], Nc_lin, dNcdcsi_lin, dNcdeta_lin, omegas)
+    N_near = calc_N_gen(csis_cont,gp_local_near)
+    dNc_near = calc_N_gen(csis_cont,gp_local_near;dg=:dNdc)
+    dNe_near = calc_N_gen(csis_cont,gp_local_near;dg=:dNde)
+    Nd_near = calc_N_gen(csis_descont,gp_local_near)
+    gauss_points_near = N_near*field_points
+    normal_near,J_near = calc_n_J_matrix(dNc_near, dNe_near, field_points)
+
+    weights_near = J_near.*weights_near
+
+    return gauss_points_near, Nd_near, normal_near, weights_near
+end
+
 ## Statics
 
 function integrate_nonsing(source, points, rules, material)
@@ -129,7 +147,7 @@ function integrate_sing(source, points, rules::Rules, material, idx)
 
     nnel = Int(length(rules.csis_nodes)^2)
 
-    idx_cont, idx_descont, np = calc_idx_permutation2(nnel,idx)
+    idx_cont, idx_descont, np = calc_idx_permutation(nnel,idx)
 
     integ_points, normals, weights = calc_nJp_sing(rules,points,idx_cont, np)
 
@@ -195,7 +213,7 @@ function integrate_sing_dyn(source, points, rules::Rules, material,zconsts, idx)
 
     nnel = Int(length(rules.csis_nodes)^2)
 
-    idx_cont, idx_descont, np = calc_idx_permutation2(nnel,idx)
+    idx_cont, idx_descont, np = calc_idx_permutation(nnel,idx)
 
     integ_points, normals, weights = calc_nJp_sing(rules,points,idx_cont, np)
 

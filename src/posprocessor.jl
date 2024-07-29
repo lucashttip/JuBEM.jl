@@ -1,3 +1,7 @@
+# AS FUNÇÕES NESTE ARQUIVO ESTÃO ANTIGAS E NÃO FUNCIONAM MAIS NA API DO PROGRAMA.
+# DEVEM SER MODIFICADAS EM ATUALIZAÇÕES FUTURAS
+
+
 function calc_interior_static(mesh,material,u,t,points_int)
 
     nelem = mesh.nelem

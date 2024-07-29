@@ -31,19 +31,12 @@ include("fundamentalsolutions.jl")
 export calc_funsol_static, calc_funsol_dynamic
 
 include("integration.jl")
-include("integrationdynamics.jl")
-include("integrationstatics.jl")
 include("integrationrules.jl")
-include("integrationconstants.jl")
 
 include("assembly.jl")
 export statics_assembly, dynamics_assembly!
 
-include("solverstatics.jl")
-include("solverdynamics.jl")
-
-include("solver.jl")
-export calc_GH!, solvestatic, solvedynamic, solve, solve_flex_dyn
+# include("solver.jl") # Only for future references
 
 include("applyBC.jl")
 export applyBC_rb, applyBC_simple, returnut_rb, returnut_simple
@@ -51,8 +44,7 @@ export applyBC_rb, applyBC_simple, returnut_rb, returnut_simple
 include("EE.jl")
 # include("rbmotion.jl")
 
-include("posprocessor.jl")
-export calc_interior_static, calc_interior_static_const
+# include("posprocessor.jl") # TODO: NEEDS CHANGES FOR IT TO WORK AGAIN
 
 include("plotting.jl")
 export plot_disp, plot_meshtags
