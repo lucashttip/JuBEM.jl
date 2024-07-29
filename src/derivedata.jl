@@ -1,4 +1,4 @@
-function derive_data!(material::Vector{material_table_type}, problem::problem_type, solver_var::solver_var_type)
+function derive_data!(material::Vector{Material}, problem::Problem)
 
       
         
@@ -7,18 +7,20 @@ function derive_data!(material::Vector{material_table_type}, problem::problem_ty
             material[i].zGe = complex(material[i].Ge, 2.0*material[i].Ge*material[i].Dam)
             material[i].zSwv = sqrt(material[i].zGe/material[i].Rho)
             material[i].zPwv = material[i].zSwv*sqrt((2.0-2.0*material[i].Nu)/(1.0-2.0*material[i].Nu))
+            
+            C_stat = zeros(4)
+            C_stat[1]=1.0/(16.0*pi*material[i].Ge*(1.0-material[i].Nu))
+            C_stat[2]=3.0-(4.0*material[i].Nu)
+            C_stat[3]=-1.0/(8.0*pi*(1.0-material[i].Nu))
+            C_stat[4]=1.0-(2.0*material[i].Nu)
+            material[i].C_stat = C_stat
         end
 
-        # ! Calcula os pontos de gauss
-        solver_var.csi, solver_var.omega = gausslegendre(solver_var.nGP)
- 
 
         if !isempty(problem.nFr)
             calc_frequencies!(problem)
         end
         
-        return material, problem, solver_var
-
 end
 
 function calc_frequencies!(problem)
@@ -37,4 +39,17 @@ function calc_frequencies!(problem)
     end
 
     return problem
+end
+
+function calc_static_constants(material)
+
+    C_stat = zeros(4)
+    
+    C_stat[1]=1.0/(16.0*pi*material.Ge*(1.0-material.Nu))
+    C_stat[2]=3.0-(4.0*material.Nu)
+    C_stat[3]=-1.0/(8.0*pi*(1.0-material.Nu))
+    C_stat[4]=1.0-(2.0*material.Nu)
+
+    return C_stat
+
 end

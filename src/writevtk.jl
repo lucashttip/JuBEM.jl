@@ -1,35 +1,7 @@
-function writevtk(mesh,u,t,filename)
+function writevtk(mesh::Mesh,sol::Solution, filename)
 
-    if mesh.eltype > 1
-        error("Element type not yet supported")
-    end
-    if mesh.offset > 0
-        u,t = calc_utpoints(mesh,u,t)
-    end
-
-    if typeof(u[1]) == ComplexF64
-        u = real.(u)
-        t = real.(t)
-    end
-
-    points = mesh.points[:,2:end]'
-
-    cells = [MeshCell(VTKCellTypes.VTK_QUAD,mesh.IEN_geo[:,e]) for e in 1:mesh.nelem]
-
-
-    vtk_grid(filename, points, cells) do vtk
-        vtk["disp_x"] = u[:,1]
-        vtk["disp_y"] = u[:,2]
-        vtk["disp_z"] = u[:,3]
-        vtk["disp"] = u'
-        vtk["tractions_x"] = t[:,1]
-        vtk["tractions_y"] = t[:,2]
-        vtk["tractions_z"] = t[:,3]
-    end
-
-end
-
-function writevtk2(mesh, u,t, filename)
+    u = sol.u
+    t = sol.t
 
     u2,t2,points,elem = extrapolateres(mesh, u, t)
 
@@ -61,7 +33,7 @@ function extrapolateres(mesh, u, t)
 
     u2 = zeros(typeof(u[1]),size(u))
     t2 = zeros(typeof(t[1]),size(t))
-    points = zeros(typeof(mesh.nodes[1]),size(mesh.nodes))
+    points = zeros(typeof(mesh.nodes[1]),mesh.nnodes,4)
     elem = mesh.IEN
 
     eltype = mesh.eltype
@@ -85,9 +57,9 @@ function extrapolateres(mesh, u, t)
     csis_cont = range(-1,1,length=eltype_cont+1) 
     csis_descont = range(-1+offset,1-offset,length = eltype+1)
 
-    grid = calc_csis_grid(csis_cont)
+    grid = calc_csis2d(csis_cont)
 
-    N = calc_N_matrix(csis_descont,grid)
+    N = calc_N_gen(csis_descont,grid)
 
     idx = [1,4,2,3]
 

@@ -2,10 +2,10 @@ function readvars_out(filename)
     filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
-    material = material_table_type[]
-    mesh = mesh_type()
-    problem = problem_type()
-    solver_var = solver_var_type()
+    material = Material[]
+    mesh = Mesh()
+    problem = Problem()
+    solver_var = Assembly()
 
     groupnames = keys(fid)
 
@@ -23,7 +23,7 @@ function readvars_out(filename)
     nm = Int.(nm)
 
     for n in nm
-        push!(material,material_table_type(0,0,0,0))
+        push!(material,Material(0,0,0,0))
         parse_var!(fid[names[n]], material[n])
     end
 
@@ -34,7 +34,6 @@ function readvars_out(filename)
 end
 
 function getnoderes_out(filename,node)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)
@@ -59,7 +58,6 @@ function getnoderes_out(filename,node)
 end
 
 function geturb_out(filename,dim)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)
@@ -82,7 +80,6 @@ function geturb_out(filename,dim)
 end
 
 function getflex_out(filename)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupnames = keys(fid)

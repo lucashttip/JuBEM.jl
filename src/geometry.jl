@@ -1,8 +1,6 @@
-
 function calc_n_J_matrix(dNdcsi, dNdeta, points)
 
     l = size(dNdcsi,1)
-
 
     normal = zeros(l,3)
     J = zeros(l)
@@ -53,12 +51,11 @@ function calc_n_J_matrix_sing(dNcdcsi, dNcdeta, points,node_sing)
 
 end
 
-
 function calc_n_J(dNdcsi, dNdeta,points)
     dpdcsi = dNdcsi'*points
     dpdeta = dNdeta'*points
     v = cross(dpdcsi', dpdeta')
-    J = norm(v,2)
+    J = norm(v)
     n = v./J
 
     return n, J
@@ -91,21 +88,45 @@ function calc_area(points)
 
 end
 
-function calc_static_constants(material)
-
-    C_stat = zeros(4)
+"""
+    r, c, d = calc_dist(source, points, rules)
     
-    C_stat[1]=1.0/(16.0*pi*material.Ge*(1.0-material.Nu))
-    C_stat[2]=3.0-(4.0*material.Nu)
-    C_stat[3]=-1.0/(8.0*pi*(1.0-material.Nu))
-    C_stat[4]=1.0-(2.0*material.Nu)
+    Computes the minimum distance d from the source point to the elemnent defined by points. r is the index of the rule to be used and c is the local coordinates of the closes point 
+"""
+function calc_dist(source, points, rules)
 
-    return C_stat
+    dist = Inf
 
+    for i in axes(points,1)
+        d = norm((source - points[i,:]))
+        if d < dist
+            dist = d
+        end
+    end
+
+    aux_points = rules.N_aux*points
+
+    l = [norm(aux_points[2,:] - aux_points[4,:]),norm(aux_points[3,:] - aux_points[1,:])]
+
+    d = dist./l
+    c = []
+    if any(d .< 2.0)
+        c,dist = findmind_optim(points,source,rules.csis_points)              # Apenas optim
+        d = dist./l
+    end
+    
+    r = 0
+    for i in eachindex(rules.dists)
+        if all(d .> rules.dists[i])
+            r = i
+            break
+        end
+    end
+
+    return r, c, d
 end
 
-
-function calc_dist(source, points,dists,csis_cont)
+function calc_dist2(source, points,dists,csis_cont)
 
     dist = Inf
 
@@ -121,10 +142,54 @@ function calc_dist(source, points,dists,csis_cont)
     d = dist./l
     c = []
     if any(d .< 1.0)
+<<<<<<< HEAD
         # c, dist = findmind_projection(points,source,csis_cont)   # Apenas algo projeção 
         c,dist = findmind_optim(points,source,csis_cont)              # Apenas optim
         # c,dist = findmind_combined(points,source,csis_cont)    # Combinado
         # c, dist = bialecki(points,source_point,csis_cont)       # Algoritmo baseado no paper do Bialecki
+=======
+        # dist = Inf
+
+        for i in 1:4
+            if i < 4
+                p1 = i
+                p2 = i+1
+            else
+                p1 = 4
+                p2 = 1
+            end
+            xv = points[p2,:] - points[p1,:]
+            pv = source - points[p1,:]
+            alfa = dot(xv,pv)
+            if alfa>0.0 && alfa <=1.0
+                xp = points[p1,:] + alfa*xv
+            elseif alfa<=0.0
+                xp = points[p1,:]
+            else
+                xp = points[p2,:]
+            end
+
+            d2 = norm(xp-source)
+            if d2<=dist
+                dist=d2
+                if i == 1
+                    xi = 2*norm((xp - points[p1,:]))/norm((points[p2,:]-points[p1,:])) - 1.0
+                    c = [xi,-1.]
+                elseif i == 2
+                    eta = 2*norm((xp - points[p1,:]))/norm((points[p2,:]-points[p1,:])) - 1.0
+                    c = [1.,eta]
+                elseif i == 3
+                    xi = 2*norm((xp - points[p2,:]))/norm((points[p1,:]-points[p2,:])) - 1.0
+                    c = [xi,1.]
+                elseif i == 4
+                    eta = 2*norm((xp - points[p2,:]))/norm((points[p1,:]-points[p2,:])) - 1.0
+                    c = [-1.,eta]
+                end
+            end
+
+        end
+
+>>>>>>> clean-main
         d = dist./l
     end
     

@@ -7,14 +7,23 @@ version = "0.1.0"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
+<<<<<<< HEAD
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+=======
+>>>>>>> clean-main
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 Infiltrator = "5903a43b-9cc3-4c30-8d17-598619ec4e9b"
+Kaleido_jll = "f7e6163d-2fa5-5f23-b69c-1db539e41963"
 Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+<<<<<<< HEAD
 MeshViz = "9ecf9c4f-6e5a-4b5e-83ae-06f2c7a661d8"
 Meshes = "eacbb407-ea5a-433e-ab97-5258b1ca43fa"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+=======
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
+>>>>>>> clean-main
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"

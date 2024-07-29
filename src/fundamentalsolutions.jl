@@ -1,8 +1,15 @@
-function calc_funsol_static(source_node,field_node, normal, delta, C_stat)
+
+"""
+    u, t = calc_funsol_static(source_node,field_node, normal, C_stat)
+
+Calcula as soluções fundamentais da elasticidade estática
+"""
+function calc_funsol_static(source_node,field_point, normal, C_stat)
     u = zeros(3,3)
     t = zeros(3,3)
 
-    disp = field_node-source_node
+    delta = I(3)
+    disp = field_point-source_node
     R = norm(disp)
     R2 = R^2
     # ! Derivatives with respect to coordinates
@@ -26,9 +33,44 @@ function calc_funsol_static(source_node,field_node, normal, delta, C_stat)
 
 end
 
+function calc_funsol_static_vec(source_node,field_points, normals, C_stat)
 
-function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
+    delta = I(3)
+    num_points = size(field_points,1)
+    u = zeros(3,3,num_points)
+    t = zeros(3,3,num_points)
+
+    R = zeros(size(field_points,1))
+    Rdn = zeros(size(field_points,1))
+    Rd = zeros(size(field_points,1),3)
+    for i in axes(field_points,1)
+        disp = field_points[i,:]-source_node
+        R[i] = norm(disp)
+        Rd[i,:] = disp./R[i]
+        Rdn[i] = dot(Rd[i,:],normals[i,:])
+    end
+
+    # @infiltrate
+    C1 = C_stat[1]
+    C2 = C_stat[2]
+    C3 = C_stat[3]
+    C4 = C_stat[4]
+
+
+    for j in 1:3
+        for i in 1:3
+            u[i,j,:] = (C1./R).*(C2*delta[i,j].+Rd[:,i].*Rd[:,j])
+            t[i,j,:] = (C3./R.^2) .* (Rdn .* (C4*delta[i,j] .+ 3.0 .*Rd[:,i].*Rd[:,j]) .+ C4.*(Rd[:,j].*normals[:,i] .- Rd[:,i].*normals[:,j]))
+        end
+    end
+
+    return u,t
+
+end
+
+function calc_funsol_dynamic(source_node,field_node, normal, zconsts)
     
+    delta = I(3)
     zu = zeros(ComplexF64,3,3)
     zt = zeros(ComplexF64,3,3)    
     
@@ -70,7 +112,3 @@ function calc_funsol_dynamic(source_node,field_node, normal, delta, zconsts)
 
     return zu, zt
 end
-
-
-
-

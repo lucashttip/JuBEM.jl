@@ -1,47 +1,75 @@
 # incomplete
 # Inspirado no pacote MeshIO.jl: https://github.com/JuliaIO/MeshIO.jl/blob/master/src/io/msh.jl
-@enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock
+@enum MSHBlockType MSHFormatBlock MSHPhysicalNamesBlock MSHNodesBlock MSHElementsBlock MSHUnknownBlock MSHMaterialBlock MSHFrequenciesBlock MSHMeshTypeBlock MSHForcesBlock MSHEntitiesBlock MSHBoundaryConditionsBlock MSHTagInformationBlock MSHProblemNameBlock
 
-function read_msh(inp_file)
-    
-    io = open(inp_file,"r")
 
-    material = material_table_type[]
-    mesh = mesh_type()
-    problem = problem_type()
-    solver_var = solver_var_type()
+"""
+mesh = read_msh(msh_file)
+"""
+function read_msh(msh_file)
 
-    vars=[]
+    io = open(msh_file,"r")
+
+    mesh = Mesh()
+
+    s_entities=[]
 
     while !eof(io)
         BlockType = parse_blocktype!(io)
-        if BlockType == MSHMaterialBlock
-            parse_materials!(io, material)
-        elseif BlockType == MSHFrequenciesBlock
-            parse_frequencies!(io, problem)
-        elseif BlockType == MSHMeshTypeBlock
-            parse_meshtype!(io, mesh, solver_var)
-        elseif BlockType == MSHForcesBlock
-            parse_forces!(io,mesh)
-        elseif BlockType == MSHPhysicalNamesBlock
-            bc, bcvalue, mat = parse_physicalnames(io)
-            push!(vars,bc)
-            push!(vars,bcvalue)
-            push!(vars,mat)
-        elseif BlockType == MSHEntitiesBlock
+        if BlockType == MSHEntitiesBlock
             s_entities = parse_entities(io)
-            push!(vars,s_entities)
-            # println(s_entities)
+        elseif BlockType == MSHPhysicalNamesBlock
+            parse_physicalnames!(io, mesh)
         elseif BlockType == MSHNodesBlock
             parse_nodes!(io, mesh)
         elseif BlockType == MSHElementsBlock
-            parse_elements!(io, mesh, vars[4], vars[1], vars[2], vars[3])
+            parse_elements!(io, mesh, s_entities)
         else
             skip_block!(io)
         end
     end
+    
+    close(io)
 
-    return mesh,material,problem,solver_var
+    return mesh
+
+
+end
+
+"""
+problem,materials = read_problem(prob_file,mesh)
+"""
+function read_problem(prob_file,mesh)
+    
+    io = open(prob_file,"r")
+
+    problem = Problem()
+    materials = Material[]
+
+    while !eof(io)
+        BlockType = parse_blocktype!(io)
+        if BlockType == MSHMaterialBlock
+            parse_materials!(io,materials)
+        elseif BlockType == MSHFrequenciesBlock
+            parse_frequencies!(io, problem)
+        elseif BlockType == MSHMeshTypeBlock
+            parse_meshtype!(io, mesh)
+        elseif BlockType == MSHForcesBlock
+            parse_forces!(io, problem)
+        elseif BlockType == MSHBoundaryConditionsBlock
+            parse_BC!(io, problem)
+        elseif BlockType == MSHTagInformationBlock
+            parse_taginfo!(io, problem)
+        elseif BlockType == MSHProblemNameBlock
+            parse_problemname!(io, problem)
+        else
+            skip_block!(io)
+        end
+    end
+    
+    close(io)
+
+    return problem,materials
 end
 
 function parse_blocktype!(io)
@@ -64,22 +92,39 @@ function parse_blocktype!(io)
         return MSHNodesBlock
     elseif header == "\$Elements"
         return MSHElementsBlock
+    elseif header == "\$BoundaryConditions"
+        return MSHBoundaryConditionsBlock
+    elseif header == "\$TagInformation"
+        return MSHTagInformationBlock
+    elseif header == "\$ProblemName"
+        return MSHProblemNameBlock
     else
         return MSHUnknownBlock
     end
 end
 
-function parse_materials!(io, material)
+function parse_problemname!(io,problem)
+
+    probname = readline(io)
+    problem.name = probname
+    endblock = readline(io)
+    if endblock != "\$EndProblemName"
+        error("expected end block tag, got $endblock")
+    end
+    return problem
+end
+
+function parse_materials!(io, materials)
     nmat = parse(Int,readline(io))
     for i in 1:nmat
         Ge, Nu, Dam, Rho = parse.(Float64, split(readline(io)))
-        push!(material,material_table_type(Ge,Nu,Dam,Rho))
+        push!(materials,Material(Ge,Nu,Dam,Rho))
     end
     endblock = readline(io)
     if endblock != "\$EndMaterial"
         error("expected end block tag, got $endblock")
     end
-    return material
+    return materials
 end
 
 function parse_frequencies!(io, problem)
@@ -100,61 +145,37 @@ function parse_frequencies!(io, problem)
     return problem
 end
 
-function parse_meshtype!(io, mesh, solver_var)
-    solver_var.nGP = parse(Int16, readline(io))
-    mesh.offset = parse(Float64, readline(io))
+function parse_meshtype!(io, mesh)
     mesh.eltype = parse(Int8, readline(io))
+    mesh.offset = parse(Float64, readline(io))
     endblock = readline(io)
     if endblock != "\$EndMeshType"
-        error("expected end block tag, got $endblock")
-    end
-    return mesh, solver_var
-end
-
-function parse_forces!(io, mesh)
-    nrb = parse(Int64, readline(io))
-    mesh.forces = zeros(6,nrb)
-    for i in 1:nrb
-        data = split(readline(io))
-        mesh.forces[:,i] = parse.(Float64, data)
-    end
-    endblock = readline(io)
-    if endblock != "\$EndForces"
         error("expected end block tag, got $endblock")
     end
     return mesh
 end
 
-function parse_physicalnames(io)
+function parse_forces!(io, problem)
+    nrb = parse(Int64, readline(io))
+    problem.forces = zeros(6,nrb)
+    for i in 1:nrb
+        data = split(readline(io))
+        problem.forces[:,i] = parse.(Float64, data)
+    end
+    endblock = readline(io)
+    if endblock != "\$EndForces"
+        error("expected end block tag, got $endblock")
+    end
+    return problem
+end
+
+function parse_physicalnames!(io,mesh)
     
     nphys = parse(Int,readline(io))
 
-    bc = zeros(nphys,4)
-    bcvalue = zeros(nphys,3)
-    mat = zeros(nphys,2)
-
-    rbidx = 3
-    rbidx2 = 3
     for i in 1:nphys
-        data = split(replace(readline(io), "\"" =>""))
-        bc[i,1] = parse(Float64, data[2])
-        mat[i,:] = [parse(Float64, data[2]); parse(Float64, data[end])]
-        bcvalue[i,:] = parse.(Float64,data[[4,6,8]])
-        for j in 1:3
-            if data[2*j+1] == "u"
-                bc[i,j+1] = 1
-            elseif data[2*j+1] == "t"
-                bc[i,j+1] = 2
-            elseif data[2*j+1] == "rb"
-                bc[i,j+1] = rbidx
-                rbidx2 = rbidx+1
-            elseif data[2*j+1] == "ee"
-                bc[i,j+1] = 0
-            end
-        end
-        if rbidx != rbidx2
-            rbidx = rbidx2
-        end
+        data = split(readline(io),"\"")
+        push!(mesh.tagnames,data[2])
     end
     endblock = readline(io)
 
@@ -162,7 +183,7 @@ function parse_physicalnames(io)
         error("expected end block tag, got $endblock")
     end
 
-    return bc, bcvalue, mat
+    return mesh
 end
 
 function parse_entities(io)
@@ -177,6 +198,7 @@ function parse_entities(io)
     for i in 1:nsurfaces
         s_entities[i,:] = parse.(Float64,split(readline(io))[[1,9]])
     end
+
     endblock = readline(io)
     if endblock != "\$EndEntities"
         error("expected end block tag, got $endblock")
@@ -209,26 +231,28 @@ function parse_nodes!(io,mesh)
     return mesh
 end
 
-function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
-    num_elements = parse.(Int, split(readline(io)))
-    
-    num_entity_blocks, num_elements, min_element_tag, max_element_tag = num_elements
-    mesh.nelem = num_elements
+function parse_elements!(io, mesh, s_entities)
+        
+    num_entity_blocks, num_elements, min_element_tag, max_element_tag = parse.(Int, split(readline(io)))
 
-    if mesh.eltype < 2
-        npel = 4
-    else
-        if mesh.eltype == 2
-            npel = 9
-        else
-            error("eltype not supported")
-        end
-    end
+    mesh.nelem = num_elements
     
+    pos = position(io)
+
+    dim, tag, element_type, elements_in_block = parse.(Int, split(readline(io)))
+
+    seek(io,pos)
+
+    if element_type == 3
+        npel = 4
+    elseif element_type == 10
+        npel = 9
+    else
+        error("Element type not supported by JuBEM")
+    end
+
     mesh.IEN_geo = zeros(Int32, npel, num_elements)
-    mesh.bc = zeros(Int16,num_elements,3)
-    mesh.bcvalue = zeros(Float64,num_elements,3)
-    mesh.material = zeros(Int16,num_elements)
+    mesh.tag = zeros(Int16, num_elements)
 
     for index_entity in 1:num_entity_blocks
 
@@ -241,14 +265,11 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
             for i in 1:elements_in_block
                 e, n... = parse.(Int, split(readline(io)))
                 mesh.IEN_geo[:,e] = n
-                mesh.bc[e,:] = bc[ptag,2:end]
-                mesh.bcvalue[e,:] = bcvalue[ptag,:]
-                mesh.material[e] = mat[ptag,2]
+                mesh.tag[e] = ptag
             end
         else
             for i in 1:elements_in_block
                 readline(io)
-                
             end
         end
     end
@@ -257,6 +278,68 @@ function parse_elements!(io, mesh, s_entities, bc, bcvalue, mat)
         error("expected end block tag, got $endblock")
     end
     return mesh
+end
+
+function parse_BC!(io,problem)
+    nbc = parse(Int,readline(io))
+
+    bc = zeros(nbc,4)
+    bcvalue = zeros(nbc,3)
+    mat = zeros(nbc,2)
+
+    rbidx = 3
+    rbidx2 = 3
+
+    for i in 1:nbc
+        data = split(readline(io))
+        bc[i,1] = parse(Float64, data[1])
+        bcvalue[i,:] = parse.(Float64,data[[3,5,7]])
+        for j in 1:3
+            if data[2*j] == "u"
+                bc[i,j+1] = 1
+            elseif data[2*j] == "t"
+                bc[i,j+1] = 2
+            elseif data[2*j] == "rb"
+                bc[i,j+1] = rbidx
+                rbidx2 = rbidx+1
+            elseif data[2*j] == "ee"
+                bc[i,j+1] = 0
+            elseif data[2*j] == "i"
+                bc[i,j+1] = -1
+            end
+        end
+
+        if rbidx != rbidx2
+            rbidx = rbidx2
+        end
+    end
+
+    problem.bctype = bc
+    problem.bcvalue = bcvalue
+
+    endblock = readline(io)
+
+    if endblock != "\$EndBoundaryConditions"
+        error("expected end block tag, got $endblock")
+    end
+
+    return problem
+end
+
+function parse_taginfo!(io,problem)
+    ntags = parse(Int64, readline(io))
+
+    problem.taginfo = zeros(Int16,ntags,4)
+
+    for i in 1:ntags
+        data = split(readline(io))
+        problem.taginfo[i,:] = parse.(Float64, data)
+    end
+    endblock = readline(io)
+    if endblock != "\$EndTagInformation"
+        error("expected end block tag, got $endblock")
+    end
+    return problem
 end
 
 function skip_block!(io)
