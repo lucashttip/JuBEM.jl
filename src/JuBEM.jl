@@ -46,13 +46,8 @@ include("EE.jl")
 
 # include("posprocessor.jl") # TODO: NEEDS CHANGES FOR IT TO WORK AGAIN
 
-<<<<<<< HEAD
-# include("plotting.jl")
-# export visualize_mesh, visualize_mesh_raw, visualize_result, view_mesh, animate_res_freq
-=======
 include("plotting.jl")
 export plot_disp, plot_meshtags
->>>>>>> clean-main
 
 include("writevtk.jl")
 export writevtk

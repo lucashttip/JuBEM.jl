@@ -27,10 +27,7 @@ function csis_sing(offset,Nc,dNcdcsi,dNcdeta,eltype)
 
 end
 
-<<<<<<< HEAD
-=======
 # TODO: Requer documentação e mais estudo
->>>>>>> clean-main
 function calc_divisions(e,a0,c,k)  
 
     # nsubs = Int(maximum([0,floor(log2(L/e - 2))]))
@@ -74,80 +71,9 @@ function calc_divisions(e,a0,c,k)
     # return nsubs
 end
 
-<<<<<<< HEAD
-function divide_elem_lin(e)
-    ps = calc_divisions(e,e,2,2)
-
-    nl = length(ps)
-    np = 3*nl - 1
-    c = zeros(np,2)
-    c[end,:] = [-1+e, -1+e]
-    
-    for i in 1:nl
-        c[i,:] = [ps[i],ps[1]]
-    end 
-    
-    for i in nl+1:np-1
-        k = i - nl
-        m = Int(ceil(k/2)) +1
-        k % 2 != 0 ? n = 1 : n = k ÷ 2 + 1
-        c[i,:] = [ps[n], ps[m]]
-    end
-
-    ne = 4 + ((np-5) ÷ 3)*2
-
-    IEN = zeros(Int,4,ne)
-
-    
-    p1 = 1
-    p2 = 2
-    p3 = nl+2
-    p4 = nl+1
-    p5 = np
-    
-    IEN[:,1:4] = 
-    [
-        p1 p2 p3 p4
-        p2 p3 p4 p1
-        p5 p5 p5 p5
-        p5 p5 p5 p5
-    ]
-
-    for i in 1:(ne-4)/2
-        e = Int(4+i)
-        IEN[:,e] = [
-            i+1
-            i+2
-            nl+2*(i+1)
-            nl+2*i
-        ]
-    end
-    for i in 1:(ne-4)/2
-        e = Int(4+(ne-4)/2+i)
-        IEN[:,e] = [
-            nl + 2*i - 1
-            nl + 2*i
-            nl + 2*(i+1)
-            nl + 2*(i+1) - 1
-        ]
-    end
-
-    return [c], IEN
-end
-
-function divide_elem_lin2(e)
-    c = [[
-        -1 -1
-        1 -1
-        1 1
-        -1 1
-        -1+e -1+e
-    ]]
-=======
 # TODO: Requer documentação e mais estudo
 function divide_elem_lin(e)
     ps = calc_divisions(e,e,2,2)
->>>>>>> clean-main
 
     nl = length(ps)
     np = 3*nl - 1
