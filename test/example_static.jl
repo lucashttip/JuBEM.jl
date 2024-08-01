@@ -2,9 +2,12 @@ using Revise
 using JuBEM
 
 # mesh_file = "./input/meshes/homogbar_ne=1x10_l=10x1x1_eo=1.msh"
-mesh_file = "./input/meshes/soilEE_109.msh"
+mesh_file = "./input/meshes/multibar_ne=2x(1+1)_l=(5+5)x1x1_eo=1.msh"
+
+# mesh_file = "./input/meshes/soilEE_109.msh"
+problem_file = "./input/problems/multi_bar.prob"
 # problem_file = "./input/problems/bar_static.prob"
-problem_file = "./input/problems/soilrb_EE_static.prob"
+# problem_file = "./input/problems/soilrb_EE_static.prob"
 # problem_file = "./input/problems/soil_EE_static.prob"
 
 

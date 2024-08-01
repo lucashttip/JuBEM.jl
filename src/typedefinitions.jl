@@ -77,6 +77,7 @@ mutable struct Mesh <: JuBEMtypes
     nodes :: Array{Float64,2}
     
     ## Block 3: Variables that define material and boundary conditions
+    tag_geo :: Array{Int16,2}  
     tag :: Array{Int16,1}  
     tagnames :: Array{String,1}
 
@@ -89,6 +90,7 @@ mutable struct Mesh <: JuBEMtypes
         Array{Int32,2}(undef,0,0),  # LM
         Array{Float64,2}(undef,0,0),# points
         Array{Float64,2}(undef,0,0),# nodes
+        Array{Int16,2}(undef,0,0),# nodes
         Int16[],    # tag This is the start of Block 3
         String[]                          # tagnames
     )

@@ -34,6 +34,7 @@ To-dos:
     - [x] Remover integrationstatics e integrationdynamics?  
     - [x] Rethink/Remove solver, solverstatics, solverdynamics
 - [ ] Add multiregions
+    - [ ] Update generatemesh with needed 
 - [ ] Improve API for running code/make it more concise
 - [ ] Add documentations
 - [ ] Eventually improve package to contain CI, Docs and Codecov
