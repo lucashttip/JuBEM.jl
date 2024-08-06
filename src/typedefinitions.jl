@@ -62,6 +62,7 @@ It's a mutable struct.
 """
 mutable struct Mesh <: JuBEMtypes
     # Block 1: Variables that hold integer information of whole mesh
+    nelem_geo :: Int64
     nelem :: Int64
     npoints :: Int64
     nnodes :: Int64
@@ -82,7 +83,7 @@ mutable struct Mesh <: JuBEMtypes
     tagnames :: Array{String,1}
 
     Mesh() = new(
-        0,0,0,0,    # 
+        0,0,0,0,0,    # 
         0,  # This is the start of Block 2
         Array{Int32,2}(undef,0,0),  # ID
         Array{Int32,2}(undef,0,0),  # IEN_geo

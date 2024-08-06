@@ -239,9 +239,10 @@ end
 
 function parse_elements!(io, mesh, s_entities)
         
-    num_entity_blocks, num_elements, min_element_tag, max_element_tag = parse.(Int, split(readline(io)))
+    num_entity_blocks, num_elements_geo, min_element_tag, max_element_tag = parse.(Int, split(readline(io)))
 
-    mesh.nelem = num_elements
+    mesh.nelem_geo = num_elements_geo
+    num_elements = 0
     
     pos = position(io)
 
@@ -257,8 +258,8 @@ function parse_elements!(io, mesh, s_entities)
         error("Element type not supported by JuBEM")
     end
 
-    mesh.IEN_geo = zeros(Int32, npel, num_elements)
-    mesh.tag_geo = zeros(Int16, num_elements, 2)
+    mesh.IEN_geo = zeros(Int32, npel, num_elements_geo)
+    mesh.tag_geo = zeros(Int16, num_elements_geo, 2)
 
     for index_entity in 1:num_entity_blocks
 
@@ -266,6 +267,7 @@ function parse_elements!(io, mesh, s_entities)
         s = findfirst(s_entities[:,1].==tag)
         # @infiltrate
         ptag = Int.(s_entities[s,2:end])
+        num_elements = num_elements + elements_in_block*sum(ptag.!=0)
 
         if element_type == 3 || element_type == 10
             for i in 1:elements_in_block
@@ -279,6 +281,7 @@ function parse_elements!(io, mesh, s_entities)
             end
         end
     end
+    mesh.nelem = num_elements
     endblock = readline(io)
     if endblock != "\$EndElements"
         error("expected end block tag, got $endblock")
