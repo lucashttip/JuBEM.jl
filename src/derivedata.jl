@@ -1,4 +1,4 @@
-function derive_data!(material::Vector{Material}, problem::Problem)
+function derive_data!(mesh::Mesh,material::Vector{Material}, problem::Problem)
 
       
         
@@ -21,6 +21,16 @@ function derive_data!(material::Vector{Material}, problem::Problem)
             calc_frequencies!(problem)
         end
         
+    # Definicao de bodies
+    nbodies = maximum(problem.taginfo[:,4])
+
+    for b in 1:nbodies
+        tagidxs = findall(problem.taginfo[:,4].==b)
+        elems = findall([x ∈ tagidxs for x in mesh.tag])
+        push!(mesh.bodies,elems)
+    end
+
+
 end
 
 function calc_frequencies!(problem)

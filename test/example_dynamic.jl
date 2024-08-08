@@ -34,7 +34,7 @@ mesh = read_msh(mesh_file)
 problem, materials = read_problem(problem_file,mesh)
 
 generate_mesh!(mesh)
-derive_data!(materials, problem)
+derive_data!(mesh,materials,problem)
 
 output_vars(output_file, mesh, problem, materials)
 

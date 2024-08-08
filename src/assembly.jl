@@ -6,63 +6,72 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material})
     # DEFINING PARAMETERS
     # mesh/material/other constants definition
     nelem = mesh.nelem
+    nnel = size(mesh.IEN,1)
     
     # Define integration rules for non-sing
     rules = define_rules(mesh)
 
     # Matrices initialization
-    max_DOF = maximum(mesh.ID)
+    max_DOF = maximum(mesh.LM)
     assembly.H = zeros(max_DOF,max_DOF)
     assembly.G = zeros(max_DOF,max_DOF)
-
 
     # variable to hold information about integration and indices
 
     # Loop over elements
 
-    p = Progress(nelem,1, "Computing static zG and zH...", 50)
+    p = Progress(nelem,1, "Computing static G and H...", 50)
 
-    Threads.@threads for e in 1:nelem
-    # for e in 1:mesh.nelem
+    for body in mesh.bodies
+        # Threads.@threads for e in body
+        for e in body
 
-        nodesidx = mesh.IEN[:,e]
-        points = mesh.points[mesh.IEN_geo[:,e],2:end]
-        nodes = mesh.nodes[nodesidx,2:end]
+            nodesidx = mesh.IEN[:,e]
+            nodes = mesh.nodes[nodesidx,2:end]
 
-        # Loop over source node
-        for s in 1:mesh.nnodes
+            pointsidx = mesh.IEN_geo[:,abs(mesh.EEN[e])]
 
-            source = mesh.nodes[s,2:end]
-
-            # Calculating matrix entries
-            # Non-singular integration
-            if s ∉ nodesidx
-                # Integrate
-                HELEM, GELEM = integrate_nonsing(source, points, rules, materials[1])
-                # @infiltrate
-            else
-            # Singular integration
-                # Local index of source node on the element
-                idx = findfirst(nodesidx.==s)
-                # Integrate
-                HELEM, GELEM = integrate_sing(source, points, rules, materials[1], idx)
+            if sign(mesh.EEN[e]) == -1
+                points = pointsidx[end:-1:1]
             end
+            
+            points = mesh.points[pointsidx,2:end]
 
-            #Assembly on matrix
-            assembly.H[mesh.ID[:,s], mesh.LM[:,e]] = HELEM
-            assembly.G[mesh.ID[:,s], mesh.LM[:,e]] = GELEM
+            # Loop over source node
+            for se in body
+                for n in 1:nnel
+                    s = mesh.IEN[n,se]
 
-        # End loop over elements
+                    source = mesh.nodes[s,2:end]
+
+                    # Calculating matrix entries
+                    # Non-singular integration
+                    if s ∉ nodesidx
+                        # Integrate
+                        HELEM, GELEM = integrate_nonsing(source, points, rules, materials[1])
+                        # @infiltrate
+                    else
+                    # Singular integration
+                        # Local index of source node on the element
+                        idx = findfirst(nodesidx.==s)
+                        # Integrate
+                        HELEM, GELEM = integrate_sing(source, points, rules, materials[1], idx)
+                    end
+
+                    #Assembly on matrix
+                    assembly.H[mesh.LM[3*(n-1)+1:3*n,e], mesh.LM[:,e]] = HELEM
+                    assembly.G[mesh.LM[3*(n-1)+1:3*n,e], mesh.LM[:,e]] = GELEM
+
+                end
+                # End loop over elements
+            end
+            next!(p)
+
+        # End loop over source
         end
-        next!(p)
-
-    # End loop over source
     end
 
     # RIGID BODY MOTION STRATEGY
-    for n in 1:mesh.nnodes
-        assembly.H[mesh.ID[:,n],mesh.ID[:,n]] .= 0
-    end
     integrate_rigid_body!(assembly.H,mesh)
 
     return assembly

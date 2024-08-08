@@ -76,6 +76,8 @@ mutable struct Mesh <: JuBEMtypes
     LM :: Array{Int32,2}    
     points :: Array{Float64,2}  
     nodes :: Array{Float64,2}
+    bodies :: Vector{Vector{Int32}}
+    EEN :: Vector{Int32}
     
     ## Block 3: Variables that define material and boundary conditions
     tag_geo :: Array{Int16,2}  
@@ -91,7 +93,9 @@ mutable struct Mesh <: JuBEMtypes
         Array{Int32,2}(undef,0,0),  # LM
         Array{Float64,2}(undef,0,0),# points
         Array{Float64,2}(undef,0,0),# nodes
-        Array{Int16,2}(undef,0,0),# nodes
+        [], # bodies
+        [], # EEN
+        Array{Int16,2}(undef,0,0),# tag_geo
         Int16[],    # tag This is the start of Block 3
         String[]                          # tagnames
     )
@@ -176,6 +180,9 @@ mutable struct Solution{T} <: JuBEMtypes
     urb :: Array{T,2}
     time :: Float64
     freq :: Float64
+    Solution(u:: Array{Float64,2},t:: Array{Float64,2}) = new{Float64}(u,t,Array{Float64,2}(undef,0,0),0.0,0.0)
+    Solution(u:: Array{ComplexF64,2},t:: Array{ComplexF64,2}) = new{ComplexF64}(u,t,Array{ComplexF64,2}(undef,0,0),0.0,0.0)
+
 end
 
 """

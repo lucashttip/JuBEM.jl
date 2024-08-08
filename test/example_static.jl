@@ -20,7 +20,7 @@ mesh = read_msh(mesh_file)
 problem, materials = read_problem(problem_file,mesh)
 
 generate_mesh!(mesh)
-derive_data!(materials,problem)
+derive_data!(mesh,materials,problem)
 
 # output_vars(output_file, mesh, problem, materials)
 
@@ -34,13 +34,15 @@ LHS, RHS = JuBEM.applyBC_rb(mesh,problem,assembly.H,assembly.G)
 
 x = LHS\RHS
 
-u,t = JuBEM.returnut_simple(x,mesh,problem)
+u2,t2 = JuBEM.returnut_simple(x,mesh,problem)
 u,t,urb = JuBEM.returnut_rb(x,mesh,problem)
 
 # t2 = time()
 
-# sol = Solution(u,t,Float64[],t2-t1,0.0)
+sol = Solution(u,t)
 sol = Solution(u,t,urb,0.0,0.0)
+
+plot_disp(mesh,sol,1)
 
 # JuBEM.output_solution(output_file,sol)
 

@@ -269,9 +269,9 @@ function returnut_rb(x,mesh::Mesh,problem::Problem)
         bctype = problem.bctype[b,2:end]
         bcvalue = problem.bcvalue[b,:]
         if any(bctype.==1 .||bctype.==2)
-            for t in axes(problem.taginfo,1)
-                if problem.taginfo[t,2]==b
-                    elems = findall(mesh.tag.==t)
+            for j in axes(problem.taginfo,1)
+                if problem.taginfo[j,2]==b
+                    elems = findall(mesh.tag.==j)
                     for e in elems
                         for n in axes(mesh.IEN,1)
                             nidx = mesh.IEN[n,e]
