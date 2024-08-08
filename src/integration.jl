@@ -243,3 +243,18 @@ function integrate_sing_dyn(source, points, rules::Rules, material,zconsts, idx)
     end
     return zHELEM, zGELEM
 end
+
+function integrate_rigid_body!(H,mesh)
+
+    for n in 1:mesh.nnodes
+
+        i = mesh.ID[:,n]
+       
+        H[i,i[1]] = - sum(H[i,1:3:end],dims=2)
+        H[i,i[2]] = - sum(H[i,2:3:end],dims=2)
+        H[i,i[3]] = - sum(H[i,3:3:end],dims=2)
+
+    end
+    
+    return H
+end
