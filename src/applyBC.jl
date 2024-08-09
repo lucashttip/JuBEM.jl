@@ -511,6 +511,7 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
     # Reorganiza colunas de u e t
     colH = zeros(nDofs)
     colG = zeros(nDofs)
+
     for e in 1:mesh.nelem
 
         tagidx = mesh.tag[e]
@@ -525,18 +526,13 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
             if bctypes[1] != -1
 
                 for i in 1:3
-                    colH = H2[:,Dofs[i]]
-                    colG = G2[:,Dofs[i]]
 
                     if bctypes[i] == 1
-                        H2[:,Dofs[i]] = -G[:,Dofs[i]]
-                        G2[:,Dofs[i]] = -H[:,Dofs[i]]
-                        RHS_vec[Dofs[i]] = bcvalues[i]
+                        RHS = RHS -H2[:,Dofs[i]].*bcvalues[i]
+                        H2[:,Dofs[i]] = -G2[:,Dofs[i]]
         
                     elseif bctypes[i] == 2
-                        H2[:,Dofs[i]] = H2[:,Dofs[i]]
-                        G2[:,Dofs[i]] = G2[:,Dofs[i]]
-                        RHS_vec[Dofs[i]] = bcvalues[i]
+                        RHS = RHS + G2[:,Dofs[i]].*bcvalues[i]
                     elseif bctypes[i] != -1                        
                         error("not supported by this func")
                     end
@@ -557,9 +553,9 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
     gdlinterfaces = vec(mesh.ID[:,nodesidxinterfaces])
 
     LHS = [H2 -G2[:,gdlinterfaces]]
-    G2[:,gdlinterfaces] .= 0
+    # G2[:,gdlinterfaces] .= 0
 
-    RHS = G2*RHS_vec
+    # RHS = G2*RHS_vec
 
     return LHS, RHS
 
@@ -585,7 +581,7 @@ function reorganizeHG_multi(mesh::Mesh,problem::Problem,H,G)
             bctype = problem.bctype[bcidx,2]
 
             if bctype == -1 
-                sinal = problem.bcvalue[bcidx[1]]
+                sinal = problem.bcvalue[bcidx,1]
             end
             Haux[:,mesh.ID[:,nodeidx]] = Haux[:,mesh.ID[:,nodeidx]] + H[:,mesh.LM[3*(n-1)+1:3*n,e]]
             Gaux[:,mesh.ID[:,nodeidx]] = Gaux[:,mesh.ID[:,nodeidx]] + sinal.*G[:,mesh.LM[3*(n-1)+1:3*n,e]]
