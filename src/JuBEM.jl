@@ -42,6 +42,7 @@ include("applyBC.jl")
 export applyBC_rb, applyBC_simple, returnut_rb, returnut_simple
 
 include("EE.jl")
+export remove_EE!
 # include("rbmotion.jl")
 
 # include("posprocessor.jl") # TODO: NEEDS CHANGES FOR IT TO WORK AGAIN

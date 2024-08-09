@@ -486,3 +486,113 @@ function returnut_simple(x,mesh::Mesh,problem::Problem)
 
     return u, t
 end
+
+
+function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
+
+    nnel = size(mesh.IEN,1)
+
+    nDofs = size(H,1)
+
+    LHS = zeros(eltype(H),nDofs,nDofs)
+    RHS = zeros(eltype(H),nDofs)
+
+    RHS_mat = zeros(eltype(H),nDofs,nDofs)
+    
+    nnodeDofs = maximum(mesh.ID)
+    RHS_vec = zeros(eltype(H),nnodeDofs)
+
+    
+    
+    # Primeiro colapsar as colunas de H e de G
+
+    H2, G2 = reorganizeHG_multi(mesh,problem,H,G)
+
+    # Reorganiza colunas de u e t
+    colH = zeros(nDofs)
+    colG = zeros(nDofs)
+    for e in 1:mesh.nelem
+
+        tagidx = mesh.tag[e]
+        bcidx = problem.taginfo[tagidx,2]
+        bctypes = problem.bctype[bcidx,2:end]
+        bcvalues = problem.bcvalue[bcidx,:]
+
+        for n in 1:nnel
+            nodeidx = mesh.IEN[n,e]
+            Dofs = mesh.ID[:,nodeidx]
+
+            if bctypes[1] != -1
+
+                for i in 1:3
+                    colH = H2[:,Dofs[i]]
+                    colG = G2[:,Dofs[i]]
+
+                    if bctypes[i] == 1
+                        H2[:,Dofs[i]] = -G[:,Dofs[i]]
+                        G2[:,Dofs[i]] = -H[:,Dofs[i]]
+                        RHS_vec[Dofs[i]] = bcvalues[i]
+        
+                    elseif bctypes[i] == 2
+                        H2[:,Dofs[i]] = H2[:,Dofs[i]]
+                        G2[:,Dofs[i]] = G2[:,Dofs[i]]
+                        RHS_vec[Dofs[i]] = bcvalues[i]
+                    elseif bctypes[i] != -1                        
+                        error("not supported by this func")
+                    end
+                end
+
+
+            end
+
+        end
+
+    end
+
+    # Find all columns of intersection of G2, put them on the end of H2 and put zeros on them back
+    idxbcinterfaces = findall(problem.bctype[:,2].==-1)
+    idxtaginterfaces = findall([x ∈ idxbcinterfaces for x in problem.taginfo[:,2]])
+    idxelemsinterfaces = findall([x ∈ idxtaginterfaces for x in mesh.tag])
+    nodesidxinterfaces = unique(vec(mesh.IEN[:,idxelemsinterfaces]))
+    gdlinterfaces = vec(mesh.ID[:,nodesidxinterfaces])
+
+    LHS = [H2 -G2[:,gdlinterfaces]]
+    G2[:,gdlinterfaces] .= 0
+
+    RHS = G2*RHS_vec
+
+    return LHS, RHS
+
+end
+
+function reorganizeHG_multi(mesh::Mesh,problem::Problem,H,G)
+
+    nnel = size(mesh.IEN,1)
+    nDofsi = maximum(mesh.LM)
+    nDofsj = maximum(mesh.ID)
+
+    Haux = zeros(eltype(H),nDofsi,nDofsj)
+    Gaux = zeros(eltype(G),nDofsi,nDofsj)
+
+    for e in 1:mesh.nelem
+
+        for n in 1:nnel
+            nodeidx = mesh.IEN[n,e]
+            sinal = 1
+
+            tagidx = mesh.tag[e]
+            bcidx = problem.taginfo[tagidx,2]
+            bctype = problem.bctype[bcidx,2]
+
+            if bctype == -1 
+                sinal = problem.bcvalue[bcidx[1]]
+            end
+            Haux[:,mesh.ID[:,nodeidx]] = Haux[:,mesh.ID[:,nodeidx]] + H[:,mesh.LM[3*(n-1)+1:3*n,e]]
+            Gaux[:,mesh.ID[:,nodeidx]] = Gaux[:,mesh.ID[:,nodeidx]] + sinal.*G[:,mesh.LM[3*(n-1)+1:3*n,e]]
+            
+        end
+
+    end
+
+    return Haux, Gaux
+end

@@ -53,14 +53,13 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material})
                     else
                     # Singular integration
                         # Local index of source node on the element
-                        idx = findfirst(nodesidx.==s)
                         # Integrate
-                        HELEM, GELEM = integrate_sing(source, points, rules, materials[1], idx)
+                        HELEM, GELEM = integrate_sing(source, points, rules, materials[1], n)
                     end
 
                     #Assembly on matrix
-                    assembly.H[mesh.LM[3*(n-1)+1:3*n,e], mesh.LM[:,e]] = HELEM
-                    assembly.G[mesh.LM[3*(n-1)+1:3*n,e], mesh.LM[:,e]] = GELEM
+                    assembly.H[mesh.LM[3*(n-1)+1:3*n,se], mesh.LM[:,e]] = HELEM
+                    assembly.G[mesh.LM[3*(n-1)+1:3*n,se], mesh.LM[:,e]] = GELEM
 
                 end
                 # End loop over elements

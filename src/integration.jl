@@ -163,7 +163,9 @@ function integrate_sing(source, points, rules::Rules, material, idx)
         for i in 1:3
             for j in 1:3
                 pesos = Nd[:,k].*weights
-                HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*pesos)
+                if k != idx
+                    HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*pesos)
+                end
                 GELEM[i,3*(k-1)+j] = sum(u[i,j,:].*pesos)
             end
         end
