@@ -41,7 +41,8 @@ function plot_disp(mesh::Mesh,sol::Solution,dim)
     tri = triangulate(mesh)
 
     for e in axes(mesh.IEN,2)
-        pidx = mesh.IEN_geo[:,e]
+        egeo = abs(mesh.EEN[e])
+        pidx = mesh.IEN_geo[:,egeo]
         nidx = mesh.IEN[:,e]
         nodes = mesh.nodes[nidx,2:end]
 

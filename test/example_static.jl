@@ -2,10 +2,13 @@ using Revise
 using JuBEM
 
 # mesh_file = "./input/meshes/homogbar_ne=1x10_l=10x1x1_eo=1.msh"
-mesh_file = "./input/meshes/multibar_ne=2x(1+1)_l=(5+5)x1x1_eo=1.msh"
+# mesh_file = "./input/meshes/multibar_ne=1x(2+2)_l=(5+5)x1x1_eo=1.msh"
+mesh_file = "./input/meshes/SoilLayers_a=1.0_fl=2.0_fs=8.0_h=4,nf=6_eo=1.msh"
 
 # mesh_file = "./input/meshes/soilEE_109.msh"
-problem_file = "./input/problems/multi_bar.prob"
+
+problem_file="./input/problems/soilrb_layer_EE_static.prob"
+# problem_file = "./input/problems/multi_bar.prob"
 # problem_file = "./input/problems/bar_static.prob"
 # problem_file = "./input/problems/soilrb_EE_static.prob"
 # problem_file = "./input/problems/soil_EE_static.prob"
@@ -23,9 +26,9 @@ generate_mesh!(mesh)
 derive_data!(mesh,materials,problem)
 
 plot_meshtags(mesh)
-# output_vars(output_file, mesh, problem, materials)
 
 assembly = JuBEM.statics_assembly(mesh,materials)
+output_vars(output_file, mesh, problem, materials,assembly)
 
 JuBEM.remove_EE!(mesh,assembly,problem)
 
@@ -37,13 +40,13 @@ x = LHS\RHS
 
 u2,t2 = JuBEM.returnut_simple(x,mesh,problem)
 u,t,urb = JuBEM.returnut_rb(x,mesh,problem)
-
+u,t = JuBEM.returnut_multi_simple(x,mesh,problem)
 # t2 = time()
 
 sol = Solution(u,t)
 sol = Solution(u,t,urb,0.0,0.0)
 
-plot_disp(mesh,sol,1)
+plot_disp(mesh,sol,3)
 
 # JuBEM.output_solution(output_file,sol)
 

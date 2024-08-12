@@ -35,8 +35,11 @@ To-dos:
     - [x] Rethink/Remove solver, solverstatics, solverdynamics
 - [ ] Add multiregions
     - [x] Update generatemesh with needed 
-        - [ ] Include EEN to link geometric and physical elements
-    - [ ] Update assemblies to be over bodies
+        - [x] Include EEN to link geometric and physical elements
+    - [x] Update assemblies to be over bodies
+    - [x] Make applybc_multi_simple and returnut_multi_simple
+    - [ ] Update remove_EE!
+    - [ ] Make applybc_rb_multi and returnut_rb_multi
 - [ ] Improve API for running code/make it more concise
 - [ ] Add documentations
 - [ ] Eventually improve package to contain CI, Docs and Codecov

@@ -496,21 +496,12 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
 
     LHS = zeros(eltype(H),nDofs,nDofs)
     RHS = zeros(eltype(H),nDofs)
-
-    RHS_mat = zeros(eltype(H),nDofs,nDofs)
-    
-    nnodeDofs = maximum(mesh.ID)
-    RHS_vec = zeros(eltype(H),nnodeDofs)
-
-    
     
     # Primeiro colapsar as colunas de H e de G
 
     H2, G2 = reorganizeHG_multi(mesh,problem,H,G)
 
     # Reorganiza colunas de u e t
-    colH = zeros(nDofs)
-    colG = zeros(nDofs)
 
     for e in 1:mesh.nelem
 
@@ -519,11 +510,11 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
         bctypes = problem.bctype[bcidx,2:end]
         bcvalues = problem.bcvalue[bcidx,:]
 
-        for n in 1:nnel
-            nodeidx = mesh.IEN[n,e]
-            Dofs = mesh.ID[:,nodeidx]
+        if bctypes[1] != -1
 
-            if bctypes[1] != -1
+            for n in 1:nnel
+                nodeidx = mesh.IEN[n,e]
+                Dofs = mesh.ID[:,nodeidx]
 
                 for i in 1:3
 
@@ -533,12 +524,10 @@ function applyBC_multi_simple(mesh::Mesh,problem::Problem,H,G)
         
                     elseif bctypes[i] == 2
                         RHS = RHS + G2[:,Dofs[i]].*bcvalues[i]
-                    elseif bctypes[i] != -1                        
+                    else                    
                         error("not supported by this func")
                     end
                 end
-
-
             end
 
         end
@@ -591,4 +580,196 @@ function reorganizeHG_multi(mesh::Mesh,problem::Problem,H,G)
     end
 
     return Haux, Gaux
+end
+
+function returnut_multi_simple(x,mesh::Mesh,problem::Problem)
+
+    nnel = size(mesh.IEN,1)
+    
+    nnodeDofs = maximum(mesh.ID)
+
+    nnodes = maximum(mesh.IEN)
+
+    u = zeros(eltype(x),nnodes,3)
+    t = zeros(eltype(x),nnodes,3)
+
+    
+    for e in 1:mesh.nelem
+        for n in 1:nnel
+            nodeidx = mesh.IEN[n,e]
+            Dofs = mesh.ID[:,nodeidx]
+
+            tag = mesh.tag[e]
+            bctag = problem.taginfo[tag,2]
+            bctypes = problem.bctype[bctag,2:end]
+            bcvalues = problem.bcvalue[bctag,:]
+            
+            for i in 1:3
+                if bctypes[i] == 1
+                    u[nodeidx,i] = bcvalues[i]
+                    t[nodeidx,i] = x[Dofs[i]]
+
+                elseif bctypes[i] == 2
+                    u[nodeidx,i] = x[Dofs[i]]
+                    t[nodeidx,i] = bcvalues[i]
+                elseif bctypes[i] == -1
+                    u[nodeidx,1] = x[Dofs[i]]
+                end
+            end
+        end
+    end
+
+    idxbcinterfaces = findall(problem.bctype[:,2].==-1)
+    idxtaginterfaces = findall([x ∈ idxbcinterfaces for x in problem.taginfo[:,2]])
+    idxelemsinterfaces = findall([x ∈ idxtaginterfaces for x in mesh.tag])
+    nodesidxinterfaces = unique(vec(mesh.IEN[:,idxelemsinterfaces]))
+    gdlinterfaces = vec(mesh.ID[:,nodesidxinterfaces])
+
+    j = 1
+    for n in nodesidxinterfaces
+        for i in 1:3
+            t[n,i] = x[nnodeDofs+j]    
+            j = j+1
+        end
+    end
+
+    return u, t
+end
+
+function applybc_rb_multi(mesh::Mesh,problem::Problem,H,G)
+
+    nnel = size(mesh.IEN,1)
+    
+    # Definir as tuplas GDLr[i]
+    nrb, elemr, GDLr, rbcenters = JuBEM.get_GDLr(mesh, problem)
+    
+    # Montar matrizes Hrr e Grr
+    nGDLflex = size(H,1)
+    nGDL =  nGDLflex + 6*nrb
+    nGDLr = isempty(GDLr) ? 0 : sum(length,GDLr)
+    Hr = zeros(eltype(H),nGDLflex,6*nrb)
+    Gr = zeros(eltype(H),nGDLflex,nGDLr)
+    D = zeros(eltype(H),6*nrb,nGDLr)
+
+    jg1 = 1
+    for r in 1:nrb
+
+        cols = 6*(r-1)+1:6*r
+
+        # Calcula as matrizes C e D
+        jg2 = length(GDLr[r])
+
+        Cr, Dr = calc_CD(mesh,rbcenters[r,:],elemr[r])
+        
+        # Pega as entradas da matrizes H com os graus de liberdade do corpo rígido r
+        Hr[:,cols] = H[:,GDLr[r]]*Cr
+        Gr[:,jg1:jg2] = G[:,GDLr[r]]
+        D[:,jg1:jg2] = Dr
+
+        jg1 = jg2
+
+    end
+
+
+    GDLu, GDLt, y = find_bcidxs(mesh, problem)
+    nGDLu = length(GDLu)
+    nGDLt = length(GDLt)
+    Hu = H[:,GDLu]
+    Gu = G[:,GDLu]
+    Ht = H[:,GDLt]
+    Gt = G[:,GDLt]
+
+
+    LHS = zeros(eltype(H), nGDL, nGDL)
+    RHS = zeros(eltype(H), nGDL)
+
+    LHS[1:nGDLflex,:] = [Hr Ht -Gr -Gu]
+    j1 = 6*nrb+nGDLt+1
+    j2 = 6*nrb+nGDLt+nGDLr
+    LHS[nGDLflex+1:end,j1:j2] = D
+   
+    RHS = [
+        [-Hu Gt]*y
+        reshape(problem.forces,:)
+    ]
+
+    return LHS, RHS
+end
+
+function returnut_rb_multi(x,mesh::Mesh,problem::Problem)
+    
+    nnel = Int((mesh.eltype+1)^2.0)
+    u = zeros(typeof(x[1]),mesh.nnodes,3)
+    t = zeros(typeof(x[1]),mesh.nnodes,3)
+
+
+    nrb, elemr, GDLr, rbcenters = JuBEM.get_GDLr(mesh, problem)
+    
+    ## Montar matrizes Hrr e Grr
+    nGDL0 = 6*nrb
+    nGDLr = isempty(GDLr) ? 0 : sum(length,GDLr)
+    urb = zeros(typeof(x[1]),6,nrb)
+
+    for r in 1:nrb
+
+        idxr = 6*(r-1)+1:6*r
+        u0 = x[idxr]
+        urb[:,r] = u0
+
+        Cr,_ = calc_CD(mesh,rbcenters[r,:],elemr[r])
+        
+        ur = Cr*u0 
+    
+        nodesr = vec(mesh.IEN[:,elemr[r]])
+        u[nodesr,:] = reshape(ur,3,:)'
+
+    end
+
+
+
+    GDLu, GDLt, _ = find_bcidxs(mesh, problem)
+    nGDLt = length(GDLt)
+
+
+    ut = x[nGDL0+1:nGDL0+nGDLt]
+    tr = x[nGDL0+nGDLt+1:nGDL0+nGDLt+nGDLr]
+    tu = x[nGDL0+nGDLt+nGDLr+1:end]
+
+    j = 1
+    for r in 1:nrb
+        nodesr = vec(mesh.IEN[:,elemr[r]])
+        nnodesr = length(nodesr)
+        t[nodesr,:] = reshape(tr[j:3*nnodesr],3,:)'
+        j = j+nnodesr+1
+    end
+
+    iu = 1
+    it = 1
+    for b in axes(problem.bctype,1)
+        bctype = problem.bctype[b,2:end]
+        bcvalue = problem.bcvalue[b,:]
+        if any(bctype.==1 .||bctype.==2)
+            for j in axes(problem.taginfo,1)
+                if problem.taginfo[j,2]==b
+                    elems = findall(mesh.tag.==j)
+                    for e in elems
+                        for n in axes(mesh.IEN,1)
+                            nidx = mesh.IEN[n,e]
+                            for i in 1:3
+                                if bctype[i] == 1
+                                    t[nidx,i] = tu[iu]
+                                    iu = iu+1
+                                elseif bctype[i] == 2
+                                    u[nidx,i] = ut[it]
+                                    it = it+1
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return u, t, urb
 end

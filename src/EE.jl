@@ -7,7 +7,7 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
 
     nnel = size(mesh.IEN,1)
     nelem_new = length(elemidxnonee)
-    nnodes_new = nnel*length(elemidxnonee)
+    nnodes_new = mesh.nelem - nnel*length(elemidxee)
 
     ID_new = zeros(Int32,size(mesh.ID))
     LM_new = zeros(Int32,3*nnel,nelem_new)
@@ -19,30 +19,44 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
     # Remover as colunas de LM, IEN, IEN_geo
     mesh.nelem = nelem_new
 
-    pos = 1
+    posID = 1
+    posLM = 1
+    nodesidx = []
 
     for e in 1:nelem_new
         IEN_new[:,e] = mesh.IEN[:,elemidxnonee[e]]
-        IEN_geo_new[:,e] = mesh.IEN_geo[:,elemidxnonee[e]]
+        elemgeo = abs(mesh.EEN[elemidxnonee[e]])
+        IEN_geo_new[:,e] = mesh.IEN_geo[:,elemgeo]
+        mesh.EEN[elemidxnonee[e]] = e
         for i in 1:nnel
-            ID_new[:,IEN_new[i,e]] = [pos, pos+1, pos+2]
-            pos = pos+3
+            nodeidx = IEN_new[i,e]
+            if nodeidx ∉ nodesidx
+                ID_new[:,nodeidx] = [posID, posID+1, posID+2]
+                push!(nodesidx,nodeidx)
+                posID = posID+3
+            end
+            idxs = 3*(i-1)+1:3*i
+            LM_new[idxs,e] = [posLM, posLM+1, posLM+2]
+            posLM = posLM + 3
         end
-        LM_new[:,e] = ID_new[:,IEN_new[:,e]][:]
     end
 
+    EEN_new = mesh.EEN[elemidxnonee]
     tag_new = mesh.tag[elemidxnonee]
 
+    nDofsnew = maximum(LM_new)
 
-    G = zeros(3*nnodes_new, 3*nnodes_new)
-    H = zeros(3*nnodes_new, 3*nnodes_new)
+    G = zeros(nDofsnew, nDofsnew)
+    H = zeros(nDofsnew, nDofsnew)
     # Remover as colunas de G e de H
 
-
-    G[LM_new[:,elemidxnonee][:],LM_new[:,elemidxnonee][:]] = assembly.G[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]
-    H[LM_new[:,elemidxnonee][:],LM_new[:,elemidxnonee][:]] = assembly.H[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]
-
-    # println(size(assembly.G[mesh.LM[:,elemidxnonee][:],mesh.LM[:,elemidxnonee][:]]))
+    for e in 1:nelem_new
+        for se in 1:nelem_new
+            G[LM_new[:,se][:],LM_new[:,e][:]] = assembly.G[mesh.LM[:,elemidxnonee[se]][:],mesh.LM[:,elemidxnonee[e]][:]]
+            H[LM_new[:,se][:],LM_new[:,e][:]] = assembly.H[mesh.LM[:,elemidxnonee[se]][:],mesh.LM[:,elemidxnonee[e]][:]]
+        end
+    end
+ 
 
     assembly.G = G
     assembly.H = H
@@ -55,7 +69,18 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
     mesh.IEN = IEN_new
     mesh.IEN_geo = IEN_geo_new
     mesh.tag = tag_new
+    mesh.EEN = EEN_new
 
+    # Definicao de bodies
+    nbodies = maximum(problem.taginfo[:,4])
+    bodies_new = []
+    for b in 1:nbodies
+        tagidxs = findall(problem.taginfo[:,4].==b)
+        elems = findall([x ∈ tagidxs for x in mesh.tag])
+        push!(bodies_new,elems)
+    end
+
+    mesh.bodies = bodies_new
     
     return mesh, assembly
 end

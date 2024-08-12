@@ -9,7 +9,11 @@ function output_vars(filename, mesh::Mesh, problem::Problem, materials::Array{Ma
             fields = fieldnames(typeof(var))
             for field in fields
                 field_str = string(field)
-                g[field_str] = getfield(var,field)     
+                try
+                    g[field_str] = getfield(var,field)  
+                catch
+                    continue
+                end   
             end   
         end
         i = 1
