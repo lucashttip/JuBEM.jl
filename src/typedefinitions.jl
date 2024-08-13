@@ -266,6 +266,7 @@ end
 
 
 ==(a::JuBEMtypes,b::JuBEMtypes) = begin
+    aux = 1
     if typeof(a) != typeof(b)
         return false
     end
@@ -275,10 +276,15 @@ end
         f1 = getfield(a,field)
         f2 = getfield(b,field)
         if f1 != f2
-            return false
+            aux = 0
+            println("$(field) not equal")
         end
     end
-    return true
+    if aux == 1
+        return true
+    else 
+        return false
+    end
 end
 
 function copy(mesh::Mesh)
@@ -289,7 +295,7 @@ function copy(mesh::Mesh)
 
     for field in fields
         f1 = getfield(mesh,field)
-        setfield!(mesh2,field,f1)
+        setfield!(mesh2,field,Base.copy(f1))
     end
     return mesh2
 end

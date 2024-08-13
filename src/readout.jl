@@ -102,7 +102,6 @@ function getflex_out(filename)
 end
 
 function getfreqres_out(filename, freq)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     groupname = string("freq_",freq)

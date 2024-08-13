@@ -4,16 +4,20 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
     tagidxee = findall(x->x ∈ bctypeidxee , problem.taginfo[:,2])
     elemidxee = findall(x->x ∈ tagidxee, mesh.tag)
     elemidxnonee = setdiff(1:mesh.nelem, elemidxee)
+    elemgeoidxnonee = unique(abs.(mesh.EEN[elemidxnonee]))
+    # @infiltrate
 
     nnel = size(mesh.IEN,1)
     nelem_new = length(elemidxnonee)
-    nnodes_new = mesh.nelem - nnel*length(elemidxee)
+    nelemgeo_new = length(elemgeoidxnonee)
+    nnodes_new = mesh.nnodes - nnel*length(elemidxee)
 
     ID_new = zeros(Int32,size(mesh.ID))
     LM_new = zeros(Int32,3*nnel,nelem_new)
     IEN_new = zeros(Int32,nnel,nelem_new)
-    IEN_geo_new = zeros(Int32,nnel,nelem_new)
+    IEN_geo_new = zeros(Int32,nnel,nelemgeo_new)
     tag_new = zeros(Int32,nelem_new)
+    EEN_new = zeros(Int32,nelem_new)
 
     
     # Remover as colunas de LM, IEN, IEN_geo
@@ -23,11 +27,19 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
     posLM = 1
     nodesidx = []
 
+    for e in 1:nelemgeo_new
+        IEN_geo_new[:,e] = mesh.IEN_geo[:,elemgeoidxnonee[e]]
+        idxsEEN = findall(elemgeoidxnonee[e] .== abs.(mesh.EEN))
+        # @infiltrate
+        mesh.EEN[idxsEEN] = sign.(mesh.EEN[idxsEEN]).*e
+        # @infiltrate
+    end
+
     for e in 1:nelem_new
         IEN_new[:,e] = mesh.IEN[:,elemidxnonee[e]]
-        elemgeo = abs(mesh.EEN[elemidxnonee[e]])
-        IEN_geo_new[:,e] = mesh.IEN_geo[:,elemgeo]
-        mesh.EEN[elemidxnonee[e]] = e
+        # elemgeo = abs(mesh.EEN[elemidxnonee[e]])
+        # IEN_geo_new[:,e] = mesh.IEN_geo[:,elemgeo]
+        EEN_new[e] = mesh.EEN[elemidxnonee[e]]
         for i in 1:nnel
             nodeidx = IEN_new[i,e]
             if nodeidx ∉ nodesidx
@@ -41,7 +53,8 @@ function remove_EE!(mesh::Mesh,assembly::Assembly,problem::Problem)
         end
     end
 
-    EEN_new = mesh.EEN[elemidxnonee]
+    # EEN_new = mesh.EEN[elemidxnonee]
+    mesh.EEN = EEN_new
     tag_new = mesh.tag[elemidxnonee]
 
     nDofsnew = maximum(LM_new)

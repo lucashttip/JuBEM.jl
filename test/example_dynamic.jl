@@ -9,29 +9,6 @@ problem_file = "./input/problems/multi_bar_dynamic.prob"
 
 output_file = "test_out.h5"
 
-
-# function solve(mesh,problem,materials)
-
-#     output_vars_h5(file_out, mesh, problem, material)
-
-#     static_ass = statics_assembly(mesh,problem,materials)
-
-#     remove_ee!(mesh,problem,static_ass)
-
-#     for freq in problem.frequencies
-
-#         assembly = dynamic_assembly(mesh,problem,materials,static_ass,freq)
-#         solution = solve(assembly)
-
-
-#         output_freq_h5(file_out,freq,solution)
-
-#     end
-
-# end
-
-##
-
 mesh = read_msh(mesh_file)
 problem, materials = read_problem(problem_file,mesh)
 
@@ -41,7 +18,7 @@ derive_data!(mesh,materials,problem)
 
 output_vars(output_file, mesh, problem, materials)
 
-assembly = statics_assembly(mesh,materials)
+assembly = statics_assembly(mesh,materials,problem)
 JuBEM.remove_EE!(mesh,assembly,problem)
 
 

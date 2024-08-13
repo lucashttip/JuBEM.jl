@@ -28,6 +28,9 @@ end
 function plot_disp(mesh::Mesh,sol::Solution,dim)
     
     u = sol.u
+    if eltype(u) == ComplexF64
+        u = real.(u)
+    end
 
     order = mesh.eltype
     offset = mesh.offset
@@ -49,7 +52,7 @@ function plot_disp(mesh::Mesh,sol::Solution,dim)
 
 
 
-        unodes = sol.u[nidx,:]
+        unodes = u[nidx,:]
         upoints[nidx,:] = N*unodes
         xpoints[nidx,:] = N*nodes
 
