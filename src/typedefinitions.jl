@@ -182,7 +182,8 @@ mutable struct Solution{T} <: JuBEMtypes
     freq :: Float64
     Solution(u:: Array{Float64,2},t:: Array{Float64,2}) = new{Float64}(u,t,Array{Float64,2}(undef,0,0),0.0,0.0)
     Solution(u:: Array{ComplexF64,2},t:: Array{ComplexF64,2},freq::Float64) = new{ComplexF64}(u,t,Array{ComplexF64,2}(undef,0,0),0.0,freq)
-
+    Solution(u:: Array{Float64,2},t::Array{Float64,2},urb::Array{Float64,2},time::Float64,freq::Float64) = new{Float64}(u,t,urb,time,freq)
+    Solution(u:: Array{ComplexF64,2},t::Array{ComplexF64,2},urb::Array{ComplexF64,2},time::Float64,freq::Float64) = new{ComplexF64}(u,t,urb,time,freq)
 end
 
 """

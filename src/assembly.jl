@@ -1,5 +1,5 @@
 # Working:
-function statics_assembly(mesh::Mesh, materials::Vector{Material})
+function statics_assembly(mesh::Mesh, materials::Vector{Material},problem::Problem)
     
     assembly = Assembly()
 
@@ -22,10 +22,11 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material})
 
     p = Progress(nelem,1, "Computing static G and H...", 50)
 
-    for body in mesh.bodies
-        # Threads.@threads for e in body
+    # for body in mesh.bodies
+    Threads.@threads for body in mesh.bodies
         for e in body
-
+            tag = mesh.tag[e]
+            matidx = problem.taginfo[tag,3]
             nodesidx = mesh.IEN[:,e]
             nodes = mesh.nodes[nodesidx,2:end]
 
@@ -44,13 +45,13 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material})
                     # Non-singular integration
                     if s ∉ nodesidx
                         # Integrate
-                        HELEM, GELEM = integrate_nonsing(source, points, rules, materials[1],normalsign)
+                        HELEM, GELEM = integrate_nonsing(source, points, rules, materials[matidx],normalsign)
                         # @infiltrate
                     else
                     # Singular integration
                         # Local index of source node on the element
                         # Integrate
-                        HELEM, GELEM = integrate_sing(source, points, rules, materials[1],normalsign, n)
+                        HELEM, GELEM = integrate_sing(source, points, rules, materials[matidx],normalsign, n)
                     end
 
                     #Assembly on matrix
@@ -75,7 +76,7 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material})
 end
 
 
-function dynamics_assembly!(mesh,problem,materials,assembly,freq)
+function dynamics_assembly!(mesh::Mesh,problem::Problem,materials::Vector{Material},assembly::Assembly,freq)
 
     # DEFINING PARAMETERS
     # mesh/material/other constants definition
@@ -83,7 +84,10 @@ function dynamics_assembly!(mesh,problem,materials,assembly,freq)
     nnel = size(mesh.IEN,1)
     
     # Define integration constants
-    C_dyn = cmplx_consts(materials[1],freq)
+    C_dyn = cmplx_consts[]
+    for m in eachindex(materials)
+        push!(C_dyn,cmplx_consts(materials[m],freq))
+    end
 
     # Define integration rules for non-sing
     rules = define_rules(mesh)
@@ -100,7 +104,8 @@ function dynamics_assembly!(mesh,problem,materials,assembly,freq)
     for body in mesh.bodies
         # Threads.@threads for e in body
         for e in body
-
+            tag = mesh.tag[e]
+            matidx = problem.taginfo[tag,3]
             nodesidx = mesh.IEN[:,e]
             nodes = mesh.nodes[nodesidx,2:end]
 
@@ -119,13 +124,13 @@ function dynamics_assembly!(mesh,problem,materials,assembly,freq)
                     # Non-singular integration
                     if s ∉ nodesidx
                         # Integrate
-                        zHELEM, zGELEM = integrate_nonsing_dyn(source, points, rules, C_dyn,normalsign)
+                        zHELEM, zGELEM = integrate_nonsing_dyn(source, points, rules, C_dyn[matidx],normalsign)
                     else
                     # Singular integration
                         # Local index of source node on the element
                         idx = findfirst(nodesidx.==s)
                         # Integrate
-                        zHELEM, zGELEM = integrate_sing_dyn(source, points, rules, materials[1],C_dyn,normalsign, idx)
+                        zHELEM, zGELEM = integrate_sing_dyn(source, points, rules, materials[matidx],C_dyn[matidx],normalsign, idx)
                     end
 
                     #Assembly on matrix

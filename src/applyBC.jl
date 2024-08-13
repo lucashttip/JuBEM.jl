@@ -52,7 +52,7 @@ function applyBC_rb(mesh::Mesh, problem::Problem,H,G)
     end
 
 
-    GDLu, GDLt, y = find_bcidxs(mesh, problem)
+    GDLu, GDLt,GDLi, y = find_bcidxs(mesh, problem)
     nGDLu = length(GDLu)
     nGDLt = length(GDLt)
     Hu = H[:,GDLu]
@@ -90,62 +90,42 @@ end
 function find_bcidxs(mesh::Mesh, problem::Problem)
 
     nnel = size(mesh.IEN,1)
-    bcsut = findall(problem.bctype[:,2] .== 1 .|| problem.bctype[:,2] .== 2)
+    # bcsut = findall(problem.bctype[:,2] .== 1 .|| problem.bctype[:,2] .== 2)
+    bcsut = findall([x ∈ [-1,1,2] for x in problem.bctype[:,2]])
 
     ngdlu = 0
     ngdlt = 0
+    ngdli = 0
 
     for b in bcsut
         bc = problem.bctype[b,2:end]
+        bcvalue = problem.bcvalue[b,:]
 
+        ni = count(bc.==-1 .&& bcvalue[1] == 1)
         nu = count(bc.==1)
         nt = count(bc.==2)
 
         tags = findall(problem.taginfo[:,2].==b)
-        nelem = count(mesh.tag.∈tags)
+        nelem = count([x ∈ tags for x in mesh.tag])
+        ngdli = ngdli + ni*nnel*nelem
         ngdlu = ngdlu + nu*nnel*nelem
         ngdlt = ngdlt + nt*nnel*nelem
     end
 
+    GDLi = zeros(Int64,ngdli)
     GDLu = zeros(Int64,ngdlu)
     GDLt = zeros(Int64,ngdlt)
     yu = zeros(ngdlu)
     yt = zeros(ngdlt)
     y = zeros(ngdlu+ngdlt)
 
-    # iu = 0
-    # it = 0
-    # for b in bcsut
-    #     bctype = problem.bctype[b,2:end]
-    #     bcvalue = problem.bcvalue[b,:]
-
-    #     nu = count(bctype.==1)
-    #     nt = count(bctype.==2)
-
-    #     tags = findall(problem.taginfo[:,2].==bctype)
-    #     elems = findall(mesh.tag.∈tags)
-    #     nodes = vec(mesh.IEN[:,elems])
-    #     nelem = length(elems)
-    #     ngdlub = nu*nnel*nelem
-    #     ngdltb = nt*nnel*nelem
-
-    #     GDLu[iu+1:iu+ngdlub] = vec(mesh.ID[bctype.==1,nodes])
-    #     GDLt[it+1:it+ngdltb] = vec(mesh.ID[bctype.==2,nodes])
-
-    #     y[iu+1:iu+ngdlub] = repeat(bcvalue[bctype.==1],nelem)
-    #     y[ngdlu+it+1: ngdlu+it+ngdltb] = repeat(bcvalue[bctype.==2],nnel*nelem)
-
-    #     iu = iu + ngdlub
-    #     it = it + ngdltb
-
-    # end
-
+    ii = 1
     iu = 1
     it = 1
     for b in axes(problem.bctype,1)
         bctype = problem.bctype[b,2:end]
         bcvalue = problem.bcvalue[b,:]
-        if any(bctype.==1 .|| bctype.==2)
+        if any(bctype.==1 .|| bctype.==2 .|| bctype.==-1)
             for t in axes(problem.taginfo,1)
                 if problem.taginfo[t,2]==b
                     elems = findall(mesh.tag.==t)
@@ -162,6 +142,9 @@ function find_bcidxs(mesh::Mesh, problem::Problem)
                                     GDLt[it] = gdl
                                     yt[it] = bcvalue[i]
                                     it = it+1
+                                elseif bctype[i] == -1 && bcvalue[1] == 1
+                                    GDLi[ii] = gdl
+                                    ii = ii + 1
                                 end
                             end
                         end
@@ -173,7 +156,7 @@ function find_bcidxs(mesh::Mesh, problem::Problem)
 
     y = [yu;yt]
 
-    return GDLu, GDLt, y
+    return GDLu, GDLt, GDLi, y
 
 end
 
@@ -204,7 +187,8 @@ function get_GDLr(mesh::Mesh, problem::Problem)
     for i in 1:nrb
         irbtag = findfirst(bctags.==ibcrb[i])
         elemr[i] = findall(mesh.tag.==irbtag)
-        GDLr[i] = vec(mesh.LM[:,elemr[i]])
+        nodesr = vec(mesh.IEN[:,elemr[i]])
+        GDLr[i] = vec(mesh.ID[:,nodesr])
         nelemr[i] = length(elemr[i])
         rbcenters[i,:] = problem.bcvalue[ibcrb[i],:]
     end 
@@ -373,7 +357,8 @@ function calc_CD(mesh::Mesh, rbcenter, rbelem)
         end
 
         # Calculating D
-        points = mesh.points[mesh.IEN_geo[:,rbe],2:end]
+        rbelem_geo = abs(mesh.EEN[rbe])
+        points = mesh.points[mesh.IEN_geo[:,rbelem_geo],2:end]
         _,J = calc_n_J_matrix(dNcdcsi, dNcdeta, points)
         gauss_points = Nc*points
         De = view(D,:,3*nnel*(e-1)+1:3*nnel*(e))
@@ -636,10 +621,23 @@ function returnut_multi_simple(x,mesh::Mesh,problem::Problem)
     return u, t
 end
 
-function applybc_rb_multi(mesh::Mesh,problem::Problem,H,G)
+function applyBC_rb_multi(mesh::Mesh,problem::Problem,H,G)
 
     nnel = size(mesh.IEN,1)
     
+
+    nnel = size(mesh.IEN,1)
+
+    nDofs = size(H,1)
+
+    # LHS = zeros(eltype(H),nDofs,nDofs)
+    # RHS = zeros(eltype(H),nDofs)
+    
+    # Primeiro colapsar as colunas de H e de G
+
+    HID, GID = reorganizeHG_multi(mesh,problem,H,G)
+
+
     # Definir as tuplas GDLr[i]
     nrb, elemr, GDLr, rbcenters = JuBEM.get_GDLr(mesh, problem)
     
@@ -662,30 +660,33 @@ function applybc_rb_multi(mesh::Mesh,problem::Problem,H,G)
         Cr, Dr = calc_CD(mesh,rbcenters[r,:],elemr[r])
         
         # Pega as entradas da matrizes H com os graus de liberdade do corpo rígido r
-        Hr[:,cols] = H[:,GDLr[r]]*Cr
-        Gr[:,jg1:jg2] = G[:,GDLr[r]]
-        D[:,jg1:jg2] = Dr
+        Hr[:,cols] = HID[:,GDLr[r]]*Cr
+        Gr[:,jg1:jg1+jg2-1] = GID[:,GDLr[r]]
+        D[:,jg1:jg1+jg2-1] = Dr
 
         jg1 = jg2
 
     end
 
 
-    GDLu, GDLt, y = find_bcidxs(mesh, problem)
+    GDLu, GDLt,GDLi, y = find_bcidxs(mesh, problem)
     nGDLu = length(GDLu)
     nGDLt = length(GDLt)
-    Hu = H[:,GDLu]
-    Gu = G[:,GDLu]
-    Ht = H[:,GDLt]
-    Gt = G[:,GDLt]
+    nGDLi = length(GDLi)
+    Hu = @view HID[:,GDLu]
+    Gu = @view GID[:,GDLu]
+    Ht = @view HID[:,GDLt]
+    Gt = @view GID[:,GDLt]
+    Hi = @view HID[:,GDLi]
+    Gi = @view GID[:,GDLi]
 
 
     LHS = zeros(eltype(H), nGDL, nGDL)
     RHS = zeros(eltype(H), nGDL)
-
-    LHS[1:nGDLflex,:] = [Hr Ht -Gr -Gu]
-    j1 = 6*nrb+nGDLt+1
-    j2 = 6*nrb+nGDLt+nGDLr
+    # @infiltrate
+    LHS[1:nGDLflex,:] = [Hr -Gr Ht -Gu Hi -Gi]
+    j1 = 6*nrb+1
+    j2 = 6*nrb+nGDLr
     LHS[nGDLflex+1:end,j1:j2] = D
    
     RHS = [
@@ -699,13 +700,14 @@ end
 function returnut_rb_multi(x,mesh::Mesh,problem::Problem)
     
     nnel = Int((mesh.eltype+1)^2.0)
-    u = zeros(typeof(x[1]),mesh.nnodes,3)
-    t = zeros(typeof(x[1]),mesh.nnodes,3)
+    nnodes = maximum(mesh.IEN)
+    u = zeros(typeof(x[1]),nnodes,3)
+    t = zeros(typeof(x[1]),nnodes,3)
 
 
     nrb, elemr, GDLr, rbcenters = JuBEM.get_GDLr(mesh, problem)
     
-    ## Montar matrizes Hrr e Grr
+    # Montar matrizes Hrr e Grr
     nGDL0 = 6*nrb
     nGDLr = isempty(GDLr) ? 0 : sum(length,GDLr)
     urb = zeros(typeof(x[1]),6,nrb)
@@ -727,13 +729,16 @@ function returnut_rb_multi(x,mesh::Mesh,problem::Problem)
 
 
 
-    GDLu, GDLt, _ = find_bcidxs(mesh, problem)
+    GDLu, GDLt,GDLi, _ = find_bcidxs(mesh, problem)
     nGDLt = length(GDLt)
+    nGDLi = length(GDLi)
+    nGDLu = length(GDLu)
 
-
-    ut = x[nGDL0+1:nGDL0+nGDLt]
-    tr = x[nGDL0+nGDLt+1:nGDL0+nGDLt+nGDLr]
-    tu = x[nGDL0+nGDLt+nGDLr+1:end]
+    tr = x[nGDL0+1:nGDL0+nGDLr]
+    ut = x[nGDL0+nGDLr+1:nGDL0+nGDLr+nGDLt]
+    tu = x[nGDL0+nGDLt+nGDLr+1:nGDL0+nGDLt+nGDLr+nGDLu]
+    ui = x[nGDL0+nGDLt+nGDLr+nGDLu+1:nGDL0+nGDLt+nGDLr+nGDLu+nGDLi]
+    ti = x[nGDL0+nGDLt+nGDLr+nGDLu+nGDLi+1:end]
 
     j = 1
     for r in 1:nrb
@@ -745,6 +750,7 @@ function returnut_rb_multi(x,mesh::Mesh,problem::Problem)
 
     iu = 1
     it = 1
+    ii = 1
     for b in axes(problem.bctype,1)
         bctype = problem.bctype[b,2:end]
         bcvalue = problem.bcvalue[b,:]
@@ -762,6 +768,10 @@ function returnut_rb_multi(x,mesh::Mesh,problem::Problem)
                                 elseif bctype[i] == 2
                                     u[nidx,i] = ut[it]
                                     it = it+1
+                                elseif bctype[i] == -1 && bcvalue[i] == 1
+                                    u[nidx,i] = ui[ii]
+                                    t[nidx,i] = ti[ii]
+                                    ii = ii+1
                                 end
                             end
                         end

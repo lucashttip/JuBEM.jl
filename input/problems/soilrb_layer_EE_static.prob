@@ -2,7 +2,8 @@ $ProblemName
 Problema de solo com corpo rígido e duas camada. Corpo rígido em 1, livre em 2, enclosing elements em 3
 $EndProblemName
 $Material
-1
+2
+1.000000E+00 0.3 0.01 1.0
 1.000000E+00 0.3 0.01 1.0
 $EndMaterial
 $Forces
@@ -27,6 +28,6 @@ $TagInformation
 2 2 1 1
 3 3 1 1
 4 4 1 1
-5 5 1 2
-6 3 1 2
+5 5 2 2
+6 3 2 2
 $EndTagInformation
