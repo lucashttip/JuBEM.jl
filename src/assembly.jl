@@ -23,8 +23,8 @@ function statics_assembly(mesh::Mesh, materials::Vector{Material},problem::Probl
     p = Progress(nelem,1, "Computing static G and H...", 50)
 
     # for body in mesh.bodies
-    Threads.@threads for body in mesh.bodies
-        for e in body
+    for body in mesh.bodies
+        Threads.@threads for e in body
             tag = mesh.tag[e]
             matidx = problem.taginfo[tag,3]
             nodesidx = mesh.IEN[:,e]
@@ -102,8 +102,8 @@ function dynamics_assembly!(mesh::Mesh,problem::Problem,materials::Vector{Materi
     p = Progress(nelem,1, "Computing static G and H...", 50)
 
     for body in mesh.bodies
-        # Threads.@threads for e in body
-        for e in body
+        Threads.@threads for e in body
+        # for e in body
             tag = mesh.tag[e]
             matidx = problem.taginfo[tag,3]
             nodesidx = mesh.IEN[:,e]
