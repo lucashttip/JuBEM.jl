@@ -16,6 +16,7 @@ Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]

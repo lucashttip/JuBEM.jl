@@ -17,7 +17,7 @@ To-dos:
 
 - [x] Update/Improve Type definitions
 - [x] Update input to be separate files for mesh and problem
-- [ ] Update/Clean functions
+- [x] Update/Clean functions
     - [x] Update shape functions
     - [x] Update generate_mesh! and derive_data!
     - [x] Create statics_assembly from solver_statics
@@ -33,13 +33,14 @@ To-dos:
     - [x] Juntar integratiorules e integrationconstants
     - [x] Remover integrationstatics e integrationdynamics?  
     - [x] Rethink/Remove solver, solverstatics, solverdynamics
-- [ ] Add multiregions
+- [x] Add multiregions
     - [x] Update generatemesh with needed 
         - [x] Include EEN to link geometric and physical elements
     - [x] Update assemblies to be over bodies
     - [x] Make applybc_multi_simple and returnut_multi_simple
-    - [ ] Update remove_EE!
-    - [ ] Make applybc_rb_multi and returnut_rb_multi
+    - [x] Update remove_EE!
+    - [x] Make applybc_rb_multi and returnut_rb_multi
+- [ ] Improve multiregion to generate banded matrices
 - [ ] Improve API for running code/make it more concise
 - [ ] Add documentations
 - [ ] Eventually improve package to contain CI, Docs and Codecov

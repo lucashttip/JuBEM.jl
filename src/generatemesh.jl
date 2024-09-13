@@ -20,7 +20,7 @@ function generate_mesh!(mesh::Mesh)
     return mesh
 end
 
-function generate_disc_mesh!(mesh)
+function generate_disc_mesh!(mesh::Mesh)
     # Generate nodes, IEN, ID and LM
 
     order = mesh.eltype
@@ -57,6 +57,7 @@ function generate_disc_mesh!(mesh)
 
     N = calc_N_gen(csis_cont, nodalcsis;dg=:N)
 
+    # TODO: Estudar como fazer isso de forma a tornar a matriz resultante em banda
     idxno1 = 1
     idxelem = 1
     for i in 1:nel_geo
