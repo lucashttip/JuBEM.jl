@@ -1,4 +1,4 @@
 /Manifest.toml
-# *.h5
+*.h5
 *.vtu
 docs/build/

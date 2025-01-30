@@ -77,7 +77,7 @@ end
 
 ## Statics
 
-function integrate_nonsing(source, points, rules, material)
+function integrate_nonsing(source, points, rules, material,normalsign)
     r, c, d = calc_dist(source, points, rules)
 
     if r > 0
@@ -90,6 +90,7 @@ function integrate_nonsing(source, points, rules, material)
         integ_points, Nd, normals, weights = calc_nearpoints(rules.gp_near.csis, rules.gp_near.omegas,c, d, rules.csis_points, rules.csis_nodes, points)
     end
 
+    normals = normals.*normalsign
     nnel = size(Nd,2)
     HELEM = zeros(3,3*nnel)
     GELEM = zeros(3,3*nnel)
@@ -109,7 +110,7 @@ function integrate_nonsing(source, points, rules, material)
 
 end
 
-function integrate_nonsing2(source, points, rules, material)
+function integrate_nonsing2(source, points, rules, material,normalsign)
     r, c, d = calc_dist(source, points, rules)
 
     if r > 0
@@ -122,6 +123,7 @@ function integrate_nonsing2(source, points, rules, material)
         integ_points, Nd, normals, weights = calc_nearpoints(rules.gp_near.csis, rules.gp_near.omegas,c, d, rules.csis_points, rules.csis_nodes, points)
     end
 
+    normals = normals.*normalsign
     nGP = length(weights)
     nnel = size(Nd,2)
     HELEM = zeros(3,3*nnel)
@@ -142,7 +144,7 @@ function integrate_nonsing2(source, points, rules, material)
 
 end
 
-function integrate_sing(source, points, rules::Rules, material, idx)
+function integrate_sing(source, points, rules::Rules, material,normalsign, idx)
 
 
     nnel = Int(length(rules.csis_nodes)^2)
@@ -150,6 +152,8 @@ function integrate_sing(source, points, rules::Rules, material, idx)
     idx_cont, idx_descont, np = calc_idx_permutation(nnel,idx)
 
     integ_points, normals, weights = calc_nJp_sing(rules,points,idx_cont, np)
+
+    normals = normals.*normalsign
 
     Nd = calc_N_gen(rules.csis_nodes,rules.csis_sing[np].csis)[:,idx_descont]
 
@@ -163,7 +167,9 @@ function integrate_sing(source, points, rules::Rules, material, idx)
         for i in 1:3
             for j in 1:3
                 pesos = Nd[:,k].*weights
-                HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*pesos)
+                if k != idx
+                    HELEM[i,3*(k-1)+j] = sum(t[i,j,:].*pesos)
+                end
                 GELEM[i,3*(k-1)+j] = sum(u[i,j,:].*pesos)
             end
         end
@@ -174,7 +180,7 @@ end
 
 ## Dynamics
 
-function integrate_nonsing_dyn(source, points, rules, zconsts)
+function integrate_nonsing_dyn(source, points, rules, zconsts,normalsign)
     r, c, d = calc_dist(source, points, rules)
 
     if r > 0
@@ -186,6 +192,8 @@ function integrate_nonsing_dyn(source, points, rules, zconsts)
         # NEAR INTEGRATION
         integ_points, Nd, normals, weights = calc_nearpoints(rules.gp_near.csis, rules.gp_near.omegas,c, d, rules.csis_points, rules.csis_nodes, points)
     end
+
+    normals = normals.*normalsign
 
     nGP = length(weights)
     nnel = size(Nd,2)
@@ -208,7 +216,7 @@ function integrate_nonsing_dyn(source, points, rules, zconsts)
 
 end
 
-function integrate_sing_dyn(source, points, rules::Rules, material,zconsts, idx)
+function integrate_sing_dyn(source, points, rules::Rules, material,zconsts,normalsign, idx)
 
 
     nnel = Int(length(rules.csis_nodes)^2)
@@ -216,6 +224,8 @@ function integrate_sing_dyn(source, points, rules::Rules, material,zconsts, idx)
     idx_cont, idx_descont, np = calc_idx_permutation(nnel,idx)
 
     integ_points, normals, weights = calc_nJp_sing(rules,points,idx_cont, np)
+
+    normals = normals.*normalsign
 
     Nd = calc_N_gen(rules.csis_nodes,rules.csis_sing[np].csis)[:,idx_descont]
 
@@ -246,13 +256,17 @@ end
 
 function integrate_rigid_body!(H,mesh)
 
-    for n in 1:mesh.nnodes
+    nnel = size(mesh.IEN,1)
+    for e in 1:mesh.nelem
 
-        i = mesh.ID[:,n]
-       
-        H[i,i[1]] = - sum(H[i,1:3:end],dims=2)
-        H[i,i[2]] = - sum(H[i,2:3:end],dims=2)
-        H[i,i[3]] = - sum(H[i,3:3:end],dims=2)
+        for n in 1:nnel
+
+            i = mesh.LM[3*(n-1)+1:3*n,e]
+        
+            H[i,i[1]] = - sum(H[i,1:3:end],dims=2)
+            H[i,i[2]] = - sum(H[i,2:3:end],dims=2)
+            H[i,i[3]] = - sum(H[i,3:3:end],dims=2)
+        end
 
     end
     

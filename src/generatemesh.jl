@@ -25,6 +25,7 @@ function generate_disc_mesh!(mesh)
 
     order = mesh.eltype
     offset = mesh.offset
+    nel_geo = mesh.nelem_geo
     nel = mesh.nelem
     
     csis_cont = range(-1.0,1.0,length = order+1)
@@ -36,14 +37,16 @@ function generate_disc_mesh!(mesh)
     csis_disc = range(-1.0+offset, 1.0-offset, length = order+1)
     
     nnel = (order+1)^2
-    nnodes = nel*nnel
+    nnodes = nel_geo*nnel
 
     mesh.nnodes = nnodes
     mesh.ID = reshape(1:3*nnodes,3,nnodes)
-    mesh.LM = reshape(1:3*nnodes,3*nnel,nel)
-    mesh.IEN = reshape(1:nnodes,nnel,nel)
+    mesh.LM = zeros(3*nnel,nel)
+    mesh.IEN = zeros(Int32,nnel,nel)
     mesh.nodes = zeros(nnodes,4)
     mesh.nodes[:,1] = 1:nnodes
+    mesh.tag = zeros(Int16,nel)
+    mesh.EEN = zeros(nel)
 
     k = map_k(nnel)
 
@@ -54,11 +57,32 @@ function generate_disc_mesh!(mesh)
 
     N = calc_N_gen(csis_cont, nodalcsis;dg=:N)
 
-    for i in 1:nel
+    idxno1 = 1
+    idxelem = 1
+    for i in 1:nel_geo
+        idxnos = idxno1:idxno1+nnel-1
+        gdlelem = 3*nnel*(idxelem-1)+1:3*nnel*idxelem
         points_in_elem = mesh.IEN_geo[:,i]
-        mesh.nodes[mesh.IEN[:,i],2:end] = N*mesh.points[points_in_elem,2:end]
+        mesh.nodes[idxnos,2:end] = N*mesh.points[points_in_elem,2:end]
+        mesh.IEN[:,idxelem] = idxnos
+        mesh.LM[:,idxelem] = gdlelem
+        mesh.tag[idxelem] = mesh.tag_geo[i,1]
+        mesh.EEN[idxelem] = i
+        idxelem = idxelem+1
+
+        if mesh.tag_geo[i,2]!=0
+            gdlelem = 3*nnel*(idxelem-1)+1:3*nnel*idxelem
+            mesh.LM[:,idxelem] = gdlelem
+            mesh.IEN[:,idxelem] = idxnos[end:-1:1]
+            mesh.tag[idxelem] = mesh.tag_geo[i,2]
+            mesh.EEN[idxelem] = -i
+            idxelem = idxelem+1
+        end
+
+        idxno1 = idxno1+nnel
     end
 
+    
     return mesh
 end
 

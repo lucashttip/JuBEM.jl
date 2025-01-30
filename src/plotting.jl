@@ -28,6 +28,9 @@ end
 function plot_disp(mesh::Mesh,sol::Solution,dim)
     
     u = sol.u
+    if eltype(u) == ComplexF64
+        u = real.(u)
+    end
 
     order = mesh.eltype
     offset = mesh.offset
@@ -41,14 +44,15 @@ function plot_disp(mesh::Mesh,sol::Solution,dim)
     tri = triangulate(mesh)
 
     for e in axes(mesh.IEN,2)
-        pidx = mesh.IEN_geo[:,e]
+        egeo = abs(mesh.EEN[e])
+        pidx = mesh.IEN_geo[:,egeo]
         nidx = mesh.IEN[:,e]
         nodes = mesh.nodes[nidx,2:end]
 
 
 
 
-        unodes = sol.u[nidx,:]
+        unodes = u[nidx,:]
         upoints[nidx,:] = N*unodes
         xpoints[nidx,:] = N*nodes
 
@@ -101,7 +105,7 @@ function plot_meshtags(mesh::Mesh)
 
         pidx = mesh.IEN_geo[:,e]
 
-        cpoints[pidx] .= mesh.tag[e]
+        cpoints[pidx] .= mesh.tag_geo[e,1]
 
     end
 
@@ -113,7 +117,7 @@ function plot_meshtags(mesh::Mesh)
     	"rgb(230, 200, 10)",
     	"rgb(255, 140, 0)"
     ]
-    facecolor = repeat(colors[mesh.tag], inner=[2])
+    facecolor = repeat(colors[mesh.tag_geo[:,1]], inner=[2])
 
     t = PlotlyJS.mesh3d(x=xpoints[:,1],y=xpoints[:,2],z=xpoints[:,3],i=tri[:,1],j=tri[:,2],k=tri[:,3], facecolor = facecolor,showlegend=true,colorscale=[
         [0, "rgb(255, 0, 255)"],
@@ -129,12 +133,27 @@ function plot_meshtags(mesh::Mesh)
 
     # @infiltrate
     
+    max_x = maximum(abs.(xpoints[:,1]))
+    max_y = maximum(abs.(xpoints[:,2]))
+    max_z = maximum(abs.(xpoints[:,3]))
+
+    max_dim = maximum([max_x,max_y,max_z])
+
+    asp_x = 1.5*max_x/max_dim
+    asp_y = 1.5*max_y/max_dim
+    asp_z = 1.5*max_z/max_dim
+
+    layout = PlotlyJS.Layout( 
+        coloraxis=PlotlyJS.attr(autocolorscale=true)    ,
+        scene_aspectratio=PlotlyJS.attr(x=asp_x, y=asp_y, z=asp_z),
+        margin=PlotlyJS.attr(autoexpand=true))
+
     # layout = PlotlyJS.Layout( 
     #     coloraxis=PlotlyJS.attr(autocolorscale=true)    ,
     #     scene_aspectratio=PlotlyJS.attr(x=asp_x, y=asp_y, z=asp_z),
     #     margin=PlotlyJS.attr(autoexpand=true))
 
-    # return PlotlyJS.plot(t, layout)
-    return PlotlyJS.plot(t)
+    return PlotlyJS.plot(t, layout)
+    # return PlotlyJS.plot(t)
 
 end

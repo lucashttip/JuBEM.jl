@@ -62,6 +62,7 @@ It's a mutable struct.
 """
 mutable struct Mesh <: JuBEMtypes
     # Block 1: Variables that hold integer information of whole mesh
+    nelem_geo :: Int64
     nelem :: Int64
     npoints :: Int64
     nnodes :: Int64
@@ -75,13 +76,16 @@ mutable struct Mesh <: JuBEMtypes
     LM :: Array{Int32,2}    
     points :: Array{Float64,2}  
     nodes :: Array{Float64,2}
+    bodies :: Vector{Vector{Int32}}
+    EEN :: Vector{Int32}
     
     ## Block 3: Variables that define material and boundary conditions
+    tag_geo :: Array{Int16,2}  
     tag :: Array{Int16,1}  
     tagnames :: Array{String,1}
 
     Mesh() = new(
-        0,0,0,0,    # 
+        0,0,0,0,0,    # 
         0,  # This is the start of Block 2
         Array{Int32,2}(undef,0,0),  # ID
         Array{Int32,2}(undef,0,0),  # IEN_geo
@@ -89,6 +93,9 @@ mutable struct Mesh <: JuBEMtypes
         Array{Int32,2}(undef,0,0),  # LM
         Array{Float64,2}(undef,0,0),# points
         Array{Float64,2}(undef,0,0),# nodes
+        [], # bodies
+        [], # EEN
+        Array{Int16,2}(undef,0,0),# tag_geo
         Int16[],    # tag This is the start of Block 3
         String[]                          # tagnames
     )
@@ -173,6 +180,10 @@ mutable struct Solution{T} <: JuBEMtypes
     urb :: Array{T,2}
     time :: Float64
     freq :: Float64
+    Solution(u:: Array{Float64,2},t:: Array{Float64,2}) = new{Float64}(u,t,Array{Float64,2}(undef,0,0),0.0,0.0)
+    Solution(u:: Array{ComplexF64,2},t:: Array{ComplexF64,2},freq::Float64) = new{ComplexF64}(u,t,Array{ComplexF64,2}(undef,0,0),0.0,freq)
+    Solution(u:: Array{Float64,2},t::Array{Float64,2},urb::Array{Float64,2},time::Float64,freq::Float64) = new{Float64}(u,t,urb,time,freq)
+    Solution(u:: Array{ComplexF64,2},t::Array{ComplexF64,2},urb::Array{ComplexF64,2},time::Float64,freq::Float64) = new{ComplexF64}(u,t,urb,time,freq)
 end
 
 """
@@ -255,6 +266,7 @@ end
 
 
 ==(a::JuBEMtypes,b::JuBEMtypes) = begin
+    aux = 1
     if typeof(a) != typeof(b)
         return false
     end
@@ -264,10 +276,15 @@ end
         f1 = getfield(a,field)
         f2 = getfield(b,field)
         if f1 != f2
-            return false
+            aux = 0
+            println("$(field) not equal")
         end
     end
-    return true
+    if aux == 1
+        return true
+    else 
+        return false
+    end
 end
 
 function copy(mesh::Mesh)
@@ -278,7 +295,7 @@ function copy(mesh::Mesh)
 
     for field in fields
         f1 = getfield(mesh,field)
-        setfield!(mesh2,field,f1)
+        setfield!(mesh2,field,Base.copy(f1))
     end
     return mesh2
 end

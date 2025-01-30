@@ -189,14 +189,20 @@ end
 function parse_entities(io)
     npoints, ncurves, nsurfaces = parse.(Int,split(readline(io))[1:end-1])
 
-    s_entities = zeros(nsurfaces,2)
+    s_entities = zeros(nsurfaces,3)
 
     for i in 1:(npoints+ncurves)
         readline(io)
     end
 
     for i in 1:nsurfaces
-        s_entities[i,:] = parse.(Float64,split(readline(io))[[1,9]])
+        info = parse.(Float64,split(readline(io)))
+        s_entities[i,1] = info[1]
+        if info[8] == 1
+            s_entities[i,2] = info[9]
+        elseif info[8] == 2
+            s_entities[i,2:end] = info[[9,10]]
+        end
     end
 
     endblock = readline(io)
@@ -233,9 +239,10 @@ end
 
 function parse_elements!(io, mesh, s_entities)
         
-    num_entity_blocks, num_elements, min_element_tag, max_element_tag = parse.(Int, split(readline(io)))
+    num_entity_blocks, num_elements_geo, min_element_tag, max_element_tag = parse.(Int, split(readline(io)))
 
-    mesh.nelem = num_elements
+    mesh.nelem_geo = num_elements_geo
+    num_elements = 0
     
     pos = position(io)
 
@@ -251,21 +258,22 @@ function parse_elements!(io, mesh, s_entities)
         error("Element type not supported by JuBEM")
     end
 
-    mesh.IEN_geo = zeros(Int32, npel, num_elements)
-    mesh.tag = zeros(Int16, num_elements)
+    mesh.IEN_geo = zeros(Int32, npel, num_elements_geo)
+    mesh.tag_geo = zeros(Int16, num_elements_geo, 2)
 
     for index_entity in 1:num_entity_blocks
 
         dim, tag, element_type, elements_in_block = parse.(Int, split(readline(io)))
         s = findfirst(s_entities[:,1].==tag)
         # @infiltrate
-        ptag = Int(s_entities[s,2])
+        ptag = Int.(s_entities[s,2:end])
+        num_elements = num_elements + elements_in_block*sum(ptag.!=0)
 
         if element_type == 3 || element_type == 10
             for i in 1:elements_in_block
                 e, n... = parse.(Int, split(readline(io)))
                 mesh.IEN_geo[:,e] = n
-                mesh.tag[e] = ptag
+                mesh.tag_geo[e,:] = ptag
             end
         else
             for i in 1:elements_in_block
@@ -273,6 +281,7 @@ function parse_elements!(io, mesh, s_entities)
             end
         end
     end
+    mesh.nelem = num_elements
     endblock = readline(io)
     if endblock != "\$EndElements"
         error("expected end block tag, got $endblock")
