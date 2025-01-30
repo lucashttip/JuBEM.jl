@@ -57,7 +57,7 @@ include("output.jl")
 export output_vars, output_solution
 
 include("readout.jl")
-export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out,getflex_out
+export readvars_out, getnoderes_out, getfreqres_out, geturb_out, get_value_out,getflex_out, getfreqs_out
 
 include("findmind.jl")
 
