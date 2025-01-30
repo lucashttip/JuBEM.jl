@@ -1,5 +1,4 @@
 function readvars_out(filename)
-    filename = string(filename,".h5")
     fid = h5open(filename, "r")
 
     material = Material[]
@@ -55,6 +54,18 @@ function getnoderes_out(filename,node)
     close(fid)
 
     return u,t,freqs
+end
+
+function getfreqs_out(filename)
+    fid = h5open(filename, "r")
+
+    groupnames = keys(fid)
+    freqs, names = get_nums(groupnames,"freq")
+    p = sortperm(freqs)
+    freqs = freqs[p]
+    close(fid)
+
+    return freqs
 end
 
 function geturb_out(filename,dim)
